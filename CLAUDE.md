@@ -77,7 +77,7 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
 - **À demander** : comment se font aujourd'hui les inscriptions aux cours (extension, code PHP maison ou formulaire).
 
 ## État actuel
-- `index.html`, `style.css` et `images/` contiennent une page d'accueil statique, recréée à partir de l'ancien site. Couleurs : vert #81d742 et #5d9733, bleu #2ea3f2. Police : Open Sans.
+- `index.html`, `style.css` et `images/` contiennent une page d'accueil statique, recréée à partir de l'ancien site. Couleurs de l'ancien site : vert #81d742 et #5d9733, bleu #2ea3f2. Police : Open Sans. **Le nouveau site n'utilise qu'un seul vert : #5d9733** (choix du webmaster), y compris pour le pied de page.
 - Cette page est publiée via GitHub Pages : https://fsgechallens.github.io/Website/. Le dépôt est probablement public, donc **ne jamais y mettre de secrets ni de données personnelles**.
 - Les liens du menu pointent encore vers l'ancien site WordPress.
 - `site/` contient l'application **Laravel 13** avec **Livewire 4**. Elle a été créée le 26.11.2026 et utilise PHP 8.3 et MySQL 8.4 de Laragon.

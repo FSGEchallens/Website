@@ -68,8 +68,7 @@ document.addEventListener('alpine:init', () => {
         paletteOuverte: false,
         couleurs: [
             { nom: 'Noir', code: '#333333' },
-            { nom: 'Vert foncé (club)', code: '#5d9733' },
-            { nom: 'Vert (club)', code: '#81d742' },
+            { nom: 'Vert (club)', code: '#5d9733' },
             { nom: 'Bleu (club)', code: '#2ea3f2' },
             { nom: 'Rouge', code: '#c62828' },
             { nom: 'Orange', code: '#e67e22' },

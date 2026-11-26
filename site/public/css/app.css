@@ -1,6 +1,7 @@
 /* FSG Echallens – feuille de style de l'application (sans bibliothèque externe) */
 :root {
-    --vert: #81d742;
+    /* Un seul vert pour tout le site (celui du titre « Nos partenaires »). */
+    --vert: #5d9733;
     --vert-fonce: #5d9733;
     --bleu: #2ea3f2;
     --rouge: #c62828;
@@ -53,7 +54,7 @@ a { color: var(--bleu); }
 .contenu-public { padding-bottom: 2rem; }
 
 /* Page d'accueil */
-.bandeau { background: linear-gradient(135deg, var(--vert) 0%, var(--vert-fonce) 100%); color: #fff; text-align: center; padding: 4.5rem 0; margin-top: -1.5rem; }
+.bandeau { background: var(--vert-fonce); color: #fff; text-align: center; padding: 4.5rem 0; margin-top: -1.5rem; }
 .bandeau h1 { margin: 0 0 .6rem; font-size: 2.3rem; font-weight: 800; line-height: 1.2; }
 .bandeau p { margin: 0 0 1.6rem; font-size: 1.15rem; }
 .bouton-blanc {
@@ -248,10 +249,10 @@ altcha-widget {
 }
 
 /* Pied de page */
-.pied { background: #222; color: #ccc; font-size: .88rem; padding: 1.25rem 0; }
+.pied { background: var(--vert-fonce); color: #fff; font-size: .88rem; padding: 1.25rem 0; }
 .pied__contenu { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
 .pied p { margin: 0; }
-.pied a { color: var(--vert); }
+.pied a { color: #fff; text-decoration: underline; }
 
 @media (max-width: 60rem) {
     .bandeau h1 { font-size: 1.7rem; }
