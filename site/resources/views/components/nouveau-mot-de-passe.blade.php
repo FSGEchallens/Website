@@ -49,10 +49,4 @@
         </li>
         <li :class="criteres.identiques && 'ok'">les deux mots de passe sont identiques</li>
     </ul>
-
-    <p class="discret">
-        Conseil : une courte phrase facile à retenir fait un excellent mot de passe,
-        par exemple <em>« Le saut en longueur, c'est 4 fois mieux ! »</em> (mais n'utilisez pas celle-ci).
-        Les mots de passe connus pour avoir fuité sur internet sont refusés.
-    </p>
 </div>
