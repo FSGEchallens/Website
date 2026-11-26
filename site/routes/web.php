@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\FichierArchiveController;
 use App\Http\Controllers\LogoPartenaireController;
 use App\Http\Controllers\PhotoMembreController;
+use App\Livewire\Administration\JournalModifications;
 use App\Livewire\Auth\Connexion;
 use App\Livewire\Auth\MotDePasseOublie;
 use App\Livewire\Auth\NouveauMotDePasse;
@@ -49,6 +51,13 @@ Route::middleware(['auth', 'can:gerer-membres'])->group(function () {
     Route::livewire('/membres', ListeMembres::class)->name('membres.index');
     Route::livewire('/membres/nouveau', FicheMembre::class)->name('membres.create');
     Route::livewire('/membres/{membre}/modifier', FicheMembre::class)->name('membres.edit');
+});
+
+// Journal des modifications : administrateur uniquement.
+Route::middleware(['auth', 'can:consulter-journal'])->group(function () {
+    Route::livewire('/administration/journal', JournalModifications::class)->name('journal.index');
+    Route::get('/administration/journal/{entree}/fichier/{index}', FichierArchiveController::class)
+        ->whereNumber('index')->name('journal.fichier');
 });
 
 // Contenus du site public : comité et administrateur uniquement.

@@ -61,6 +61,9 @@ return [
         ['titre' => 'Site public', 'liens' => [
             ['libelle' => 'Partenaires', 'route' => 'partenaires.index', 'actif' => 'partenaires.*', 'role' => 'comite'],
         ]],
+        ['titre' => 'Administration', 'liens' => [
+            ['libelle' => 'Journal des modifications', 'route' => 'journal.index', 'actif' => 'journal.*', 'role' => 'administrateur'],
+        ]],
     ],
 
 ];

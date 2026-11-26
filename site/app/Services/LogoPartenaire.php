@@ -63,6 +63,8 @@ class LogoPartenaire
     public function supprimer(Partenaire $partenaire): void
     {
         if ($partenaire->logo !== null && ! $partenaire->aUnLogoDOrigine()) {
+            // L'ancien logo est archivé dans le journal avant d'être supprimé.
+            $partenaire->archiverFichier('logo', self::DISQUE, self::DOSSIER.'/'.$partenaire->logo);
             Storage::disk(self::DISQUE)->delete(self::DOSSIER.'/'.$partenaire->logo);
         }
     }

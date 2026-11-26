@@ -104,6 +104,14 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
     - En haut : barre de connexion, logo et menu du site (`config/navigation.php`, clé `site`). Les liens pointent encore vers l'ancien WordPress.
     - Une fois connecté : menu de gauche avec les fonctions selon le niveau (`config/navigation.php`, clé `espace_membre`, champ `role` = niveau minimal).
     - Le menu de gauche est ouvert à chaque connexion. On peut le replier, et l'état est gardé dans le `localStorage` ; sur mobile, il s'ouvre comme un tiroir. Le JavaScript est dans `public/js/app.js`, sans bibliothèque externe.
+  - **Journal des modifications** (table `journal_modifications`) :
+    - Il enregistre qui a créé, modifié ou supprimé quoi (valeurs avant / après, adresse IP).
+    - Il est activé par le trait `App\Models\Concerns\Journalise` sur `User` et `Partenaire` : à ajouter sur chaque nouveau modèle modifiable, avec `libelleJournal()` et `libellesChampsJournal()`.
+    - Avant de remplacer ou supprimer un fichier, appeler `archiverFichier()`. L'ancien fichier est copié dans `storage/app/private/archives-journal`.
+    - La restauration (`App\Services\Journal::restaurer`) remet les valeurs « avant » ou fait revenir un élément supprimé, fichiers compris.
+    - Le mot de passe n'est jamais conservé, et le n° AVS est affiché masqué.
+    - Conservation : `JOURNAL_CONSERVATION_JOURS` (365 par défaut). Nettoyage chaque nuit à 03:15 par `model:prune` (planificateur).
+    - Page `/administration/journal`, réservée à l'administrateur (gate `consulter-journal`).
   - **Commandes** utilisables depuis les tâches planifiées de Plesk :
     - `mail:test adresse` : envoie un e-mail de test ;
     - `membre:admin email Prénom Nom` : crée un administrateur et lui envoie une invitation.

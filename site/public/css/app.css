@@ -104,6 +104,20 @@ a { color: var(--bleu); }
     .identite--logo { grid-template-columns: 1fr; }
 }
 
+/* Journal des modifications */
+.alerte--erreur { background: #fdecea; border-left: 4px solid var(--rouge); }
+.badge--action-creation { background: #e8f5dc; color: #3d6b1f; }
+.badge--action-modification { background: #e3f2fd; color: #0b5c8f; }
+.badge--action-suppression { background: #fde2e1; color: #8e1b14; }
+.journal__details > td { background: #fafafa; }
+.journal__valeurs { margin: .5rem 0 1rem; background: #fff; border: 1px solid var(--gris-clair); }
+.journal__valeurs th, .journal__valeurs td { padding: .35rem .6rem; font-size: .9rem; }
+.journal__change td:nth-child(2) { color: #8e1b14; text-decoration: line-through; text-decoration-color: rgba(142, 27, 20, .4); }
+.journal__change td:nth-child(3) { color: #3d6b1f; }
+.journal__fichiers { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+.journal__fichiers a { display: flex; flex-direction: column; align-items: center; gap: .25rem; text-decoration: none; }
+.journal__fichiers img { max-width: 8rem; max-height: 8rem; object-fit: contain; border: 1px solid var(--gris-clair); border-radius: 4px; background: #fff; }
+
 /* Pied de page */
 .pied { background: #222; color: #ccc; font-size: .88rem; padding: 1.25rem 0; }
 .pied__contenu { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }

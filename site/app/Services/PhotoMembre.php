@@ -41,8 +41,13 @@ class PhotoMembre
         $nom = $this->nomDeFichier($membre);
         $disque = Storage::disk(self::DISQUE);
 
-        if ($membre->photo !== null && $membre->photo !== $nom) {
-            $disque->delete(self::DOSSIER.'/'.$membre->photo);
+        if ($membre->photo !== null) {
+            // L'ancienne photo est archivée dans le journal avant d'être remplacée.
+            $membre->archiverFichier('photo', self::DISQUE, self::DOSSIER.'/'.$membre->photo);
+
+            if ($membre->photo !== $nom) {
+                $disque->delete(self::DOSSIER.'/'.$membre->photo);
+            }
         }
 
         $disque->put(self::DOSSIER.'/'.$nom, $jpeg);
@@ -63,6 +68,7 @@ class PhotoMembre
         $disque = Storage::disk(self::DISQUE);
 
         if ($nouveauNom !== $membre->photo && $disque->exists(self::DOSSIER.'/'.$membre->photo)) {
+            $membre->archiverFichier('photo', self::DISQUE, self::DOSSIER.'/'.$membre->photo);
             $disque->move(self::DOSSIER.'/'.$membre->photo, self::DOSSIER.'/'.$nouveauNom);
 
             return $nouveauNom;
@@ -74,6 +80,7 @@ class PhotoMembre
     public function supprimer(User $membre): void
     {
         if ($membre->photo !== null) {
+            $membre->archiverFichier('photo', self::DISQUE, self::DOSSIER.'/'.$membre->photo);
             Storage::disk(self::DISQUE)->delete(self::DOSSIER.'/'.$membre->photo);
         }
     }

@@ -1,8 +1,10 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+/*
+ * Tâches automatiques (lancées par la tâche planifiée Plesk « Laravel - planificateur » : schedule:run chaque minute).
+ */
+
+// Chaque nuit : supprime les entrées du journal (et leurs fichiers archivés) plus anciennes que JOURNAL_CONSERVATION_JOURS.
+Schedule::command('model:prune')->dailyAt('03:15');

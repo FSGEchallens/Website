@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Journalise;
 use Database\Factories\PartenaireFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,9 +19,22 @@ use Illuminate\Database\Eloquent\Model;
 class Partenaire extends Model
 {
     /** @use HasFactory<PartenaireFactory> */
-    use HasFactory;
+    use HasFactory, Journalise;
 
     public const DOSSIER_ORIGINE = 'images/partenaires/';
+
+    public function libelleJournal(): string
+    {
+        return 'Partenaire « '.$this->nom.' »';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function libellesChampsJournal(): array
+    {
+        return ['nom' => 'Nom', 'url' => 'Lien', 'logo' => 'Logo', 'ordre' => 'Ordre', 'visible' => 'Affiché'];
+    }
 
     /**
      * @return array<string, string>

@@ -60,7 +60,11 @@ trait GerePhotoMembre
     protected function appliquerPhoto(User $membre, PhotoMembre $photos): void
     {
         if ($this->photo !== null) {
-            $membre->forceFill(['photo' => $photos->enregistrer($membre, $this->photo)])->save();
+            $membre->forceFill(['photo' => $photos->enregistrer($membre, $this->photo)]);
+
+            // Même nom de fichier : on « touche » quand même la fiche, pour le journal et le cache des navigateurs.
+            $membre->isDirty() ? $membre->save() : $membre->touch();
+            $membre->journaliserFichiersEnAttente();
         } elseif ($this->supprimerPhoto && $membre->photo !== null) {
             $photos->supprimer($membre);
             $membre->forceFill(['photo' => null])->save();

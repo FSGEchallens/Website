@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Civilite;
 use App\Enums\Role;
+use App\Models\Concerns\Journalise;
 use App\Notifications\LienMotDePasse;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -31,7 +32,26 @@ use Illuminate\Support\Facades\Password;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Journalise, Notifiable;
+
+    public function libelleJournal(): string
+    {
+        return 'Membre « '.$this->nomComplet().' »';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function libellesChampsJournal(): array
+    {
+        return [
+            'civilite' => 'Titre', 'prenom' => 'Prénom', 'nom' => 'Nom', 'rue' => 'Rue', 'numero' => 'N°',
+            'npa' => 'Code postal', 'localite' => 'Localité', 'mobile' => 'Mobile', 'email_prive' => 'E-mail privé',
+            'photo' => 'Photo', 'email' => 'E-mail société', 'role' => 'Autorisation', 'avs' => 'N° AVS',
+            'date_naissance' => 'Date de naissance', 'date_entree' => 'Date d\'entrée', 'date_sortie' => 'Date de sortie',
+            'afficher_mobile' => 'Afficher le mobile', 'password' => 'Mot de passe',
+        ];
+    }
 
     /**
      * @return array<string, string>

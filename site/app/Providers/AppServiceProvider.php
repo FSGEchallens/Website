@@ -43,5 +43,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Contenus du site public (partenaires, puis pages…) : comité et administrateur.
         Gate::define('gerer-contenu', fn (User $user) => $user->aAuMoins(Role::Comite));
+
+        // Journal des modifications (qui a modifié quoi, restauration) : administrateur uniquement pour le moment.
+        Gate::define('consulter-journal', fn (User $user) => $user->estAdministrateur());
     }
 }
