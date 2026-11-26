@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use App\Enums\Civilite;
+use App\Enums\Role;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -48,6 +50,45 @@ class User extends Authenticatable
             'afficher_telephone' => 'boolean',
             'afficher_mobile' => 'boolean',
         ];
+    }
+
+    /**
+     * @return HasMany<UserRole, $this>
+     */
+    public function roles(): HasMany
+    {
+        return $this->hasMany(UserRole::class);
+    }
+
+    public function aRole(Role ...$roles): bool
+    {
+        return $this->roles->contains(fn (UserRole $userRole) => in_array($userRole->role, $roles, true));
+    }
+
+    /**
+     * Remplace les rôles du membre par ceux donnés.
+     *
+     * @param  array<int, Role>  $roles
+     */
+    public function synchroniserRoles(array $roles): void
+    {
+        $valeurs = array_map(fn (Role $role) => $role->value, $roles);
+
+        $this->roles()->whereNotIn('role', $valeurs)->delete();
+
+        foreach ($roles as $role) {
+            $this->roles()->firstOrCreate(['role' => $role]);
+        }
+
+        $this->unsetRelation('roles');
+    }
+
+    /**
+     * @param  Builder<User>  $query
+     */
+    public function scopeAvecRole(Builder $query, Role $role): void
+    {
+        $query->whereHas('roles', fn (Builder $q) => $q->where('role', $role->value));
     }
 
     public function nomComplet(): string

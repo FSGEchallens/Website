@@ -8,6 +8,12 @@
         <div class="barre__filtres">
             <input type="search" class="recherche" wire:model.live.debounce.300ms="recherche"
                    placeholder="Rechercher (nom, prénom, localité, e-mail…)" aria-label="Rechercher un membre">
+            <select class="recherche" style="max-width: 12rem" wire:model.live="role" aria-label="Filtrer par rôle">
+                <option value="">Tous les rôles</option>
+                @foreach ($tousLesRoles as $option)
+                    <option value="{{ $option->value }}">{{ $option->libelle() }}</option>
+                @endforeach
+            </select>
             <label class="case">
                 <input type="checkbox" wire:model.live="inclureAnciens"> Afficher aussi les anciens membres
             </label>
@@ -20,6 +26,7 @@
             <thead>
                 <tr>
                     <th>Nom</th>
+                    <th>Rôles</th>
                     <th>Localité</th>
                     <th>Mobile</th>
                     <th>E-mail société</th>
@@ -38,6 +45,11 @@
                                 <span class="badge">ancien membre</span>
                             @endunless
                         </td>
+                        <td data-label="Rôles">
+                            @foreach ($membre->roles as $userRole)
+                                <span class="badge badge--{{ $userRole->role->value }}">{{ $userRole->role->libelle() }}</span>
+                            @endforeach
+                        </td>
                         <td data-label="Localité">{{ trim($membre->npa.' '.$membre->localite) }}</td>
                         <td data-label="Mobile">{{ $membre->mobile }}</td>
                         <td data-label="E-mail société">
@@ -49,7 +61,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="discret">Aucun membre trouvé.</td>
+                        <td colspan="6" class="discret">Aucun membre trouvé.</td>
                     </tr>
                 @endforelse
             </tbody>

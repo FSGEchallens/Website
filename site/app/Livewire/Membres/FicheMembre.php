@@ -3,9 +3,11 @@
 namespace App\Livewire\Membres;
 
 use App\Enums\Civilite;
+use App\Enums\Role;
 use App\Models\User;
 use App\Rules\NumeroAvs;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
@@ -58,6 +60,9 @@ class FicheMembre extends Component
 
     public string $compte_wp = '';
 
+    /** @var array<int, string> */
+    public array $roles = [];
+
     public function mount(?User $membre = null): void
     {
         if ($membre === null || ! $membre->exists) {
@@ -90,6 +95,7 @@ class FicheMembre extends Component
             'afficher_telephone' => (bool) $membre->afficher_telephone,
             'afficher_mobile' => (bool) $membre->afficher_mobile,
             'compte_wp' => (string) $membre->compte_wp,
+            'roles' => $membre->roles->map(fn ($userRole) => $userRole->role->value)->values()->all(),
         ]);
     }
 
@@ -122,6 +128,8 @@ class FicheMembre extends Component
             'afficher_telephone' => ['boolean'],
             'afficher_mobile' => ['boolean'],
             'compte_wp' => ['nullable', 'string', 'max:60'],
+            'roles' => ['array'],
+            'roles.*' => ['distinct', Rule::enum(Role::class)],
         ];
     }
 
@@ -162,13 +170,19 @@ class FicheMembre extends Component
     {
         $donnees = $this->validate();
 
+        $roles = array_map(fn (string $valeur) => Role::from($valeur), $donnees['roles'] ?? []);
+        unset($donnees['roles']);
+
         $donnees = array_map(fn ($valeur) => is_string($valeur) ? (trim($valeur) === '' ? null : trim($valeur)) : $valeur, $donnees);
         $donnees['avs'] = NumeroAvs::formater($donnees['avs']);
         $donnees['email'] = $donnees['email'] !== null ? mb_strtolower($donnees['email']) : null;
 
         $estNouveau = $this->membre === null;
         $membre = $this->membre ?? new User;
-        $membre->fill($donnees)->save();
+        DB::transaction(function () use ($membre, $donnees, $roles): void {
+            $membre->fill($donnees)->save();
+            $membre->synchroniserRoles($roles);
+        });
 
         session()->flash('message', $estNouveau
             ? 'Le membre '.$membre->nomComplet().' a Ã©tÃ© crÃ©Ã©.'
@@ -181,6 +195,7 @@ class FicheMembre extends Component
     {
         return view('livewire.membres.fiche-membre', [
             'civilites' => Civilite::cases(),
+            'tousLesRoles' => Role::cases(),
         ])->title($this->membre ? 'Modifier '.$this->membre->nomComplet() : 'Nouveau membre');
     }
 }

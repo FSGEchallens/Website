@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\Civilite;
+use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -47,6 +48,16 @@ class UserFactory extends Factory
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
+    }
+
+    /**
+     * Donne un ou plusieurs rôles au membre.
+     */
+    public function avecRoles(Role ...$roles): static
+    {
+        return $this->afterCreating(function (User $user) use ($roles): void {
+            $user->synchroniserRoles($roles);
+        });
     }
 
     /**

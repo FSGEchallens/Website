@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\Civilite;
+use App\Enums\Role;
 use App\Livewire\Membres\FicheMembre;
 use App\Livewire\Membres\ListeMembres;
 use App\Models\User;
@@ -112,6 +113,47 @@ class MembresTest extends TestCase
             ->assertHasNoErrors();
 
         $this->assertSame('Echallens', $membre->fresh()->localite);
+    }
+
+    public function test_attribution_et_retrait_de_roles(): void
+    {
+        $membre = User::factory()->avecRoles(Role::Moniteur)->create();
+
+        Livewire::test(FicheMembre::class, ['membre' => $membre])
+            ->assertSet('roles', ['moniteur'])
+            ->set('roles', ['comite', 'administrateur'])
+            ->call('enregistrer')
+            ->assertHasNoErrors();
+
+        $membre->refresh();
+
+        $this->assertTrue($membre->aRole(Role::Comite));
+        $this->assertTrue($membre->aRole(Role::Administrateur));
+        $this->assertFalse($membre->aRole(Role::Moniteur));
+        $this->assertCount(2, $membre->roles);
+    }
+
+    public function test_un_role_inconnu_est_refuse(): void
+    {
+        Livewire::test(FicheMembre::class)
+            ->set('prenom', 'Test')
+            ->set('nom', 'Test')
+            ->set('roles', ['pirate'])
+            ->call('enregistrer')
+            ->assertHasErrors(['roles.0']);
+
+        $this->assertSame(0, User::count());
+    }
+
+    public function test_filtre_de_la_liste_par_role(): void
+    {
+        User::factory()->avecRoles(Role::Comite)->create(['nom' => 'Presidente']);
+        User::factory()->avecRoles(Role::Moniteur)->create(['nom' => 'Entraineur']);
+
+        Livewire::test(ListeMembres::class)
+            ->set('role', 'comite')
+            ->assertSee('Presidente')
+            ->assertDontSee('Entraineur');
     }
 
     public function test_un_membre_peut_garder_son_propre_e_mail(): void

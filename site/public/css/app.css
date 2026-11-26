@@ -76,7 +76,10 @@ th, td { text-align: left; padding: .6rem .75rem; border-bottom: 1px solid var(-
 th { background: #fafafa; font-size: .85rem; text-transform: uppercase; color: var(--gris); }
 tr:hover td { background: #fbfdf8; }
 .discret { color: var(--gris); font-size: .9rem; }
-.badge { display: inline-block; font-size: .75rem; padding: .1rem .5rem; border-radius: 10px; background: var(--gris-clair); }
+.badge { display: inline-block; font-size: .75rem; padding: .1rem .5rem; border-radius: 10px; background: var(--gris-clair); margin: 0 .2rem .2rem 0; }
+.badge--administrateur { background: #fde2e1; color: #8e1b14; }
+.badge--comite { background: #e3f2fd; color: #0b5c8f; }
+.badge--moniteur { background: #e8f5dc; color: #3d6b1f; }
 
 /* Pagination */
 .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }

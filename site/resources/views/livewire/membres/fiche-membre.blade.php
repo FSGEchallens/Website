@@ -46,6 +46,20 @@
         </section>
 
         <section class="carte">
+            <h2>Autorisations</h2>
+            <p class="discret">Une personne peut avoir plusieurs rôles. Un membre sans rôle peut seulement voir et modifier son propre profil.</p>
+            <div class="grille">
+                @foreach ($tousLesRoles as $role)
+                    <label class="case" wire:key="role-{{ $role->value }}">
+                        <input type="checkbox" wire:model="roles" value="{{ $role->value }}">
+                        <span><strong>{{ $role->libelle() }}</strong><br><span class="discret">{{ $role->description() }}</span></span>
+                    </label>
+                @endforeach
+            </div>
+            @error('roles.*') <div class="champ"><div class="erreur">{{ $message }}</div></div> @enderror
+        </section>
+
+        <section class="carte">
             <h2>Données sensibles (J+S)</h2>
             <p class="discret">Visibles uniquement par le comité, le webmaster et le membre lui-même. Le n° AVS est chiffré dans la base de données.</p>
             <div class="grille">

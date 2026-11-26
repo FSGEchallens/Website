@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Membres;
 
+use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Title;
@@ -20,7 +21,15 @@ class ListeMembres extends Component
     #[Url(as: 'anciens', except: false)]
     public bool $inclureAnciens = false;
 
+    #[Url(as: 'role', except: '')]
+    public string $role = '';
+
     public function updatedRecherche(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedRole(): void
     {
         $this->resetPage();
     }
@@ -32,8 +41,12 @@ class ListeMembres extends Component
 
     public function render(): View
     {
+        $roleChoisi = Role::tryFrom($this->role);
+
         $membres = User::query()
+            ->with('roles')
             ->recherche($this->recherche)
+            ->when($roleChoisi, fn ($query) => $query->avecRole($roleChoisi))
             ->when(! $this->inclureAnciens, fn ($query) => $query->where(
                 fn ($q) => $q->whereNull('date_sortie')->orWhere('date_sortie', '>', now()->toDateString())
             ))
@@ -41,6 +54,9 @@ class ListeMembres extends Component
             ->orderBy('prenom')
             ->paginate(25);
 
-        return view('livewire.membres.liste-membres', ['membres' => $membres]);
+        return view('livewire.membres.liste-membres', [
+            'membres' => $membres,
+            'tousLesRoles' => Role::cases(),
+        ]);
     }
 }
