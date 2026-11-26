@@ -10,7 +10,7 @@
             )),
         ])
         ->filter(fn (array $section) => $section['liens'] !== []);
-    $role = $utilisateur->role ?? \App\Enums\Role::Membre;
+    $role = $utilisateur->roleEffectif();
 @endphp
 
 <div class="voile" data-bascule-menu-lateral aria-hidden="true"></div>
@@ -28,7 +28,26 @@
             <img src="{{ $utilisateur->urlPhoto() }}" alt="" class="vignette" width="40" height="40">
             <div>
                 <strong>{{ $utilisateur->nomComplet() }}</strong><br>
-                <span class="badge badge--{{ $role->value }}">{{ $role->libelle() }}</span>
+                @if ($utilisateur->peutChangerDeNiveau())
+                    {{-- Compte webmaster : un clic sur le badge permet de voir le site comme un autre niveau. --}}
+                    <details class="choix-niveau">
+                        <summary title="Voir le site comme un autre niveau">
+                            <span class="badge badge--{{ $role->value }}">{{ $role->libelle() }}</span> ▾
+                        </summary>
+                        <form method="POST" action="{{ route('apercu-niveau') }}" class="choix-niveau__liste">
+                            @csrf
+                            <p class="discret">Voir le site comme :</p>
+                            @foreach (array_reverse(\App\Enums\Role::cases()) as $niveau)
+                                <button type="submit" name="niveau" value="{{ $niveau->value }}" @class(['actif' => $niveau === $role])>
+                                    {{ $niveau->libelle() }}
+                                    @if ($niveau === $utilisateur->roleReel()) <span class="discret">(mon niveau)</span> @endif
+                                </button>
+                            @endforeach
+                        </form>
+                    </details>
+                @else
+                    <span class="badge badge--{{ $role->value }}">{{ $role->libelle() }}</span>
+                @endif
             </div>
         </div>
 

@@ -22,6 +22,12 @@ return [
     'domaine_email' => env('DOMAINE_EMAIL_SOCIETE', 'gymechallens.ch'),
 
     /*
+    | Seul ce compte (s'il est administrateur) peut « voir le site comme » un autre niveau.
+    */
+
+    'compte_apercu_niveaux' => env('COMPTE_APERCU_NIVEAUX', 'webmaster@gymechallens.ch'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------

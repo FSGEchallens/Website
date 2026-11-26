@@ -150,11 +150,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Le membre a-t-il au moins ce niveau d'autorisation ?
+     * Le membre a-t-il au moins ce niveau d'autorisation ? (Tient compte de l'aperçu de niveau du webmaster.)
      */
     public function aAuMoins(Role $role): bool
     {
-        return ($this->role ?? Role::Membre)->auMoins($role);
+        return $this->roleEffectif()->auMoins($role);
     }
 
     public function peutGererLesMembres(): bool
@@ -164,7 +164,51 @@ class User extends Authenticatable
 
     public function estAdministrateur(): bool
     {
-        return $this->role === Role::Administrateur;
+        return $this->roleEffectif() === Role::Administrateur;
+    }
+
+    /**
+     * Niveau réellement enregistré dans la base.
+     */
+    public function roleReel(): Role
+    {
+        return $this->role ?? Role::Membre;
+    }
+
+    /**
+     * Niveau utilisé pour les droits et l'affichage : le niveau réel, ou le niveau choisi
+     * dans l'aperçu (« voir le site comme… ») par le compte webmaster, pour lui seul.
+     */
+    public function roleEffectif(): Role
+    {
+        $apercu = $this->roleEnApercu();
+
+        return $apercu ?? $this->roleReel();
+    }
+
+    /**
+     * Niveau d'aperçu actif pour ce compte, ou null.
+     */
+    public function roleEnApercu(): ?Role
+    {
+        if (! $this->peutChangerDeNiveau() || ! app()->bound('session') || auth()->id() !== $this->getKey()) {
+            return null;
+        }
+
+        $apercu = Role::tryFrom((string) session('apercu_niveau'));
+
+        // On ne peut que descendre de niveau, jamais monter.
+        return $apercu !== null && $apercu !== $this->roleReel() && $this->roleReel()->auMoins($apercu) ? $apercu : null;
+    }
+
+    /**
+     * Seul le compte webmaster (administrateur) peut voir le site comme un autre niveau.
+     */
+    public function peutChangerDeNiveau(): bool
+    {
+        return $this->roleReel() === Role::Administrateur
+            && $this->email !== null
+            && mb_strtolower($this->email) === mb_strtolower((string) config('app.compte_apercu_niveaux'));
     }
 
     /**

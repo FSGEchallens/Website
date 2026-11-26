@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Role;
 use App\Http\Controllers\FichierArchiveController;
 use App\Http\Controllers\LogoPartenaireController;
 use App\Http\Controllers\PhotoMembreController;
@@ -44,6 +45,23 @@ Route::post('/deconnexion', function (Request $request) {
 })->middleware('auth')->name('logout');
 
 Route::livewire('/profil', MonProfil::class)->middleware('auth')->name('profil');
+
+// « Voir le site comme… » : réservé au compte webmaster (administrateur), uniquement vers un niveau inférieur.
+Route::post('/apercu-niveau', function (Request $request) {
+    $utilisateur = $request->user();
+    abort_unless($utilisateur->peutChangerDeNiveau(), 403);
+
+    $niveau = Role::tryFrom((string) $request->input('niveau'));
+    abort_if($niveau === null, 422);
+
+    if ($niveau === $utilisateur->roleReel()) {
+        $request->session()->forget('apercu_niveau');
+    } else {
+        $request->session()->put('apercu_niveau', $niveau->value);
+    }
+
+    return redirect()->back();
+})->middleware('auth')->name('apercu-niveau');
 
 // Photo d'un membre (toujours publique).
 Route::get('/membres/{membre}/photo', PhotoMembreController::class)->name('membres.photo');

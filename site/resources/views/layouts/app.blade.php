@@ -22,6 +22,15 @@
 
             <main class="espace__contenu">
                 <button type="button" class="ouvrir-menu-mobile" data-bascule-menu-lateral aria-controls="menu-lateral">☰ Mon espace</button>
+                @if ($apercu = auth()->user()->roleEnApercu())
+                    <form method="POST" action="{{ route('apercu-niveau') }}" class="bandeau-apercu" role="status">
+                        @csrf
+                        <span>👁 Aperçu du site en tant que <strong>{{ $apercu->libelle() }}</strong> (votre niveau réel n'est pas modifié).</span>
+                        <button type="submit" name="niveau" value="{{ auth()->user()->roleReel()->value }}" class="bouton bouton--petit">
+                            Revenir à {{ auth()->user()->roleReel()->libelle() }}
+                        </button>
+                    </form>
+                @endif
                 @include('partials.message')
                 @hasSection('pleine-largeur')
                     <div class="page-dans-espace">@yield('pleine-largeur')</div>

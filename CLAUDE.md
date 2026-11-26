@@ -118,6 +118,11 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
     - Le mot de passe n'est jamais conservé, et le n° AVS est affiché masqué.
     - Conservation : `JOURNAL_CONSERVATION_JOURS` (365 par défaut). Nettoyage chaque nuit à 00:00 (heure suisse) par `model:prune` (planificateur).
     - Page `/administration/journal`, réservée à l'administrateur (gate `consulter-journal`).
+  - **Aperçu de niveau** (« voir le site comme… ») :
+    - Réservé au compte `COMPTE_APERCU_NIVEAUX` (par défaut webmaster@gymechallens.ch), et seulement s'il est administrateur. On l'active en cliquant sur son badge, dans le menu de gauche.
+    - Le niveau choisi est gardé en session (`apercu_niveau`), et on ne peut que descendre de niveau.
+    - `User::roleEffectif()` est utilisé partout pour les droits ; `roleReel()` donne le niveau enregistré en base.
+    - Un bandeau jaune s'affiche pendant l'aperçu. Pages d'erreur 403, 404 et 419 en français.
   - **Commandes** utilisables depuis les tâches planifiées de Plesk :
     - `mail:test adresse` : envoie un e-mail de test ;
     - `membre:admin email Prénom Nom` : crée un administrateur et lui envoie une invitation.
