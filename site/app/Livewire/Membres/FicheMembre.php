@@ -61,8 +61,6 @@ class FicheMembre extends Component
 
     public bool $afficher_mobile = false;
 
-    public string $compte_wp = '';
-
     public string $role = '';
 
     public function mount(?User $membre = null): void
@@ -117,7 +115,6 @@ class FicheMembre extends Component
             'date_entree' => ['nullable', 'date'],
             'date_sortie' => ['nullable', 'date', 'after_or_equal:date_entree'],
             ...ReglesMembre::affichage(),
-            'compte_wp' => ['nullable', 'string', 'max:60'],
             'role' => ['required', Rule::enum(Role::class)],
             ...$this->reglesPhoto(),
         ];
@@ -136,7 +133,6 @@ class FicheMembre extends Component
             'date_naissance' => 'date de naissance',
             'date_entree' => 'date d\'entrée',
             'date_sortie' => 'date de sortie',
-            'compte_wp' => 'compte WordPress',
             'role' => 'autorisation',
             'photo' => 'photo',
         ];
@@ -236,7 +232,6 @@ class FicheMembre extends Component
             'afficher_photo' => (bool) $membre->afficher_photo,
             'afficher_adresse' => (bool) $membre->afficher_adresse,
             'afficher_mobile' => (bool) $membre->afficher_mobile,
-            'compte_wp' => (string) $membre->compte_wp,
             'role' => ($membre->role ?? Role::Membre)->value,
         ]);
     }

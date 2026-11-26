@@ -59,7 +59,6 @@
                              aide="Sert d'identifiant de connexion. Sans e-mail société, le membre ne peut pas se connecter." />
                     <x-champ nom="date_entree" libelle="Date d'entrée" type="date" />
                     <x-champ nom="date_sortie" libelle="Date de sortie" type="date" aide="Laisser vide tant que la personne est membre." />
-                    <x-champ nom="compte_wp" libelle="Compte WordPress (ancien site)" />
                 </div>
             </section>
 

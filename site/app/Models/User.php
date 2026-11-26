@@ -26,7 +26,6 @@ use Illuminate\Support\Facades\Password;
     'rue', 'numero', 'npa', 'localite', 'mobile', 'email_prive',
     'email', 'avs', 'date_naissance', 'date_entree', 'date_sortie',
     'afficher_photo', 'afficher_adresse', 'afficher_mobile',
-    'compte_wp',
 ])]
 #[Hidden(['password', 'remember_token', 'avs', 'code_connexion'])]
 class User extends Authenticatable
