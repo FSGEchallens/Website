@@ -48,9 +48,7 @@
             <legend class="visuellement-cache">Mes coordonnées</legend>
 
             <section class="carte">
-                <h2>Mes coordonnées privées</h2>
-                <p class="discret">Elles servent au comité et à vos moniteurs. Elles ne sont jamais affichées publiquement, sauf votre mobile si vous le choisissez ci-dessous.</p>
-                <div class="grille">
+                <h2>Mes coordonnées privées</h2>                <div class="grille">
                     <x-champ nom="rue" libelle="Rue" autocomplete="address-line1" />
                     <x-champ nom="numero" libelle="N°" />
                     <x-champ nom="npa" libelle="Code postal" inputmode="numeric" autocomplete="postal-code" />
