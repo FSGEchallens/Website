@@ -10,19 +10,9 @@ use App\Livewire\Membres\ListeMembres;
 use App\Livewire\Profil\MonProfil;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    try {
-        DB::connection()->getPdo();
-        $baseOk = true;
-    } catch (Throwable) {
-        $baseOk = false;
-    }
-
-    return view('welcome', ['baseOk' => $baseOk]);
-})->name('accueil');
+Route::view('/', 'accueil')->name('accueil');
 
 // Connexion en deux étapes (mot de passe puis code par e-mail) et mots de passe.
 Route::middleware('guest')->group(function () {
@@ -43,7 +33,7 @@ Route::post('/deconnexion', function (Request $request) {
 
 Route::livewire('/profil', MonProfil::class)->middleware('auth')->name('profil');
 
-// Photo d'un membre (le contrôleur vérifie qui a le droit de la voir).
+// Photo d'un membre (toujours publique).
 Route::get('/membres/{membre}/photo', PhotoMembreController::class)->name('membres.photo');
 
 // Gestion des membres : comité et administrateur uniquement.

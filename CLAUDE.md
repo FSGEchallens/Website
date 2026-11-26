@@ -83,7 +83,7 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
 - `site/` contient l'application **Laravel 13** avec **Livewire 4**. Elle a été créée le 26.11.2026 et utilise PHP 8.3 et MySQL 8.4 de Laragon.
   - En local, la base s'appelle `fsg_echallens` (utilisateur root, sans mot de passe).
   - Les e-mails partent vers Mailpit de Laragon (port 1025, consultables sur http://localhost:8025).
-  - La page `/` est une page de test qui indique si la base de données est connectée.
+  - **Page d'accueil** (`/`, vue `accueil.blade.php`) : elle reprend la page statique (bandeau, texte, encadré « recrute », partenaires). Les partenaires et les liens généraux sont dans `config/site.php`, et les images dans `public/images/accueil` et `public/images/partenaires`. Le contenu sera rendu modifiable par le comité à l'étape 2.
   - **Membres** : la table `users` sert de fiche membre, avec l'e-mail société comme identifiant de connexion.
     - Le n° AVS est chiffré dans la base.
     - L'autorisation est stockée dans la colonne `users.role` (membre, moniteur, comité, administrateur ; une seule par personne).

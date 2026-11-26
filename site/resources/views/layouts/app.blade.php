@@ -23,14 +23,32 @@
             <main class="espace__contenu">
                 <button type="button" class="ouvrir-menu-mobile" data-bascule-menu-lateral aria-controls="menu-lateral">☰ Mon espace</button>
                 @include('partials.message')
-                @isset($slot) {{ $slot }} @else @yield('contenu') @endisset
+                @hasSection('pleine-largeur')
+                    <div class="page-dans-espace">@yield('pleine-largeur')</div>
+                @else
+                    @isset($slot) {{ $slot }} @else @yield('contenu') @endisset
+                @endif
             </main>
         </div>
     @else
-        <main class="conteneur contenu-public">
-            @include('partials.message')
-            @isset($slot) {{ $slot }} @else @yield('contenu') @endisset
-        </main>
+        @hasSection('pleine-largeur')
+            <main>
+                <div class="conteneur">@include('partials.message')</div>
+                @yield('pleine-largeur')
+            </main>
+        @else
+            <main class="conteneur contenu-public">
+                @include('partials.message')
+                @isset($slot) {{ $slot }} @else @yield('contenu') @endisset
+            </main>
+        @endif
     @endauth
+
+    <footer class="pied">
+        <div class="conteneur pied__contenu">
+            <p>© FSG Echallens - Tous droits réservés</p>
+            <a href="{{ config('site.facebook') }}" target="_blank" rel="noopener">Facebook</a>
+        </div>
+    </footer>
 </body>
 </html>

@@ -52,6 +52,48 @@ a { color: var(--bleu); }
 .menu-site__bascule { display: none; background: none; border: 0; font-size: 1.9rem; cursor: pointer; color: var(--vert-fonce); }
 .contenu-public { padding-bottom: 2rem; }
 
+/* Page d'accueil */
+.bandeau { background: linear-gradient(135deg, var(--vert) 0%, var(--vert-fonce) 100%); color: #fff; text-align: center; padding: 4.5rem 0; margin-top: -1.5rem; }
+.bandeau h1 { margin: 0 0 .6rem; font-size: 2.3rem; font-weight: 800; line-height: 1.2; }
+.bandeau p { margin: 0 0 1.6rem; font-size: 1.15rem; }
+.bouton-blanc {
+    display: inline-block; background: #fff; color: var(--vert-fonce); padding: .75rem 1.9rem; border-radius: 2rem;
+    font-weight: 700; text-decoration: none; transition: transform .15s;
+}
+.bouton-blanc:hover { transform: translateY(-2px); }
+.accueil { display: grid; grid-template-columns: 2fr 1fr; gap: 2.5rem; padding-top: 3rem; padding-bottom: 3rem; }
+.accueil__texte p { margin: 0 0 1.2em; }
+.encart { background: var(--gris-clair); border-left: 4px solid var(--vert); padding: .9rem 1.25rem; }
+.accueil__animation { display: block; margin: .6rem auto 0; max-width: 100%; }
+.recrute { background: #fff; border: 2px solid var(--vert); border-radius: 8px; padding: 1.5rem; align-self: start; }
+.recrute h2 { margin-top: 0; color: var(--vert-fonce); font-size: 1.3rem; }
+.partenaires { background: var(--gris-clair); padding: 3rem 0; }
+.partenaires h2 { text-align: center; margin-top: 0; color: var(--vert-fonce); }
+.partenaires__grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 1.25rem; }
+.partenaires__grille a {
+    background: #fff; border-radius: 8px; padding: 1.25rem; display: flex; flex-direction: column; align-items: center;
+    justify-content: space-between; gap: .75rem; text-align: center; text-decoration: none; color: #333;
+    font-size: .82rem; font-weight: 600; transition: box-shadow .15s;
+}
+.partenaires__grille a:hover { box-shadow: 0 4px 14px rgba(0, 0, 0, .12); }
+.partenaires__grille img { max-height: 80px; max-width: 100%; width: auto; object-fit: contain; flex: 1; }
+/* Une fois connecté, la page d'accueil s'affiche dans la colonne de droite. */
+.page-dans-espace { background: #fff; border-radius: 6px; overflow: hidden; }
+.page-dans-espace .bandeau { margin-top: 0; padding: 3rem 1rem; }
+.page-dans-espace .partenaires { border-radius: 0; }
+
+/* Pied de page */
+.pied { background: #222; color: #ccc; font-size: .88rem; padding: 1.25rem 0; }
+.pied__contenu { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+.pied p { margin: 0; }
+.pied a { color: var(--vert); }
+
+@media (max-width: 60rem) {
+    .bandeau h1 { font-size: 1.7rem; }
+    .accueil { grid-template-columns: 1fr; }
+    .pied__contenu { flex-direction: column; text-align: center; }
+}
+
 /* Espace membre : menu de gauche + contenu */
 .espace { display: flex; align-items: flex-start; gap: 1.5rem; max-width: 85rem; margin: 0 auto; padding: 0 1rem 2rem; }
 .espace__contenu { flex: 1; min-width: 0; }
