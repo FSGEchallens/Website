@@ -85,7 +85,7 @@ a { color: var(--bleu); }
 /* Gestion des partenaires */
 .partenaires__titre { display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
 .partenaires__titre h2 { margin: 0; }
-.identite--logo { grid-template-columns: 15rem 1fr; }
+.identite.identite--logo { grid-template-columns: 15rem 1fr; }
 .identite--logo .champ { margin-bottom: 1rem; }
 .logo-partenaire { display: flex; flex-direction: column; align-items: flex-start; gap: .4rem; }
 .logo-partenaire__cadre {
@@ -101,7 +101,7 @@ a { color: var(--bleu); }
 .lien--danger { color: var(--rouge); }
 .ligne-masquee td { opacity: .55; }
 @media (max-width: 40rem) {
-    .identite--logo { grid-template-columns: 1fr; }
+    .identite.identite--logo { grid-template-columns: 1fr; }
 }
 
 /* Journal des modifications */
