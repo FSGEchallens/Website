@@ -40,6 +40,11 @@ Route::get('/la-societe/historique', fn () => view('pages.contenu', [
     'texteImage' => 'Logo historique de la Gym de la Bruyère',
 ]))->name('societe.historique');
 
+// Contact : informations modifiables par le comité + formulaire (envoi à contact@gymechallens.ch).
+Route::get('/contact', fn () => view('contact', [
+    'informations' => BlocContenu::where('cle', 'contact.informations')->firstOrFail(),
+]))->name('contact');
+
 // Résultats des concours (page publique, du plus récent au plus ancien).
 Route::get('/la-societe/resultats', fn () => view('resultats', [
     'resultats' => Resultat::where('visible', true)->duPlusRecent()->paginate(10),

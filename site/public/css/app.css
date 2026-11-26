@@ -226,6 +226,20 @@ a { color: var(--bleu); }
 .galerie-edition figcaption { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; margin-top: .3rem; }
 .galerie-edition__nouvelle { border-style: dashed !important; border-color: var(--vert) !important; }
 
+/* Contact */
+.contact { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 1.5rem; align-items: start; }
+.contact h2 { color: var(--vert-fonce); margin-top: 0; }
+.contact__formulaire .champ { margin-bottom: 1rem; }
+.champ textarea { width: 100%; padding: .5rem .6rem; font: inherit; border: 1px solid #ccc; border-radius: 4px; resize: vertical; }
+.champ textarea:focus { outline: 2px solid var(--bleu); border-color: var(--bleu); }
+.champ--erreur textarea { border-color: var(--rouge); }
+.champ-question { background: #f6f9f2; border-radius: 6px; padding: .75rem; }
+/* Champ piège anti-robot : hors de l'écran, invisible pour les humains. */
+.champ-piege { position: absolute !important; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+@media (max-width: 50rem) {
+    .contact { grid-template-columns: 1fr; }
+}
+
 /* Pied de page */
 .pied { background: #222; color: #ccc; font-size: .88rem; padding: 1.25rem 0; }
 .pied__contenu { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }

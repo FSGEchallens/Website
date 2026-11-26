@@ -11,4 +11,7 @@ return [
 
     'inscription' => 'https://gymechallens.ch/inscription/',
 
+    // Adresse qui reçoit les messages du formulaire de contact.
+    'email_contact' => env('CONTACT_EMAIL', 'contact@gymechallens.ch'),
+
 ];

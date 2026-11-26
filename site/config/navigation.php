@@ -47,7 +47,7 @@ return [
         ]],
         ['libelle' => 'Galerie', 'url' => $ancienSite.'/galerie/'],
         ['libelle' => 'Inscription', 'url' => $ancienSite.'/inscription/'],
-        ['libelle' => 'Contact', 'url' => $ancienSite.'/contact/'],
+        ['libelle' => 'Contact', 'route' => 'contact'],
     ],
 
     'espace_membre' => [

@@ -93,6 +93,10 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
   - **Pages « La société »** : la vue générique `pages/contenu.blade.php` affiche un titre, une image facultative et un bloc `blocs_contenu` modifiable sur place par le comité.
     - Historique : `/la-societe/historique` (clé `societe.historique`), avec le logo Gym de la Bruyère.
     - L'Agenda (vide) a été retiré du menu.
+  - **Contact** (`/contact`) : la zone « Informations » est un bloc `contact.informations` modifiable par le comité (titre fixe).
+    - Le formulaire Livewire `Site\FormulaireContact` envoie à `CONTACT_EMAIL` (par défaut contact@gymechallens.ch), avec Reply-To vers l'expéditeur.
+    - Anti-spam sans service externe : question en toutes lettres (réponse gardée en session), champ piège, délai minimal de 3 s, 3 envois par 10 min et par IP, 2 liens au maximum.
+    - Les messages ne sont pas stockés.
   - **Résultats** (table `resultats`) : page publique `/la-societe/resultats`, du plus récent au plus ancien, 10 par page.
     - Gestion sur `/gestion/resultats`, ouverte aux moniteurs, au comité et à l'administrateur (gate `publier-resultats`).
     - Contenu : date (+ date de fin facultative), titre, texte (éditeur) et 1 à 10 photos.
