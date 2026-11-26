@@ -90,6 +90,9 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
     - Le bloc « recrute » a un titre et peut être masqué.
     - Les visiteurs reçoivent du HTML simple, sans Livewire.
     - Chaque modification est inscrite au journal.
+  - **Pages « La société »** : la vue générique `pages/contenu.blade.php` affiche un titre, une image facultative et un bloc `blocs_contenu` modifiable sur place par le comité.
+    - Historique : `/la-societe/historique` (clé `societe.historique`), avec le logo Gym de la Bruyère.
+    - L'Agenda (vide) a été retiré du menu.
   - **Annonces** (table `annonces`) : elles s'affichent sous le bandeau de l'accueil. Le comité les gère sur `/gestion/annonces` ; sur l'accueil, il dispose de « + Ajouter une annonce » et de « ✎ Modifier ».
     - Contenu : titre, texte (éditeur), image à gauche, à droite ou en fond, et jusqu'à 6 boutons (lien web ou fichier joint PDF/image).
     - Affichage : dates « du / au » facultatives, case « active », et ordre réglable.

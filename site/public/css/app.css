@@ -201,6 +201,17 @@ a { color: var(--bleu); }
     .annonce--image-droite .annonce__image { order: 0; }
 }
 
+/* Pages de contenu (La société…) */
+.page-contenu h1 { color: var(--vert-fonce); }
+.page-contenu__corps--avec-image { display: grid; grid-template-columns: 12rem 1fr; gap: 2rem; align-items: start; }
+.page-contenu__image { width: 100%; height: auto; }
+.page-contenu .texte-riche ul { list-style: none; padding-left: 0; }
+.page-contenu .texte-riche li { padding: .45rem 0 .45rem 1rem; border-left: 3px solid var(--vert); margin-bottom: .35rem; }
+@media (max-width: 40rem) {
+    .page-contenu__corps--avec-image { grid-template-columns: 1fr; }
+    .page-contenu__image { max-width: 9rem; }
+}
+
 /* Pied de page */
 .pied { background: #222; color: #ccc; font-size: .88rem; padding: 1.25rem 0; }
 .pied__contenu { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }

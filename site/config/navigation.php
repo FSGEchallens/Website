@@ -16,11 +16,10 @@ return [
     'site' => [
         ['libelle' => 'Accueil', 'route' => 'accueil'],
         ['libelle' => 'La société', 'sous_menu' => [
-            ['libelle' => 'Historique', 'url' => $ancienSite.'/historique/'],
+            ['libelle' => 'Historique', 'route' => 'societe.historique'],
             ['libelle' => 'Le comité', 'url' => $ancienSite.'/le-comite/'],
             ['libelle' => 'Statuts', 'url' => $ancienSite.'/wp-content/uploads/FSG-Echallens-Statuts.pdf'],
             ['libelle' => 'PVs assemblées générales', 'url' => $ancienSite.'/pvs-assemblees-generales/'],
-            ['libelle' => 'Agenda', 'url' => $ancienSite.'/agenda/'],
             ['libelle' => 'Résultat', 'url' => $ancienSite.'/resultat/'],
         ]],
         ['libelle' => 'Les groupes', 'large' => true, 'sous_menu' => [

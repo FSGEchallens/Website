@@ -28,6 +28,15 @@ Route::get('/', fn () => view('accueil', [
     'annonces' => Annonce::actives()->dansLOrdre()->get(),
 ]))->name('accueil');
 
+// La société : pages de texte modifiables par le comité.
+Route::get('/la-societe/historique', fn () => view('pages.contenu', [
+    'titre' => 'Historique',
+    'cle' => 'societe.historique',
+    'bloc' => BlocContenu::where('cle', 'societe.historique')->firstOrFail(),
+    'image' => 'images/societe/Gym-Bruyere_logo.png',
+    'texteImage' => 'Logo historique de la Gym de la Bruyère',
+]))->name('societe.historique');
+
 // Image et fichiers joints des annonces.
 Route::get('/annonces/{annonce}/image', [FichierAnnonceController::class, 'image'])->name('annonces.image');
 Route::get('/annonces/{annonce}/fichiers/{index}', [FichierAnnonceController::class, 'fichier'])->whereNumber('index')->name('annonces.fichier');

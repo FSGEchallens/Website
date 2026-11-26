@@ -29,7 +29,10 @@
                             <a href="#" data-sous-menu aria-haspopup="true">{{ $element['libelle'] }}</a>
                             <ul @class(['menu-site__sous', 'menu-site__sous--large' => $element['large'] ?? false])>
                                 @foreach ($element['sous_menu'] as $lien)
-                                    <li @class(['menu-site__titre' => $lien['titre'] ?? false])><a href="{{ $lien['url'] }}">{{ $lien['libelle'] }}</a></li>
+                                    @php($urlLien = isset($lien['route']) ? route($lien['route']) : $lien['url'])
+                                    <li @class(['menu-site__titre' => $lien['titre'] ?? false])>
+                                        <a href="{{ $urlLien }}" @class(['actif' => isset($lien['route']) && request()->routeIs($lien['route'])])>{{ $lien['libelle'] }}</a>
+                                    </li>
                                 @endforeach
                             </ul>
                         </li>
