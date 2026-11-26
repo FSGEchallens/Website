@@ -24,9 +24,11 @@
                         <div @class(['champ', 'champ--erreur' => $errors->has('civilite')])>
                             <label for="champ-civilite">Titre <span aria-hidden="true">*</span></label>
                             <select id="champ-civilite" wire:model.live="civilite" required>
-                                <option value="">— choisir —</option>
+                                @if ($civilite === '')
+                                    <option value="" disabled selected>— choisir —</option>
+                                @endif
                                 @foreach ($civilites as $option)
-                                    <option value="{{ $option->value }}">{{ $option->libelle() }}</option>
+                                    <option value="{{ $option->value }}" @selected($civilite === $option->value)>{{ $option->libelle() }}</option>
                                 @endforeach
                             </select>
                             @error('civilite') <div class="erreur">{{ $message }}</div> @enderror

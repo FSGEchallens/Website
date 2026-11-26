@@ -164,6 +164,17 @@ class MembresTest extends TestCase
         $this->assertSame('Bercher', $membre->fresh()->localite);
     }
 
+    public function test_le_titre_enregistre_est_preselectionne(): void
+    {
+        $membre = User::factory()->create(['civilite' => Civilite::Madame]);
+
+        $this->get(route('membres.edit', $membre))
+            ->assertSee('<option value="madame" selected>', false)
+            ->assertDontSee('— choisir —');
+
+        $this->get(route('membres.create'))->assertSee('— choisir —');
+    }
+
     public function test_modification_d_un_membre(): void
     {
         $membre = User::factory()->create(['localite' => 'Bercher']);
