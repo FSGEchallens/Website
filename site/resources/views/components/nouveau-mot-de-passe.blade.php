@@ -27,6 +27,16 @@
         @error($nom) <div class="erreur">{{ $message }}</div> @enderror
     </div>
 
+    <div class="champ">
+        <label for="champ-{{ $nom }}_confirmation">Confirmer le mot de passe</label>
+        <div class="avec-oeil">
+            <input id="champ-{{ $nom }}_confirmation" type="password" :type="visible ? 'text' : 'password'"
+                   wire:model="{{ $nom }}_confirmation" x-on:input="confirmation = $event.target.value"
+                   autocomplete="new-password" maxlength="64">
+            <x-bouton-oeil />
+        </div>
+    </div>
+
     <ul class="criteres" id="regles-{{ $nom }}" aria-live="polite">
         <li :class="criteres.longueur && 'ok'">12 caractères au minimum (64 au maximum)</li>
         <li :class="criteres.majuscule && 'ok'">au moins une majuscule (A–Z)</li>
@@ -39,16 +49,6 @@
         </li>
         <li :class="criteres.identiques && 'ok'">les deux mots de passe sont identiques</li>
     </ul>
-
-    <div class="champ">
-        <label for="champ-{{ $nom }}_confirmation">Confirmer le mot de passe</label>
-        <div class="avec-oeil">
-            <input id="champ-{{ $nom }}_confirmation" type="password" :type="visible ? 'text' : 'password'"
-                   wire:model="{{ $nom }}_confirmation" x-on:input="confirmation = $event.target.value"
-                   autocomplete="new-password" maxlength="64">
-            <x-bouton-oeil />
-        </div>
-    </div>
 
     <p class="discret">
         Conseil : une courte phrase facile à retenir fait un excellent mot de passe,
