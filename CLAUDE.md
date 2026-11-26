@@ -97,6 +97,10 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
     - Mot de passe oublié : lien valable 1 h.
     - Invitation d'un nouveau membre : lien valable 7 jours, avec sa propre table `invitation_tokens`.
     - Les liens ouvrent un formulaire (POST), pour résister aux scanners d'e-mails.
+  - **Mise en page** :
+    - En haut : barre de connexion, logo et menu du site (`config/navigation.php`, clé `site`). Les liens pointent encore vers l'ancien WordPress.
+    - Une fois connecté : menu de gauche avec les fonctions selon le niveau (`config/navigation.php`, clé `espace_membre`, champ `role` = niveau minimal).
+    - Le menu de gauche est ouvert à chaque connexion. On peut le replier, et l'état est gardé dans le `localStorage` ; sur mobile, il s'ouvre comme un tiroir. Le JavaScript est dans `public/js/app.js`, sans bibliothèque externe.
   - **Commandes** utilisables depuis les tâches planifiées de Plesk :
     - `mail:test adresse` : envoie un e-mail de test ;
     - `membre:admin email Prénom Nom` : crée un administrateur et lui envoie une invitation.

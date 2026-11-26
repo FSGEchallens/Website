@@ -23,16 +23,87 @@ a { color: var(--bleu); }
 
 .conteneur { max-width: 70rem; margin: 0 auto; padding: 0 1rem; }
 
-/* En-tête */
-.entete { background: var(--vert-fonce); color: #fff; margin-bottom: 1.5rem; }
-.entete__contenu { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding-top: .8rem; padding-bottom: .8rem; }
-.entete__titre { color: #fff; font-weight: bold; font-size: 1.2rem; text-decoration: none; }
-.entete__menu a { color: #fff; text-decoration: none; padding: .3rem .6rem; border-radius: 3px; }
-.entete__menu a.actif, .entete__menu a:hover, .entete__menu .lien-bouton:hover { background: rgba(255, 255, 255, .2); }
-.entete__menu { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem; }
-.entete__utilisateur { padding: .3rem .6rem; opacity: .85; }
+/* Barre du haut (connexion) */
+.barre-haut { background: var(--vert-fonce); color: #fff; font-size: .82rem; }
+.barre-haut__contenu { display: flex; justify-content: flex-end; align-items: center; gap: 1rem; padding-top: .25rem; padding-bottom: .25rem; }
+.barre-haut a, .lien-blanc { color: #fff; text-decoration: none; }
+.barre-haut a:hover, .lien-blanc:hover { text-decoration: underline; }
+.lien-blanc { background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
 .en-ligne { display: inline; margin: 0; }
-.lien-bouton { background: none; border: 0; color: #fff; font: inherit; cursor: pointer; padding: .3rem .6rem; border-radius: 3px; }
+
+/* En-tête et menu du site */
+.entete { background: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, .08); position: relative; z-index: 20; margin-bottom: 1.5rem; }
+.entete__contenu { display: flex; align-items: center; justify-content: space-between; min-height: 5.5rem; gap: 1rem; }
+.logo img { height: 70px; width: auto; display: block; }
+.menu-site > ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .25rem; }
+.menu-site a { display: block; padding: .6rem .85rem; color: #333; text-decoration: none; font-weight: 600; font-size: .95rem; }
+.menu-site a:hover, .menu-site a.actif { color: var(--vert-fonce); }
+.menu-site__parent { position: relative; }
+.menu-site__parent > a::after { content: " ▾"; font-size: .7rem; }
+.menu-site__sous {
+    list-style: none; margin: 0; padding: .5rem 0; display: none; position: absolute; top: 100%; left: 0; z-index: 30;
+    min-width: 15rem; background: #fff; border-top: 3px solid var(--vert); box-shadow: 0 6px 16px rgba(0, 0, 0, .12);
+}
+.menu-site__sous--large { columns: 2; min-width: 35rem; column-gap: 0; }
+.menu-site__sous li { break-inside: avoid; }
+.menu-site__sous a { font-weight: 400; font-size: .88rem; padding: .3rem 1.1rem; }
+.menu-site__titre a { font-weight: 700; color: var(--vert-fonce); text-transform: uppercase; font-size: .8rem; }
+.menu-site__parent:hover > .menu-site__sous, .menu-site__parent.ouvert > .menu-site__sous { display: block; }
+.menu-site__bascule { display: none; background: none; border: 0; font-size: 1.9rem; cursor: pointer; color: var(--vert-fonce); }
+.contenu-public { padding-bottom: 2rem; }
+
+/* Espace membre : menu de gauche + contenu */
+.espace { display: flex; align-items: flex-start; gap: 1.5rem; max-width: 85rem; margin: 0 auto; padding: 0 1rem 2rem; }
+.espace__contenu { flex: 1; min-width: 0; }
+.menu-lateral {
+    flex: 0 0 15rem; position: sticky; top: 1rem; background: #fff; border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .08); padding: .75rem; transition: flex-basis .2s;
+}
+.menu-lateral__bascule {
+    display: block; margin-left: auto; width: 2rem; height: 2rem; border: 0; border-radius: 4px;
+    background: var(--gris-clair); color: #333; cursor: pointer; font-size: 1.1rem; line-height: 1;
+}
+.menu-lateral__bascule:hover { background: #d5d5d5; }
+.si-replie { display: none; }
+.menu-lateral__utilisateur { display: flex; align-items: center; gap: .25rem; margin: .5rem 0 1rem; font-size: .9rem; }
+.menu-lateral__titre { font-size: .75rem; text-transform: uppercase; color: var(--gris); margin: 1rem 0 .3rem; letter-spacing: .03em; }
+.menu-lateral ul { list-style: none; margin: 0; padding: 0; }
+.menu-lateral nav a { display: block; padding: .45rem .6rem; border-radius: 4px; color: #333; text-decoration: none; }
+.menu-lateral nav a:hover { background: #f0f7ea; }
+.menu-lateral nav a.actif { background: var(--vert-fonce); color: #fff; }
+.menu-lateral__deconnexion { margin-top: 1.25rem; padding-top: .75rem; border-top: 1px solid var(--gris-clair); }
+html.menu-replie .menu-lateral { flex-basis: 3rem; padding: .5rem; }
+html.menu-replie .menu-lateral__contenu { display: none; }
+html.menu-replie .si-ouvert { display: none; }
+html.menu-replie .si-replie { display: inline; }
+.ouvrir-menu-mobile, .voile { display: none; }
+
+@media (max-width: 60rem) {
+    .menu-site__bascule { display: block; }
+    .menu-site { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; box-shadow: 0 6px 16px rgba(0, 0, 0, .12); max-height: 75vh; overflow-y: auto; }
+    .menu-site.ouvert { display: block; }
+    .menu-site > ul { flex-direction: column; }
+    .menu-site__sous, .menu-site__sous--large { position: static; box-shadow: none; border: 0; columns: 1; min-width: 0; padding-left: 1rem; }
+    .menu-site__parent:hover > .menu-site__sous { display: none; }
+    .menu-site__parent.ouvert > .menu-site__sous { display: block; }
+
+    .espace { display: block; }
+    .menu-lateral {
+        position: fixed; top: 0; bottom: 0; left: 0; width: 16rem; z-index: 50; border-radius: 0; overflow-y: auto;
+        transform: translateX(-100%); transition: transform .2s;
+    }
+    html.menu-mobile-ouvert .menu-lateral { transform: none; }
+    html.menu-replie .menu-lateral { width: 16rem; padding: .75rem; }
+    html.menu-replie .menu-lateral__contenu { display: block; }
+    html.menu-replie .menu-lateral__bascule .si-ouvert { display: inline; }
+    html.menu-replie .menu-lateral__bascule .si-replie { display: none; }
+    .voile { position: fixed; inset: 0; background: rgba(0, 0, 0, .35); z-index: 40; }
+    html.menu-mobile-ouvert .voile { display: block; }
+    .ouvrir-menu-mobile {
+        display: inline-block; margin-bottom: 1rem; padding: .45rem .9rem; border: 1px solid #ccc; border-radius: 4px;
+        background: #fff; font: inherit; cursor: pointer;
+    }
+}
 
 /* Titres et barres d'outils */
 h1 { font-size: 1.6rem; margin: 0 0 1rem; }

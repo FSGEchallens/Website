@@ -3,6 +3,61 @@
  * Alpine.js est fourni par Livewire).
  */
 
+/*
+ * Menus : menu du site (mobile et sous-menus) et menu de gauche de l'espace membre.
+ * Le menu de gauche est ouvert à chaque connexion ; s'il est replié, le navigateur s'en souvient
+ * (localStorage) jusqu'à la prochaine connexion. Sur mobile, il s'ouvre comme un tiroir.
+ */
+const ECRAN_ETROIT = '(max-width: 60rem)';
+
+function mettreAJourBoutonsMenuLateral() {
+    const html = document.documentElement;
+    const ouvert = window.matchMedia(ECRAN_ETROIT).matches
+        ? html.classList.contains('menu-mobile-ouvert')
+        : ! html.classList.contains('menu-replie');
+
+    document.querySelectorAll('[data-bascule-menu-lateral]').forEach((bouton) => {
+        if (bouton.tagName === 'BUTTON') {
+            bouton.setAttribute('aria-expanded', ouvert ? 'true' : 'false');
+        }
+    });
+}
+
+document.addEventListener('click', (evenement) => {
+    const basculeSite = evenement.target.closest('[data-bascule-menu-site]');
+
+    if (basculeSite) {
+        const ouvert = document.getElementById('menu-site').classList.toggle('ouvert');
+        basculeSite.setAttribute('aria-expanded', ouvert ? 'true' : 'false');
+
+        return;
+    }
+
+    const sousMenu = evenement.target.closest('[data-sous-menu]');
+
+    if (sousMenu) {
+        evenement.preventDefault();
+        sousMenu.parentElement.classList.toggle('ouvert');
+
+        return;
+    }
+
+    if (evenement.target.closest('[data-bascule-menu-lateral]')) {
+        const html = document.documentElement;
+
+        if (window.matchMedia(ECRAN_ETROIT).matches) {
+            html.classList.toggle('menu-mobile-ouvert');
+        } else {
+            const replie = html.classList.toggle('menu-replie');
+            localStorage.setItem('menuLateralReplie', replie ? '1' : '0');
+        }
+
+        mettreAJourBoutonsMenuLateral();
+    }
+});
+
+document.addEventListener('DOMContentLoaded', mettreAJourBoutonsMenuLateral);
+
 document.addEventListener('alpine:init', () => {
     /*
      * Avertit l'utilisateur s'il quitte une page avec des modifications non enregistrées.

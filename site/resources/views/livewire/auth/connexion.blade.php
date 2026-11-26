@@ -1,4 +1,6 @@
 <div class="carte carte--etroite">
+    {{-- Le menu de gauche de l'espace membre s'ouvre à chaque nouvelle connexion. --}}
+    <script>localStorage.removeItem('menuLateralReplie');</script>
     <h1>Connexion</h1>
 
     <form wire:submit="seConnecter" novalidate>
