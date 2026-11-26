@@ -48,8 +48,12 @@ class NouveauMotDePasse extends Component
         }
 
         $this->validate([
-            'password' => ['required', 'confirmed', RegleMotDePasse::defaults()],
-        ], attributes: ['password' => 'mot de passe']);
+            'password' => ['required', RegleMotDePasse::defaults()],
+            'password_confirmation' => ['required', 'same:password'],
+        ], [
+            'password_confirmation.required' => 'Veuillez confirmer le mot de passe.',
+            'password_confirmation.same' => 'Les deux mots de passe ne sont pas identiques.',
+        ], ['password' => 'mot de passe']);
 
         $statut = Password::broker($this->invitation ? 'invitations' : 'users')->reset(
             [

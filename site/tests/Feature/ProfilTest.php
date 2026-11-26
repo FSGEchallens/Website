@@ -142,6 +142,22 @@ class ProfilTest extends TestCase
             ->assertHasErrors(['npa', 'email_prive', 'mobile']);
     }
 
+    public function test_confirmation_differente_signalee_sous_la_confirmation(): void
+    {
+        $membre = User::factory()->create(['password' => 'Ancien-Secret42!']);
+
+        Livewire::actingAs($membre)
+            ->test(MonProfil::class)
+            ->set('mot_de_passe_actuel', 'Ancien-Secret42!')
+            ->set('nouveau_mot_de_passe', 'Nouveau-Secret42!')
+            ->set('nouveau_mot_de_passe_confirmation', 'Autre-Secret42!')
+            ->call('changerMotDePasse')
+            ->assertHasErrors(['nouveau_mot_de_passe_confirmation' => 'same'])
+            ->assertHasNoErrors('nouveau_mot_de_passe');
+
+        $this->assertTrue(Hash::check('Ancien-Secret42!', $membre->fresh()->password));
+    }
+
     public function test_changement_de_mot_de_passe(): void
     {
         $membre = User::factory()->create(['password' => 'Ancien-Secret42!']);

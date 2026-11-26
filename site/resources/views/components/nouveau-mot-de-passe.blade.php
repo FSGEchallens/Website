@@ -27,7 +27,8 @@
         @error($nom) <div class="erreur">{{ $message }}</div> @enderror
     </div>
 
-    <div class="champ">
+    @php($confirmationEnErreur = $errors->has($nom.'_confirmation'))
+    <div class="champ" :class="{ 'champ--erreur': (confirmation !== '' && ! criteres.identiques) || ({{ $confirmationEnErreur ? 'true' : 'false' }} && confirmation === '') }">
         <label for="champ-{{ $nom }}_confirmation">Confirmer le mot de passe</label>
         <div class="avec-oeil">
             <input id="champ-{{ $nom }}_confirmation" type="password" :type="visible ? 'text' : 'password'"
@@ -35,6 +36,12 @@
                    autocomplete="new-password" maxlength="64">
             <x-bouton-oeil />
         </div>
+        {{-- En direct : dès que la confirmation diffère du mot de passe. --}}
+        <div class="erreur" x-show="confirmation !== '' && ! criteres.identiques" x-cloak>Les deux mots de passe ne sont pas identiques.</div>
+        {{-- Message du serveur, tant que le champ n'a pas été retapé. --}}
+        @error($nom.'_confirmation')
+            <div class="erreur" x-show="confirmation === ''">{{ $message }}</div>
+        @enderror
     </div>
 
     <ul class="criteres" id="regles-{{ $nom }}" aria-live="polite">

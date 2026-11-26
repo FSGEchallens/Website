@@ -91,10 +91,13 @@ class MonProfil extends Component
     {
         $this->validate([
             'mot_de_passe_actuel' => ['required', 'current_password'],
-            'nouveau_mot_de_passe' => ['required', 'confirmed', 'different:mot_de_passe_actuel', RegleMotDePasse::defaults()],
+            'nouveau_mot_de_passe' => ['required', 'different:mot_de_passe_actuel', RegleMotDePasse::defaults()],
+            'nouveau_mot_de_passe_confirmation' => ['required', 'same:nouveau_mot_de_passe'],
         ], [
             'mot_de_passe_actuel.current_password' => 'Le mot de passe actuel est incorrect.',
             'nouveau_mot_de_passe.different' => 'Le nouveau mot de passe doit être différent de l\'actuel.',
+            'nouveau_mot_de_passe_confirmation.required' => 'Veuillez confirmer le mot de passe.',
+            'nouveau_mot_de_passe_confirmation.same' => 'Les deux mots de passe ne sont pas identiques.',
         ], [
             'mot_de_passe_actuel' => 'mot de passe actuel',
             'nouveau_mot_de_passe' => 'nouveau mot de passe',
