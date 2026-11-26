@@ -47,7 +47,7 @@
                     <x-champ nom="numero" libelle="N°" />
                     <x-champ nom="npa" libelle="Code postal" inputmode="numeric" />
                     <x-champ nom="localite" libelle="Localité" />
-                    <x-champ-mobile requis />
+                    <x-champ-mobile requis :pays="$mobile_pays" />
                     <x-champ nom="email_prive" libelle="E-mail privé" type="email" requis />
                     <x-champ nom="avs" libelle="N° AVS" placeholder="756.1234.5678.97" autocomplete="off" />
                     <x-champ nom="date_naissance" libelle="Date de naissance" type="date" />

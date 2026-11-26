@@ -272,10 +272,19 @@ altcha-widget {
 }
 .select-drapeaux, .select-drapeaux option { font-family: "Twemoji Country Flags", "Open Sans", Arial, sans-serif; }
 .groupe-mobile { display: flex; gap: .4rem; }
-.groupe-mobile select { flex: 0 0 9.5rem; min-width: 0; padding: .5rem .3rem; font-size: .9rem; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
+/* Liste fermée : seuls le drapeau et l'indicatif sont visibles ; la vraie liste (transparente) est posée par-dessus. */
+.indicatif { position: relative; flex: 0 0 5.6rem; }
+.indicatif__affichage {
+    display: flex; align-items: center; height: 100%; padding: .5rem 1.4rem .5rem .55rem; white-space: nowrap;
+    border: 1px solid #ccc; border-radius: 4px; background: #fff; font-size: .95rem;
+}
+.indicatif::after { content: "▾"; position: absolute; right: .45rem; top: 50%; transform: translateY(-50%); font-size: .75rem; color: #666; pointer-events: none; }
+.indicatif select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 1rem; }
+.indicatif:focus-within .indicatif__affichage { outline: 2px solid var(--bleu); border-color: var(--bleu); }
 .groupe-mobile input { flex: 1; min-width: 0; padding: .5rem .6rem; font: inherit; border: 1px solid #ccc; border-radius: 4px; }
 .champ--erreur .groupe-mobile input { border-color: var(--rouge); }
-.verrouillable:disabled .groupe-mobile select, .verrouillable:disabled .groupe-mobile input { background: #f0f0f0; color: #555; cursor: not-allowed; }
+.verrouillable:disabled .indicatif__affichage, .verrouillable:disabled .groupe-mobile input { background: #f0f0f0; color: #555; cursor: not-allowed; }
+.verrouillable:disabled .indicatif select { cursor: not-allowed; }
 
 /* Pied de page */
 .pied { background: var(--vert-fonce); color: #fff; font-size: .88rem; padding: 1.25rem 0; }

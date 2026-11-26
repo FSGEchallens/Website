@@ -38,7 +38,8 @@ class IndicatifsTest extends TestCase
             ->assertSet('mobile_pays', 'CH')
             ->assertSet('mobile', '79 123 45 67')
             ->assertSee('🇨🇭 Suisse (+41)')
-            ->assertSee('🇫🇷 France (+33)');
+            ->assertSee('🇫🇷 France (+33)')
+            ->assertSeeHtml('class="indicatif__affichage select-drapeaux" x-text="affichage" aria-hidden="true">🇨🇭 +41</span>');
     }
 
     public function test_un_mobile_etranger_est_enregistre(): void

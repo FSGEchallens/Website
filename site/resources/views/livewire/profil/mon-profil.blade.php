@@ -53,7 +53,7 @@
                     <x-champ nom="numero" libelle="N°" />
                     <x-champ nom="npa" libelle="Code postal" inputmode="numeric" autocomplete="postal-code" />
                     <x-champ nom="localite" libelle="Localité" autocomplete="address-level2" />
-                    <x-champ-mobile requis />
+                    <x-champ-mobile requis :pays="$mobile_pays" />
                     <x-champ nom="email_prive" libelle="E-mail privé" type="email" autocomplete="email" requis />
                 </div>
             </section>
