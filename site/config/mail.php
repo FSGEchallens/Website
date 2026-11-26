@@ -115,4 +115,16 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Redirection des e-mails (site de test)
+    |--------------------------------------------------------------------------
+    |
+    | Si renseignée, TOUS les e-mails sont envoyés à cette adresse au lieu des
+    | vrais destinataires (indiqués dans l'objet). À ne jamais définir en production.
+    |
+    */
+
+    'redirect_to' => env('MAIL_REDIRECT_TO'),
+
 ];
