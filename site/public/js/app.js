@@ -81,9 +81,14 @@ function formaterMobile(saisie) {
     return `+41 ${national.slice(0, 2)} ${national.slice(2, 5)} ${national.slice(5, 7)} ${national.slice(7, 9)}`;
 }
 
-/** À appeler quand on quitte un champ mobile : corrige l'affichage et prévient Livewire. */
-function formaterChampMobile(champ) {
-    const formate = formaterMobile(champ.value);
+/** À appeler quand on quitte un champ mobile : corrige l'affichage (Suisse seulement) et prévient Livewire. */
+function formaterChampMobile(champ, pays = 'CH') {
+    if (pays !== 'CH') {
+        return;
+    }
+
+    // Dans le champ, on affiche le numéro sans l'indicatif (déjà choisi dans la liste).
+    const formate = formaterMobile(champ.value).replace(/^\+41 /, '');
 
     if (formate !== champ.value) {
         champ.value = formate;

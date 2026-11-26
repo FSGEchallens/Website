@@ -5,6 +5,7 @@ namespace App\Livewire\Profil;
 use App\Livewire\Concerns\GerePhotoMembre;
 use App\Models\User;
 use App\Services\PhotoMembre;
+use App\Support\NumeroMobile;
 use App\Validation\ReglesMembre;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
@@ -33,6 +34,9 @@ class MonProfil extends Component
     public string $localite = '';
 
     public string $mobile = '';
+
+    /** Pays de l'indicatif du mobile (code ISO, Suisse par défaut). */
+    public string $mobile_pays = 'CH';
 
     public string $email_prive = '';
 
@@ -127,7 +131,8 @@ class MonProfil extends Component
             'numero' => (string) $membre->numero,
             'npa' => (string) $membre->npa,
             'localite' => (string) $membre->localite,
-            'mobile' => (string) $membre->mobile,
+            'mobile' => NumeroMobile::separer($membre->mobile)['numero'],
+            'mobile_pays' => NumeroMobile::separer($membre->mobile)['pays'],
             'email_prive' => (string) $membre->email_prive,
             'afficher_mobile' => (bool) $membre->afficher_mobile,
         ]);

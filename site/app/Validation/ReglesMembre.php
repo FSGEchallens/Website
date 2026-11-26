@@ -2,8 +2,10 @@
 
 namespace App\Validation;
 
-use App\Rules\MobileSuisse;
+use App\Rules\NumeroMobileValide;
+use App\Support\Indicatifs;
 use App\Support\NumeroMobile;
+use Illuminate\Validation\Rule;
 
 /**
  * Règles de saisie communes à la fiche membre (comité) et au profil (membre lui-même).
@@ -22,7 +24,8 @@ class ReglesMembre
             'numero' => ['nullable', 'string', 'max:10'],
             'npa' => ['nullable', 'string', 'regex:/^[0-9]{4,5}$/'],
             'localite' => ['nullable', 'string', 'max:100'],
-            'mobile' => ['required', 'string', 'max:25', new MobileSuisse],
+            'mobile_pays' => ['required', Rule::in(array_keys(config('indicatifs.pays')))],
+            'mobile' => ['required', 'string', 'max:25', new NumeroMobileValide],
             'email_prive' => ['required', 'email', 'max:255'],
         ];
     }
@@ -57,12 +60,13 @@ class ReglesMembre
         return [
             'npa' => 'code postal',
             'email_prive' => 'e-mail privé',
+            'mobile_pays' => 'pays du mobile',
         ];
     }
 
     /**
-     * Remplace les textes vides par NULL, retire les espaces superflus
-     * et met le mobile au format +41 79 123 45 67.
+     * Remplace les textes vides par NULL, retire les espaces superflus et met le mobile
+     * au format international (+41 79 123 45 67) selon le pays choisi.
      *
      * @param  array<string, mixed>  $donnees
      * @return array<string, mixed>
@@ -74,8 +78,11 @@ class ReglesMembre
             $donnees,
         );
 
+        $pays = (string) ($donnees['mobile_pays'] ?? Indicatifs::PAYS_PAR_DEFAUT);
+        unset($donnees['mobile_pays']);
+
         if (array_key_exists('mobile', $donnees) && $donnees['mobile'] !== null) {
-            $donnees['mobile'] = NumeroMobile::normaliser($donnees['mobile']) ?? $donnees['mobile'];
+            $donnees['mobile'] = NumeroMobile::normaliser($donnees['mobile'], $pays) ?? $donnees['mobile'];
         }
 
         return $donnees;

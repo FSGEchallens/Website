@@ -53,7 +53,7 @@
                     <x-champ nom="numero" libelle="N°" />
                     <x-champ nom="npa" libelle="Code postal" inputmode="numeric" autocomplete="postal-code" />
                     <x-champ nom="localite" libelle="Localité" autocomplete="address-level2" />
-                    <x-champ nom="mobile" libelle="Mobile" type="tel" autocomplete="tel" requis placeholder="+41 79 123 45 67" x-on:blur="formaterChampMobile($el)" />
+                    <x-champ-mobile requis />
                     <x-champ nom="email_prive" libelle="E-mail privé" type="email" autocomplete="email" requis />
                 </div>
             </section>
