@@ -54,7 +54,16 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
 - Utilisateur système du sous-domaine : `web388433elvu`.
 - Le https est actif sur NEW.gymechallens.ch (Let's Encrypt, avec redirection HTTP → HTTPS).
 - Base de test : `fsg_test` sur **MariaDB** (`localhost:3306`), avec l'utilisateur `fsg_test_user`. Le mot de passe est détenu par le webmaster et ne doit jamais être mis dans Git. Sur le serveur, il faudra régler `DB_CONNECTION=mariadb`.
-- **À vérifier** : possibilité de choisir le dossier racine (pour pointer vers `public/`), dans Plesk → Paramètres d'hébergement → Type d'hébergement.
+- **Déploiement sur NEW.gymechallens.ch** (en place et fonctionnel depuis le 26.11.2026) :
+  - **Git de Plesk** : le dépôt `Website.git` (branche main) est déployé automatiquement dans `/NEW.gymechallens.ch`. Pour récupérer les nouveautés depuis GitHub : Git → « Exécuter pull ». Un webhook GitHub reste possible pour automatiser.
+  - **Racine du document** : `/NEW.gymechallens.ch/site/public`. Chemin complet : `/var/www/vhosts/gymechallens.ch/NEW.gymechallens.ch/`.
+  - **PHP Composer de Plesk** : dossier `/NEW.gymechallens.ch/site`, mode **Production**. Après un changement de `composer.lock`, cliquer sur « Installer ».
+  - **`.env` du serveur** : créé à la main dans `site/` via le gestionnaire de fichiers. Réglages : `APP_ENV=staging`, `APP_DEBUG=false`, `DB_CONNECTION=mariadb`, `MAIL_MAILER=log`.
+  - **Tâche planifiée « Laravel - mise à jour de la base »** : script PHP `site/artisan`, arguments `migrate --force`. Elle est lancée à la main avec « Exécuter maintenant » après chaque nouvelle migration.
+  - **Reste à faire** :
+    - désactiver `display_errors` dans les réglages PHP de Plesk ;
+    - ajouter une tâche cron chaque minute avec `schedule:run` (nécessaire dès qu'on enverra des e-mails) ;
+    - configurer le SMTP de VTX dans le `.env`.
 - Si SSH n'est pas disponible : déploiement par FTP, avec `vendor/` préparé en local. Si cron n'est pas disponible : un service externe appelle une URL protégée.
 
 ## Ancien site
@@ -74,7 +83,7 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
   - Pour lancer le site : `cd site` puis `php artisan serve`, et ouvrir http://localhost:8000.
 
 ## Plan par étapes
-1. Fondations : Laravel en local, base de données, déploiement sur le sous-domaine de test.
+1. Fondations : Laravel en local, base de données, déploiement sur le sous-domaine de test. ✅ Terminé le 26.11.2026.
 2. Pages publiques modifiables par le comité.
 3. Comptes, 2FA, profils, rôles.
 4. Cours (saisons, groupes, horaires, salles, moniteurs).
@@ -84,6 +93,5 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
 8. Exports Excel et CSV (J+S, canton).
 
 ## Prochaines actions (côté webmaster)
-- Installer sur une machine où il est administrateur : VS Code, Claude Code, Git, Laragon.
-- Vérifier SSH et cron chez VTX.
+- Attendre la réponse du support VTX concernant l'activation du SSH (message envoyé le 26.11.2026).
 - Exporter la structure (sans données) de la base de l'ancien site.
