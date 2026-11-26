@@ -1,4 +1,4 @@
-<div>
+<div x-data="protectionModifications" x-on:input="marquerModifie()" x-on:change="marquerModifie()" x-on:submit="avantEnregistrement()">
     <div class="barre">
         <h1>{{ $membre ? $membre->nomComplet() : 'Nouveau membre' }}</h1>
         @if ($membre && ! $enEdition)
@@ -94,7 +94,7 @@
                     <span wire:loading.remove wire:target="enregistrer">Enregistrer</span>
                     <span wire:loading wire:target="enregistrer">Enregistrement…</span>
                 </button>
-                <button type="button" class="bouton bouton--secondaire" wire:click="annuler">Annuler</button>
+                <button type="button" class="bouton bouton--secondaire" x-on:click="oublier()" wire:click="annuler">Annuler</button>
             </div>
             <p class="discret">* champ obligatoire</p>
         @endif

@@ -1,4 +1,4 @@
-<div>
+<div x-data="protectionModifications" x-on:input="marquerModifie()" x-on:change="marquerModifie()" x-on:submit="avantEnregistrement()">
     <div class="barre">
         <h1>Mon profil</h1>
         @unless ($enEdition)
@@ -77,7 +77,7 @@
                     <span wire:loading.remove wire:target="enregistrerCoordonnees">Enregistrer</span>
                     <span wire:loading wire:target="enregistrerCoordonnees">Enregistrement…</span>
                 </button>
-                <button type="button" class="bouton bouton--secondaire" wire:click="annuler">Annuler</button>
+                <button type="button" class="bouton bouton--secondaire" x-on:click="oublier()" wire:click="annuler">Annuler</button>
             </div>
         @endif
     </form>

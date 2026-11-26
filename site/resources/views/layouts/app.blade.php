@@ -6,6 +6,7 @@
     <meta name="robots" content="noindex, nofollow">
     <title>{{ isset($title) ? $title.' – ' : '' }}{{ config('app.name') }}</title>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}?v={{ filemtime(public_path('css/app.css')) }}">
+    <script src="{{ asset('js/app.js') }}?v={{ filemtime(public_path('js/app.js')) }}"></script>
 </head>
 <body>
     <header class="entete">

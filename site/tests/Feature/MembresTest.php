@@ -152,7 +152,8 @@ class MembresTest extends TestCase
         $this->get(route('membres.edit', $membre))
             ->assertOk()
             ->assertSee('Bercher')
-            ->assertSee('Fiche verrouillée');
+            ->assertSee('Fiche verrouillée')
+            ->assertSee('x-data="protectionModifications"', false);
 
         // Sans cliquer sur « Modifier », rien n'est enregistré.
         Livewire::test(FicheMembre::class, ['membre' => $membre])

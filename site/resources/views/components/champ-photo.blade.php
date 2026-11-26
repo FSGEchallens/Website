@@ -10,7 +10,8 @@
             <input type="file" wire:model="photo" accept="image/jpeg,image/png,image/webp" class="visuellement-cache">
         </label>
         @if ($aUnePhoto)
-            <button type="button" class="lien" wire:click="retirerPhoto">Retirer la photo</button>
+            <button type="button" class="lien" wire:click="retirerPhoto"
+                    x-on:click="typeof marquerModifie === 'function' && marquerModifie()">Retirer la photo</button>
         @endif
         <div class="aide">JPEG, PNG ou WebP, 10 Mo au maximum. La photo est recadrée en carré.</div>
     @endif

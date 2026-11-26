@@ -19,7 +19,10 @@ class ProfilTest extends TestCase
     {
         $membre = User::factory()->create(['localite' => 'Bercher']);
 
-        $this->actingAs($membre)->get(route('profil'))->assertSee('Profil verrouillé');
+        $this->actingAs($membre)->get(route('profil'))
+            ->assertSee('Profil verrouillé')
+            ->assertSee('x-data="protectionModifications"', false)
+            ->assertSee('js/app.js', false);
 
         Livewire::actingAs($membre)
             ->test(MonProfil::class)
