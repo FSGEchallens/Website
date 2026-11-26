@@ -37,7 +37,7 @@ class CreerAdministrateur extends Command
             ],
         );
 
-        $user->roles()->firstOrCreate(['role' => Role::Administrateur]);
+        $user->forceFill(['role' => Role::Administrateur])->save();
         $user->envoyerInvitation();
 
         $this->info("Administrateur {$user->nomComplet()} prêt. Un lien pour choisir le mot de passe a été envoyé à {$email}.");

@@ -49,7 +49,6 @@ class ListeMembres extends Component
         $roleChoisi = Role::tryFrom($this->role);
 
         $membres = User::query()
-            ->with('roles')
             ->recherche($this->recherche)
             ->when($roleChoisi, fn ($query) => $query->avecRole($roleChoisi))
             ->when(! $this->inclureAnciens, fn ($query) => $query->where(

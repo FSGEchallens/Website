@@ -67,6 +67,25 @@ h1 { font-size: 1.6rem; margin: 0 0 1rem; }
     .infos dd { margin-bottom: .5rem; }
 }
 
+/* Fiche verrouillée */
+.verrouillable { border: 0; padding: 0; margin: 0; min-width: 0; }
+.verrouillable:disabled input, .verrouillable:disabled select {
+    background: #f0f0f0; color: #555; border-color: #ddd; cursor: not-allowed;
+}
+.verrouillable:disabled .case { color: #777; }
+.visuellement-cache { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Photo */
+.identite { display: grid; grid-template-columns: 11rem 1fr; gap: 1.5rem; align-items: start; }
+.photo-membre { display: flex; flex-direction: column; align-items: flex-start; gap: .4rem; }
+.photo-membre img { width: 160px; height: 160px; object-fit: cover; border-radius: 6px; border: 1px solid var(--gris-clair); background: #fff; }
+.vignette { width: 40px; height: 40px; object-fit: cover; border-radius: 50%; vertical-align: middle; margin-right: .5rem; border: 1px solid var(--gris-clair); }
+.bouton--petit { padding: .35rem .8rem; font-size: .9rem; }
+.lien { background: none; border: 0; padding: 0; color: var(--bleu); text-decoration: underline; cursor: pointer; font: inherit; font-size: .9rem; }
+@media (max-width: 40rem) {
+    .identite { grid-template-columns: 1fr; }
+}
+
 /* Alertes */
 .alerte { padding: .75rem 1rem; border-radius: 4px; margin-bottom: 1rem; }
 .alerte--succes { background: #e8f5dc; border-left: 4px solid var(--vert-fonce); }
@@ -113,6 +132,7 @@ th { background: #fafafa; font-size: .85rem; text-transform: uppercase; color: v
 tr:hover td { background: #fbfdf8; }
 .discret { color: var(--gris); font-size: .9rem; }
 .badge { display: inline-block; font-size: .75rem; padding: .1rem .5rem; border-radius: 10px; background: var(--gris-clair); margin: 0 .2rem .2rem 0; }
+.badge--membre { background: #f0f0f0; color: #555; }
 .badge--administrateur { background: #fde2e1; color: #8e1b14; }
 .badge--comite { background: #e3f2fd; color: #0b5c8f; }
 .badge--moniteur { background: #e8f5dc; color: #3d6b1f; }

@@ -47,17 +47,16 @@ class UserFactory extends Factory
             'date_entree' => fake()->dateTimeBetween('-20 years', 'now'),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'role' => Role::Membre,
         ];
     }
 
     /**
-     * Donne un ou plusieurs rôles au membre.
+     * Donne une autorisation au membre.
      */
-    public function avecRoles(Role ...$roles): static
+    public function avecRole(Role $role): static
     {
-        return $this->afterCreating(function (User $user) use ($roles): void {
-            $user->synchroniserRoles($roles);
-        });
+        return $this->state(fn (array $attributes) => ['role' => $role]);
     }
 
     /**

@@ -13,7 +13,7 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
 ### Fonctionnalités voulues
 - Comptes membres avec connexion **2FA**. D'abord par code e-mail ou application d'authentification ; le SMS (payant) en option plus tard.
 - Page profil, avec des coordonnées privées jamais affichées publiquement. Le surnom a été abandonné à la demande du webmaster.
-- **Rôles** : membre, moniteur principal, moniteur secondaire, comité, webmaster (admin). Les rôles sont attribués par le webmaster et le comité. Une personne peut avoir plusieurs rôles. Le rôle de moniteur est lié à un cours précis. L'affichage du site s'adapte au rôle.
+- **Autorisation unique** par personne, avec une hiérarchie : Membre < Moniteur < Comité < Administrateur (le webmaster). Chaque niveau a les droits des niveaux inférieurs. Elle est attribuée par le webmaster et le comité. Le lien moniteur ↔ cours (principal ou secondaire) sera géré avec les cours. L'affichage du site s'adapte à l'autorisation.
 - **Cours** : saisons, groupes, horaires, salles, moniteurs. Le comité les gère sans passer par le webmaster.
 - **Inscriptions en ligne**, avec les statuts : nouvelle, à l'essai, inscrit, démission, annulé.
   - E-mail de confirmation aux parents et information aux moniteurs.
@@ -68,7 +68,8 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
   - Le compte administrateur du webmaster a été créé sur le site de test le 26.11.2026 (commande `membre:admin`).
   - **Reste à faire** :
     - désactiver `display_errors` dans les réglages PHP de Plesk ;
-    - ajouter une tâche cron chaque minute avec `schedule:run` (nécessaire pour les tâches automatiques et la file d'attente des e-mails).
+    - ajouter une tâche cron chaque minute avec `schedule:run` (nécessaire pour les tâches automatiques et la file d'attente des e-mails) ;
+    - vérifier dans les réglages PHP de Plesk que `upload_max_filesize` et `post_max_size` valent au moins 12M, pour l'import des photos.
 - Si SSH n'est pas disponible : déploiement par FTP, avec `vendor/` préparé en local. Si cron n'est pas disponible : un service externe appelle une URL protégée.
 
 ## Ancien site
@@ -87,7 +88,10 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
   - La page `/` est une page de test qui indique si la base de données est connectée.
   - **Membres** : la table `users` sert de fiche membre, avec l'e-mail société comme identifiant de connexion.
     - Le n° AVS est chiffré dans la base.
-    - Les rôles sont stockés dans la table `user_roles` (administrateur, comité, moniteur ; plusieurs possibles par personne).
+    - L'autorisation est stockée dans la colonne `users.role` (membre, moniteur, comité, administrateur ; une seule par personne).
+    - Champs obligatoires : titre, prénom, nom, mobile, e-mail privé, autorisation.
+    - Une fiche existante s'ouvre verrouillée : il faut cliquer sur « Modifier » pour l'éditer.
+    - **Photo** : recadrée en carré, réduite à 600 × 600 et réencodée en JPEG (sans EXIF ni GPS). Elle est stockée dans `storage/app/private/photos-membres/FSG-Echallens_Nom_Prénom.jpg` et renommée si le nom change. Elle est servie par `/membres/{id}/photo` : publiquement si « afficher la photo » est coché, sinon au membre lui-même et au comité. Images par défaut : `public/images/avatars/{femme,homme}.png`.
     - Pages : `/membres` (liste) et la fiche membre en Livewire. Accès réservé au comité et à l'administrateur.
     - Règles : le comité ne peut pas modifier un administrateur, seul un administrateur peut donner le rôle Administrateur, et il doit toujours en rester au moins un.
   - **Connexion** : mot de passe, puis code à 6 chiffres envoyé par e-mail (haché en base, valable 10 min, 5 essais au maximum).

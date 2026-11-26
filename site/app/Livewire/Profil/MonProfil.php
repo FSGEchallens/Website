@@ -129,7 +129,7 @@ class MonProfil extends Component
 
     public function render(): View
     {
-        $membre = $this->membre()->load('roles');
+        $membre = $this->membre();
 
         return view('livewire.profil.mon-profil', [
             'membre' => $membre,

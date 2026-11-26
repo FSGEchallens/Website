@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
@@ -44,6 +43,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'civilite' => Civilite::class,
+            'role' => Role::class,
             'avs' => 'encrypted',
             'date_naissance' => 'date',
             'date_entree' => 'date',
@@ -133,45 +133,22 @@ class User extends Authenticatable
         $this->notify(new LienMotDePasse($token, invitation: true));
     }
 
+    /**
+     * Le membre a-t-il au moins ce niveau d'autorisation ?
+     */
+    public function aAuMoins(Role $role): bool
+    {
+        return ($this->role ?? Role::Membre)->auMoins($role);
+    }
+
     public function peutGererLesMembres(): bool
     {
-        return $this->aRole(Role::Administrateur, Role::Comite);
+        return $this->aAuMoins(Role::Comite);
     }
 
     public function estAdministrateur(): bool
     {
-        return $this->aRole(Role::Administrateur);
-    }
-
-    /**
-     * @return HasMany<UserRole, $this>
-     */
-    public function roles(): HasMany
-    {
-        return $this->hasMany(UserRole::class);
-    }
-
-    public function aRole(Role ...$roles): bool
-    {
-        return $this->roles->contains(fn (UserRole $userRole) => in_array($userRole->role, $roles, true));
-    }
-
-    /**
-     * Remplace les rôles du membre par ceux donnés.
-     *
-     * @param  array<int, Role>  $roles
-     */
-    public function synchroniserRoles(array $roles): void
-    {
-        $valeurs = array_map(fn (Role $role) => $role->value, $roles);
-
-        $this->roles()->whereNotIn('role', $valeurs)->delete();
-
-        foreach ($roles as $role) {
-            $this->roles()->firstOrCreate(['role' => $role]);
-        }
-
-        $this->unsetRelation('roles');
+        return $this->role === Role::Administrateur;
     }
 
     /**
@@ -179,7 +156,24 @@ class User extends Authenticatable
      */
     public function scopeAvecRole(Builder $query, Role $role): void
     {
-        $query->whereHas('roles', fn (Builder $q) => $q->where('role', $role->value));
+        $query->where('role', $role->value);
+    }
+
+    /**
+     * Adresse de la photo : la photo importée, sinon l'image par défaut selon le titre.
+     */
+    public function urlPhoto(): string
+    {
+        if ($this->photo !== null) {
+            return route('membres.photo', ['membre' => $this, 'v' => substr(md5((string) $this->updated_at), 0, 8)]);
+        }
+
+        return self::urlPhotoParDefaut($this->civilite);
+    }
+
+    public static function urlPhotoParDefaut(?Civilite $civilite): string
+    {
+        return asset('images/avatars/'.($civilite === Civilite::Madame ? 'femme' : 'homme').'.png');
     }
 
     public function nomComplet(): string

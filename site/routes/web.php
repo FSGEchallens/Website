@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PhotoMembreController;
 use App\Livewire\Auth\Connexion;
 use App\Livewire\Auth\MotDePasseOublie;
 use App\Livewire\Auth\NouveauMotDePasse;
@@ -41,6 +42,9 @@ Route::post('/deconnexion', function (Request $request) {
 })->middleware('auth')->name('logout');
 
 Route::livewire('/profil', MonProfil::class)->middleware('auth')->name('profil');
+
+// Photo d'un membre (le contrôleur vérifie qui a le droit de la voir).
+Route::get('/membres/{membre}/photo', PhotoMembreController::class)->name('membres.photo');
 
 // Gestion des membres : comité et administrateur uniquement.
 Route::middleware(['auth', 'can:gerer-membres'])->group(function () {

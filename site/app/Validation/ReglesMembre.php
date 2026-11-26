@@ -14,16 +14,16 @@ class ReglesMembre
      */
     public static function coordonnees(): array
     {
-        $telephone = ['nullable', 'string', 'max:20', 'regex:/^[0-9+ ().\/-]{6,20}$/'];
+        $telephone = ['string', 'max:20', 'regex:/^[0-9+ ().\/-]{6,20}$/'];
 
         return [
             'rue' => ['nullable', 'string', 'max:150'],
             'numero' => ['nullable', 'string', 'max:10'],
             'npa' => ['nullable', 'string', 'regex:/^[0-9]{4,5}$/'],
             'localite' => ['nullable', 'string', 'max:100'],
-            'telephone' => $telephone,
-            'mobile' => $telephone,
-            'email_prive' => ['nullable', 'email', 'max:255'],
+            'telephone' => ['nullable', ...$telephone],
+            'mobile' => ['required', ...$telephone],
+            'email_prive' => ['required', 'email', 'max:255'],
         ];
     }
 

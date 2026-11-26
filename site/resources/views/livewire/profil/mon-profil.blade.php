@@ -4,6 +4,10 @@
     <section class="carte">
         <h2>Mes informations</h2>
         <p class="discret">Ces informations sont gérées par le comité. Si quelque chose est faux, contactez-le.</p>
+        <div class="identite">
+        <div class="photo-membre">
+            <img src="{{ $membre->urlPhoto() }}" alt="Ma photo" width="160" height="160">
+        </div>
         <dl class="infos">
             <dt>Nom</dt>
             <dd>{{ $membre->civilite?->libelle() }} {{ $membre->nomComplet() }}</dd>
@@ -11,13 +15,10 @@
             <dt>E-mail société</dt>
             <dd>{{ $membre->email }}</dd>
 
-            <dt>Rôles</dt>
+            <dt>Autorisation</dt>
             <dd>
-                @forelse ($membre->roles as $userRole)
-                    <span class="badge badge--{{ $userRole->role->value }}">{{ $userRole->role->libelle() }}</span>
-                @empty
-                    Membre
-                @endforelse
+                @php($role = $membre->role ?? \App\Enums\Role::Membre)
+                <span class="badge badge--{{ $role->value }}">{{ $role->libelle() }}</span>
             </dd>
 
             <dt>Membre depuis</dt>
@@ -29,6 +30,7 @@
             <dt>N° AVS</dt>
             <dd>{{ $avsMasque ?? '—' }}</dd>
         </dl>
+        </div>
     </section>
 
     <form wire:submit="enregistrerCoordonnees" novalidate>
