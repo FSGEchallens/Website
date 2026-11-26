@@ -26,7 +26,7 @@
                 <p class="ok">{{ session('message') }}</p>
             @endif
             @auth
-                <p>Connecté : <strong>{{ auth()->user()->nomComplet() }}</strong></p>
+                <p>Connecté : <strong>{{ auth()->user()->nomComplet() }}</strong> – <a href="{{ route('profil') }}">Mon profil</a></p>
                 @can('gerer-membres')
                     <p><a href="{{ route('membres.index') }}">Gérer les membres</a></p>
                 @endcan

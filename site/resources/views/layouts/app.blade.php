@@ -16,7 +16,7 @@
                     @can('gerer-membres')
                         <a href="{{ route('membres.index') }}" @class(['actif' => request()->routeIs('membres.*')])>Membres</a>
                     @endcan
-                    <span class="entete__utilisateur">{{ auth()->user()->prenom }}</span>
+                    <a href="{{ route('profil') }}" @class(['actif' => request()->routeIs('profil')]) title="Mon profil">{{ auth()->user()->prenom }}</a>
                     <form method="POST" action="{{ route('logout') }}" class="en-ligne">
                         @csrf
                         <button type="submit" class="lien-bouton">Déconnexion</button>

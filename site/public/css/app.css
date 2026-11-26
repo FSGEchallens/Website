@@ -56,6 +56,17 @@ h1 { font-size: 1.6rem; margin: 0 0 1rem; }
 .champ input.code { font-size: 1.6rem; letter-spacing: .4rem; text-align: center; max-width: 12rem; }
 .carte h2 { font-size: 1.15rem; margin: 0 0 1rem; color: var(--vert-fonce); }
 
+.carte--mot-de-passe { max-width: 36rem; }
+.carte--mot-de-passe .champ { margin-bottom: 1rem; }
+.bloc { margin-bottom: 1.25rem; }
+.infos { display: grid; grid-template-columns: max-content 1fr; gap: .4rem 1.25rem; margin: 0; }
+.infos dt { font-weight: 600; color: var(--gris); }
+.infos dd { margin: 0; }
+@media (max-width: 40rem) {
+    .infos { grid-template-columns: 1fr; }
+    .infos dd { margin-bottom: .5rem; }
+}
+
 /* Alertes */
 .alerte { padding: .75rem 1rem; border-radius: 4px; margin-bottom: 1rem; }
 .alerte--succes { background: #e8f5dc; border-left: 4px solid var(--vert-fonce); }

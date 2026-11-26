@@ -77,7 +77,7 @@ class ConnexionTest extends TestCase
             ->set('code', $code)
             ->call('verifier')
             ->assertHasNoErrors()
-            ->assertRedirect(route('accueil'));
+            ->assertRedirect(route('profil'));
 
         $this->assertAuthenticatedAs($membre);
         $this->assertNull($membre->fresh()->code_connexion, 'Le code ne peut servir qu\'une fois.');

@@ -6,6 +6,7 @@ use App\Enums\Civilite;
 use App\Enums\Role;
 use App\Models\User;
 use App\Rules\NumeroAvs;
+use App\Validation\ReglesMembre;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -107,29 +108,18 @@ class FicheMembre extends Component
      */
     protected function rules(): array
     {
-        $telephone = ['nullable', 'string', 'max:20', 'regex:/^[0-9+ ().\/-]{6,20}$/'];
-
         return [
             'civilite' => ['nullable', Rule::enum(Civilite::class)],
             'prenom' => ['required', 'string', 'max:100'],
             'nom' => ['required', 'string', 'max:100'],
             'surnom' => ['nullable', 'string', 'max:100'],
-            'rue' => ['nullable', 'string', 'max:150'],
-            'numero' => ['nullable', 'string', 'max:10'],
-            'npa' => ['nullable', 'string', 'regex:/^[0-9]{4,5}$/'],
-            'localite' => ['nullable', 'string', 'max:100'],
-            'telephone' => $telephone,
-            'mobile' => $telephone,
-            'email_prive' => ['nullable', 'email', 'max:255'],
+            ...ReglesMembre::coordonnees(),
             'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->membre?->id)],
             'avs' => ['nullable', 'string', new NumeroAvs],
             'date_naissance' => ['nullable', 'date', 'before:today', 'after:1900-01-01'],
             'date_entree' => ['nullable', 'date'],
             'date_sortie' => ['nullable', 'date', 'after_or_equal:date_entree'],
-            'afficher_photo' => ['boolean'],
-            'afficher_adresse' => ['boolean'],
-            'afficher_telephone' => ['boolean'],
-            'afficher_mobile' => ['boolean'],
+            ...ReglesMembre::affichage(),
             'compte_wp' => ['nullable', 'string', 'max:60'],
             'roles' => ['array'],
             'roles.*' => ['distinct', Rule::enum(Role::class)],
@@ -142,9 +132,8 @@ class FicheMembre extends Component
     protected function validationAttributes(): array
     {
         return [
+            ...ReglesMembre::attributs(),
             'civilite' => 'titre',
-            'npa' => 'code postal',
-            'email_prive' => 'e-mail privé',
             'email' => 'e-mail société',
             'avs' => 'n° AVS',
             'date_naissance' => 'date de naissance',
@@ -160,12 +149,10 @@ class FicheMembre extends Component
     protected function messages(): array
     {
         return [
+            ...ReglesMembre::messages(),
             'date_naissance.before' => 'La date de naissance doit être dans le passé.',
             'date_naissance.after' => 'La date de naissance n\'est pas plausible.',
             'date_sortie.after_or_equal' => 'La date de sortie ne peut pas être avant la date d\'entrée.',
-            'npa.regex' => 'Le code postal doit contenir 4 chiffres (5 pour l\'étranger).',
-            'telephone.regex' => 'Le numéro de téléphone n\'est pas valide.',
-            'mobile.regex' => 'Le numéro de mobile n\'est pas valide.',
         ];
     }
 
@@ -180,7 +167,7 @@ class FicheMembre extends Component
 
         $this->verifierRoleAdministrateur(in_array(Role::Administrateur, $roles, true));
 
-        $donnees = array_map(fn ($valeur) => is_string($valeur) ? (trim($valeur) === '' ? null : trim($valeur)) : $valeur, $donnees);
+        $donnees = ReglesMembre::nettoyer($donnees);
         $donnees['avs'] = NumeroAvs::formater($donnees['avs']);
         $donnees['email'] = $donnees['email'] !== null ? mb_strtolower($donnees['email']) : null;
 

@@ -60,10 +60,15 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
   - **PHP Composer de Plesk** : dossier `/NEW.gymechallens.ch/site`, mode **Production**. Après un changement de `composer.lock`, cliquer sur « Installer ».
   - **`.env` du serveur** : créé à la main dans `site/` via le gestionnaire de fichiers. Réglages : `APP_ENV=staging`, `APP_DEBUG=false`, `DB_CONNECTION=mariadb`, `MAIL_MAILER=log`.
   - **Tâche planifiée « Laravel - mise à jour de la base »** : script PHP `site/artisan`, arguments `migrate --force`. Elle est lancée à la main avec « Exécuter maintenant » après chaque nouvelle migration.
+  - **E-mails** (fonctionnels depuis le 26.11.2026) :
+    - Envoi par SMTP `smtp-pro.vtx.ch` avec le compte `ch.gymechallens.noreply` (l'identifiant VTX n'est pas l'adresse e-mail).
+    - Expéditeur : noreply@gymechallens.ch.
+    - Avec `MAIL_REDIRECT_TO=test@gymechallens.ch`, tous les e-mails du site de test arrivent dans cette boîte.
+    - Les e-mails de la messagerie se gèrent dans l'espace client VTX, pas dans Plesk.
+  - Le compte administrateur du webmaster a été créé sur le site de test le 26.11.2026 (commande `membre:admin`).
   - **Reste à faire** :
     - désactiver `display_errors` dans les réglages PHP de Plesk ;
-    - ajouter une tâche cron chaque minute avec `schedule:run` (nécessaire dès qu'on enverra des e-mails) ;
-    - configurer le SMTP de VTX dans le `.env`.
+    - ajouter une tâche cron chaque minute avec `schedule:run` (nécessaire pour les tâches automatiques et la file d'attente des e-mails).
 - Si SSH n'est pas disponible : déploiement par FTP, avec `vendor/` préparé en local. Si cron n'est pas disponible : un service externe appelle une URL protégée.
 
 ## Ancien site

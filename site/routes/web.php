@@ -6,6 +6,7 @@ use App\Livewire\Auth\NouveauMotDePasse;
 use App\Livewire\Auth\SaisieCode;
 use App\Livewire\Membres\FicheMembre;
 use App\Livewire\Membres\ListeMembres;
+use App\Livewire\Profil\MonProfil;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -38,6 +39,8 @@ Route::post('/deconnexion', function (Request $request) {
 
     return redirect()->route('accueil');
 })->middleware('auth')->name('logout');
+
+Route::livewire('/profil', MonProfil::class)->middleware('auth')->name('profil');
 
 // Gestion des membres : comité et administrateur uniquement.
 Route::middleware(['auth', 'can:gerer-membres'])->group(function () {

@@ -71,7 +71,7 @@ class SaisieCode extends Component
             'email_verified_at' => $user->email_verified_at ?? now(),
         ])->save();
 
-        $this->redirectIntended(default: route('accueil'));
+        $this->redirectIntended(default: route('profil'));
     }
 
     public function renvoyerCode(): void
