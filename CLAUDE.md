@@ -143,6 +143,10 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
     - Le niveau choisi est gardé en session (`apercu_niveau`), et on ne peut que descendre de niveau.
     - `User::roleEffectif()` est utilisé partout pour les droits ; `roleReel()` donne le niveau enregistré en base.
     - Un bandeau jaune s'affiche pendant l'aperçu. Pages d'erreur 403, 404 et 419 en français.
+  - **Imports de fichiers** :
+    - Chaque zone d'import vérifie le format et le poids dans le navigateur avant l'envoi (`controleFichiers` dans `app.js`) et affiche la raison d'un refus en rouge.
+    - Limite d'envoi Livewire : 20 Mo (`config/livewire.php`). Le message « failed to upload » est traduit (`validation.uploaded`).
+    - Avatar : recadrage dans un rond (déplacer, zoomer) avant l'envoi (`recadrageAvatar`). Il envoie une image de 600 × 600 px via `\.upload('photo', …)`.
   - **Commandes** utilisables depuis les tâches planifiées de Plesk :
     - `mail:test adresse` : envoie un e-mail de test ;
     - `membre:admin email Prénom Nom` : crée un administrateur et lui envoie une invitation.

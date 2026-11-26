@@ -30,7 +30,7 @@
                 <fieldset class="groupe">
                     <legend>Image (facultative)</legend>
                     <div class="identite identite--logo">
-                        <div class="logo-partenaire">
+                        <div class="logo-partenaire" x-data="controleFichiers(10, ['jpg', 'jpeg', 'png', 'webp'])" x-on:change.capture="verifier($event)">
                             <div class="logo-partenaire__cadre annonce-apercu">
                                 @if ($urlApercu)
                                     <img src="{{ $urlApercu }}" alt="Aperçu de l'image">
@@ -46,6 +46,7 @@
                             @if ($urlApercu)
                                 <button type="button" class="lien" wire:click="retirerLImage" x-on:click="marquerModifie()">Retirer l'image</button>
                             @endif
+                            <div class="erreur" x-show="erreurFichier" x-text="erreurFichier" x-cloak role="alert"></div>
                             @error('image') <div class="erreur">{{ $message }}</div> @enderror
                         </div>
                         <div>
@@ -74,13 +75,15 @@
                                 @if ($lien['type'] === 'url')
                                     <x-champ :nom="'liens.'.$index.'.url'" libelle="Adresse" type="url" placeholder="https://…" />
                                 @else
-                                    <div @class(['champ', 'champ--erreur' => $errors->has('fichiersLiens.'.$index)])>
+                                    <div @class(['champ', 'champ--erreur' => $errors->has('fichiersLiens.'.$index)])
+                                         x-data="controleFichiers(10, ['pdf', 'jpg', 'jpeg', 'png'])" x-on:change.capture="verifier($event)">
                                         <label>Fichier</label>
                                         @if (! empty($lien['fichier']) && empty($fichiersLiens[$index]))
                                             <div class="aide">Actuel : {{ $lien['nom_original'] ?? $lien['fichier'] }}</div>
                                         @endif
                                         <input type="file" wire:model="fichiersLiens.{{ $index }}" accept="application/pdf,image/jpeg,image/png">
                                         <div wire:loading wire:target="fichiersLiens.{{ $index }}" class="discret">Envoi du fichier…</div>
+                                        <div class="erreur" x-show="erreurFichier" x-text="erreurFichier" x-cloak role="alert"></div>
                                         @error('fichiersLiens.'.$index) <div class="erreur">{{ $message }}</div> @enderror
                                     </div>
                                 @endif

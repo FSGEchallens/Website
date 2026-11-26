@@ -58,7 +58,241 @@ document.addEventListener('click', (evenement) => {
 
 document.addEventListener('DOMContentLoaded', mettreAJourBoutonsMenuLateral);
 
+/*
+ * Vérifie un fichier AVANT son envoi (format et poids), pour afficher la raison précise d'un refus.
+ * Renvoie un message d'erreur en français, ou une chaîne vide si le fichier convient.
+ */
+function erreurFichier(fichier, poidsMaxMo, extensions) {
+    const extension = (fichier.name.includes('.') ? fichier.name.split('.').pop() : '').toLowerCase();
+
+    if (extensions.length && ! extensions.includes(extension)) {
+        let message = `« ${fichier.name} » : format non accepté (${extension ? extension.toUpperCase() : 'inconnu'}). `
+            + `Formats acceptés : ${extensions.filter((e) => e !== 'jpeg').map((e) => e.toUpperCase()).join(', ')}.`;
+
+        if (['heic', 'heif'].includes(extension)) {
+            message += ' Les photos HEIC d’iPhone ne sont pas lisibles par tous les navigateurs : convertissez-la en JPEG, ou réglez l’iPhone sur '
+                + '« Réglages › Appareil photo › Formats › Le plus compatible ».';
+        }
+
+        return message;
+    }
+
+    if (fichier.size > poidsMaxMo * 1024 * 1024) {
+        return `« ${fichier.name} » est trop lourd (${(fichier.size / 1048576).toFixed(1).replace('.', ',')} Mo). Maximum : ${poidsMaxMo} Mo.`;
+    }
+
+    if (fichier.size === 0) {
+        return `« ${fichier.name} » est vide ou illisible.`;
+    }
+
+    return '';
+}
+
 document.addEventListener('alpine:init', () => {
+    /*
+     * Contrôle des fichiers choisis dans les zones d'import : en cas de problème, le fichier n'est pas
+     * envoyé et la raison s'affiche en rouge. À placer sur un élément qui CONTIENT le champ fichier :
+     *   x-data="controleFichiers(10, ['jpg','jpeg','png'])" x-on:change.capture="verifier($event)"
+     * (l'écoute « capture » passe avant Livewire, ce qui permet d'annuler l'envoi.)
+     */
+    window.Alpine.data('controleFichiers', (poidsMaxMo, extensions) => ({
+        erreurFichier: '',
+
+        verifier(evenement) {
+            const champ = evenement.target;
+
+            if (! champ || champ.type !== 'file') {
+                return;
+            }
+
+            this.erreurFichier = '';
+
+            for (const fichier of champ.files) {
+                const message = erreurFichier(fichier, poidsMaxMo, extensions);
+
+                if (message) {
+                    this.erreurFichier = message;
+                    champ.value = '';
+                    evenement.stopPropagation();
+
+                    return;
+                }
+            }
+        },
+    }));
+
+    /*
+     * Recadrage de l'avatar dans un rond : on déplace la photo et on zoome, puis « Valider »
+     * envoie à Livewire une image carrée de 600 × 600 px (propriété « photo »).
+     */
+    window.Alpine.data('recadrageAvatar', (poidsMaxMo = 20) => ({
+        ouvert: false,
+        envoi: false,
+        progression: 0,
+        erreur: '',
+        image: null,
+        urlImage: null,
+        zoom: 1,
+        x: 0,
+        y: 0,
+        glisse: null,
+        taille: 280,
+
+        choisir(evenement) {
+            const fichier = evenement.target.files[0];
+            evenement.target.value = '';
+
+            if (! fichier) {
+                return;
+            }
+
+            this.erreur = erreurFichier(fichier, poidsMaxMo, ['jpg', 'jpeg', 'png', 'webp']);
+
+            if (this.erreur) {
+                return;
+            }
+
+            const image = new Image();
+            this.libererImage();
+            this.urlImage = URL.createObjectURL(fichier);
+
+            image.onload = () => {
+                if (image.naturalWidth < 100 || image.naturalHeight < 100) {
+                    this.erreur = 'Cette photo est trop petite (100 × 100 pixels au minimum).';
+
+                    return;
+                }
+
+                this.image = image;
+                this.zoom = 1;
+                this.x = 0;
+                this.y = 0;
+                this.ouvert = true;
+                this.$nextTick(() => this.dessiner());
+            };
+
+            image.onerror = () => {
+                this.erreur = `« ${fichier.name} » ne peut pas être lue par votre navigateur. Essayez avec une photo JPEG ou PNG.`;
+            };
+
+            image.src = this.urlImage;
+        },
+
+        /** Échelle « couvrir » : la plus petite qui remplit tout le rond. */
+        echelle(taille) {
+            return (taille / Math.min(this.image.naturalWidth, this.image.naturalHeight)) * this.zoom;
+        },
+
+        limiter() {
+            const echelle = this.echelle(this.taille);
+            const margeX = Math.max(0, (this.image.naturalWidth * echelle - this.taille) / 2);
+            const margeY = Math.max(0, (this.image.naturalHeight * echelle - this.taille) / 2);
+
+            this.x = Math.min(margeX, Math.max(-margeX, this.x));
+            this.y = Math.min(margeY, Math.max(-margeY, this.y));
+        },
+
+        dessinerSur(canvas, taille) {
+            const contexte = canvas.getContext('2d');
+            const rapport = taille / this.taille;
+            const echelle = this.echelle(taille);
+            const largeur = this.image.naturalWidth * echelle;
+            const hauteur = this.image.naturalHeight * echelle;
+
+            contexte.fillStyle = '#ffffff';
+            contexte.fillRect(0, 0, taille, taille);
+            contexte.imageSmoothingQuality = 'high';
+            contexte.drawImage(this.image, (taille - largeur) / 2 + this.x * rapport, (taille - hauteur) / 2 + this.y * rapport, largeur, hauteur);
+        },
+
+        dessiner() {
+            if (this.image && this.$refs.canvas) {
+                this.limiter();
+                this.dessinerSur(this.$refs.canvas, this.taille);
+            }
+        },
+
+        commencerGlisse(evenement) {
+            this.glisse = { x: evenement.clientX, y: evenement.clientY };
+            evenement.target.setPointerCapture?.(evenement.pointerId);
+        },
+
+        glisser(evenement) {
+            if (! this.glisse) {
+                return;
+            }
+
+            this.x += evenement.clientX - this.glisse.x;
+            this.y += evenement.clientY - this.glisse.y;
+            this.glisse = { x: evenement.clientX, y: evenement.clientY };
+            this.dessiner();
+        },
+
+        finirGlisse() {
+            this.glisse = null;
+        },
+
+        zoomerMolette(evenement) {
+            this.zoom = Math.min(4, Math.max(1, this.zoom - Math.sign(evenement.deltaY) * 0.1));
+            this.dessiner();
+        },
+
+        valider() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 600;
+            canvas.height = 600;
+            this.dessinerSur(canvas, 600);
+            this.envoi = true;
+            this.progression = 0;
+            this.erreur = '';
+
+            canvas.toBlob((blob) => {
+                if (! blob) {
+                    this.envoi = false;
+                    this.erreur = 'La photo n’a pas pu être préparée. Réessayez avec une autre photo.';
+
+                    return;
+                }
+
+                const fichier = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
+
+                this.$wire.upload(
+                    'photo',
+                    fichier,
+                    () => {
+                        this.envoi = false;
+                        this.fermer();
+
+                        // Signale la modification à la protection « modifications non enregistrées » de la page.
+                        if (typeof this.$data.marquerModifie === 'function') {
+                            this.$data.marquerModifie();
+                        }
+                    },
+                    () => {
+                        this.envoi = false;
+                        this.erreur = 'La photo n’a pas pu être envoyée (connexion interrompue ?). Réessayez.';
+                    },
+                    (evenement) => {
+                        this.progression = evenement.detail.progress;
+                    },
+                );
+            }, 'image/jpeg', 0.9);
+        },
+
+        fermer() {
+            this.ouvert = false;
+            this.image = null;
+            this.libererImage();
+        },
+
+        libererImage() {
+            if (this.urlImage) {
+                URL.revokeObjectURL(this.urlImage);
+                this.urlImage = null;
+            }
+        },
+    }));
+
     /*
      * Petit éditeur de texte (zone « contenteditable » + boutons de mise en forme).
      * Le HTML produit est envoyé à Livewire, puis nettoyé côté serveur avec une liste blanche.

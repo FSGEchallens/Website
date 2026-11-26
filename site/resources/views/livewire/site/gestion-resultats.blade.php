@@ -29,7 +29,7 @@
                     <x-editeur-texte nom="contenu" :contenu="$contenu" />
                 </div>
 
-                <fieldset class="groupe">
+                <fieldset class="groupe" x-data="controleFichiers(15, ['jpg', 'jpeg', 'png', 'webp'])" x-on:change.capture="verifier($event)">
                     <legend>Photos ({{ count($photos) + count($nouvellesPhotos) }} / {{ \App\Models\Resultat::PHOTOS_MAX }})</legend>
 
                     <div class="galerie-edition">
@@ -68,6 +68,7 @@
                         <span wire:loading wire:target="nouvellesPhotos" class="discret">Envoi des photos…</span>
                     @endif
                     <div class="aide">JPEG, PNG ou WebP, 15 Mo au maximum par photo. Elles sont réduites automatiquement.</div>
+                    <div class="erreur" x-show="erreurFichier" x-text="erreurFichier" x-cloak role="alert"></div>
                     @error('nouvellesPhotos') <div class="erreur">{{ $message }}</div> @enderror
                     @foreach ($errors->get('nouvellesPhotos.*') as $messages)
                         <div class="erreur">{{ $messages[0] }}</div>

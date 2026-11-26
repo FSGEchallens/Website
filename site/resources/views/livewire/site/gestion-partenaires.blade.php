@@ -14,7 +14,7 @@
             <h2>{{ $edition === 0 ? 'Nouveau partenaire' : 'Modifier « '.$nom.' »' }}</h2>
             <form wire:submit="enregistrer" novalidate>
                 <div class="identite identite--logo">
-                    <div class="logo-partenaire">
+                    <div class="logo-partenaire" x-data="controleFichiers(5, ['png', 'jpg', 'jpeg', 'webp', 'gif'])" x-on:change.capture="verifier($event)">
                         <div class="logo-partenaire__cadre">
                             @if ($urlApercu)
                                 <img src="{{ $urlApercu }}" alt="Aperçu du logo">
@@ -28,6 +28,7 @@
                             <input type="file" wire:model="logo" accept="image/png,image/jpeg,image/webp,image/gif" class="visuellement-cache">
                         </label>
                         <div class="aide">PNG (idéal, avec fond transparent), JPEG, WebP ou GIF, 5 Mo au maximum.</div>
+                        <div class="erreur" x-show="erreurFichier" x-text="erreurFichier" x-cloak role="alert"></div>
                         @error('logo') <div class="erreur">{{ $message }}</div> @enderror
                     </div>
 

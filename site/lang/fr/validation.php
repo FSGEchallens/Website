@@ -54,6 +54,7 @@ return [
     ],
     'string' => 'Le champ :attribute doit être un texte.',
     'unique' => 'Cette valeur de :attribute est déjà utilisée.',
+    'uploaded' => 'Le fichier (:attribute) n’a pas pu être envoyé au serveur : il est peut-être trop lourd, dans un format non pris en charge, ou la connexion a été interrompue. Réessayez, si possible avec un fichier plus petit en JPEG ou PNG.',
 
     'attributes' => [
         'prenom' => 'prénom',
@@ -62,6 +63,11 @@ return [
         'numero' => 'n°',
         'localite' => 'localité',
         'mobile' => 'mobile',
+        'photo' => 'photo',
+        'image' => 'image',
+        'logo' => 'logo',
+        'nouvellesPhotos' => 'photos',
+        'fichiersLiens' => 'fichier joint',
         'password' => 'mot de passe',
         'code' => 'code',
     ],

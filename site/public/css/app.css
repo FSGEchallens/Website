@@ -248,6 +248,21 @@ altcha-widget {
     .contact { grid-template-columns: 1fr; }
 }
 
+/* Avatars ronds et recadrage */
+.photo-membre img.avatar-rond { border-radius: 50%; }
+.recadrage { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(0, 0, 0, .55); }
+.recadrage__boite { background: #fff; border-radius: 8px; padding: 1.25rem; max-width: 22rem; width: 100%; box-shadow: 0 10px 30px rgba(0, 0, 0, .3); }
+.recadrage__boite h3 { margin: 0 0 .3rem; color: var(--vert-fonce); }
+.recadrage__zone { position: relative; margin: .75rem auto; overflow: hidden; border-radius: 8px; background: #eee; cursor: grab; touch-action: none; max-width: 100%; }
+.recadrage__zone:active { cursor: grabbing; }
+.recadrage__zone canvas { display: block; }
+.recadrage__masque { position: absolute; inset: 0; border-radius: 50%; box-shadow: 0 0 0 999px rgba(0, 0, 0, .45); outline: 2px solid #fff; pointer-events: none; }
+.recadrage__zoom { display: flex; align-items: center; gap: .75rem; margin-bottom: .75rem; }
+.recadrage__zoom input { flex: 1; accent-color: var(--vert-fonce); }
+
+/* Messages d'erreur bien visibles */
+.erreur { color: var(--rouge); font-weight: 600; }
+
 /* Pied de page */
 .pied { background: var(--vert-fonce); color: #fff; font-size: .88rem; padding: 1.25rem 0; }
 .pied__contenu { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }

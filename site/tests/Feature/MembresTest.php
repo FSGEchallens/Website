@@ -341,6 +341,30 @@ class MembresTest extends TestCase
         Storage::disk('local')->assertMissing('photos-membres/FSG-Echallens_Apres_Lea.jpg');
     }
 
+    public function test_un_envoi_de_photo_rate_affiche_un_message_en_francais(): void
+    {
+        $membre = User::factory()->create();
+
+        Livewire::test(FicheMembre::class, ['membre' => $membre])
+            ->call('modifier')
+            ->call('_uploadErrored', 'photo', null, false)
+            ->assertHasErrors('photo')
+            ->assertSee('n’a pas pu être envoyé au serveur')
+            ->assertDontSee('failed to upload');
+    }
+
+    public function test_le_recadrage_de_l_avatar_est_propose(): void
+    {
+        $membre = User::factory()->create();
+
+        $this->get(route('membres.edit', $membre))->assertSee('recadrageAvatar', false);
+
+        Livewire::test(FicheMembre::class, ['membre' => $membre])
+            ->call('modifier')
+            ->assertSee('Cadrer la photo')
+            ->assertSee('avatar-rond', false);
+    }
+
     public function test_image_par_defaut_selon_le_titre(): void
     {
         $femme = User::factory()->create(['civilite' => Civilite::Madame]);
