@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\Role;
+use App\Models\Resultat;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -25,5 +26,7 @@ class DatabaseSeeder extends Seeder
         User::factory(8)->avecRole(Role::Moniteur)->create();
         User::factory(6)->create();
         User::factory(5)->sansCompte()->create();
+
+        Resultat::factory(6)->create();
     }
 }

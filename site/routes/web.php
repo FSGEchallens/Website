@@ -5,6 +5,7 @@ use App\Http\Controllers\FichierAnnonceController;
 use App\Http\Controllers\FichierArchiveController;
 use App\Http\Controllers\LogoPartenaireController;
 use App\Http\Controllers\PhotoMembreController;
+use App\Http\Controllers\PhotoResultatController;
 use App\Livewire\Administration\JournalModifications;
 use App\Livewire\Auth\Connexion;
 use App\Livewire\Auth\MotDePasseOublie;
@@ -15,9 +16,11 @@ use App\Livewire\Membres\ListeMembres;
 use App\Livewire\Profil\MonProfil;
 use App\Livewire\Site\GestionAnnonces;
 use App\Livewire\Site\GestionPartenaires;
+use App\Livewire\Site\GestionResultats;
 use App\Models\Annonce;
 use App\Models\BlocContenu;
 use App\Models\Partenaire;
+use App\Models\Resultat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +39,12 @@ Route::get('/la-societe/historique', fn () => view('pages.contenu', [
     'image' => 'images/societe/Gym-Bruyere_logo.png',
     'texteImage' => 'Logo historique de la Gym de la Bruyère',
 ]))->name('societe.historique');
+
+// Résultats des concours (page publique, du plus récent au plus ancien).
+Route::get('/la-societe/resultats', fn () => view('resultats', [
+    'resultats' => Resultat::where('visible', true)->duPlusRecent()->paginate(10),
+]))->name('resultats.index');
+Route::get('/resultats/{resultat}/photos/{index}', PhotoResultatController::class)->whereNumber('index')->name('resultats.photo');
 
 // Image et fichiers joints des annonces.
 Route::get('/annonces/{annonce}/image', [FichierAnnonceController::class, 'image'])->name('annonces.image');
@@ -95,6 +104,11 @@ Route::middleware(['auth', 'can:consulter-journal'])->group(function () {
     Route::livewire('/administration/journal', JournalModifications::class)->name('journal.index');
     Route::get('/administration/journal/{entree}/fichier/{index}', FichierArchiveController::class)
         ->whereNumber('index')->name('journal.fichier');
+});
+
+// Résultats : moniteurs, comité et administrateur.
+Route::middleware(['auth', 'can:publier-resultats'])->group(function () {
+    Route::livewire('/gestion/resultats', GestionResultats::class)->name('resultats.gestion');
 });
 
 // Contenus du site public : comité et administrateur uniquement.

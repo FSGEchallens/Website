@@ -20,7 +20,7 @@ return [
             ['libelle' => 'Le comité', 'url' => $ancienSite.'/le-comite/'],
             ['libelle' => 'Statuts', 'url' => $ancienSite.'/wp-content/uploads/FSG-Echallens-Statuts.pdf'],
             ['libelle' => 'PVs assemblées générales', 'url' => $ancienSite.'/pvs-assemblees-generales/'],
-            ['libelle' => 'Résultat', 'url' => $ancienSite.'/resultat/'],
+            ['libelle' => 'Résultats', 'route' => 'resultats.index'],
         ]],
         ['libelle' => 'Les groupes', 'large' => true, 'sous_menu' => [
             ['libelle' => 'Baby gym', 'url' => $ancienSite.'/groupes/baby-gym/'],
@@ -56,6 +56,9 @@ return [
         ]],
         ['titre' => 'Gestion', 'liens' => [
             ['libelle' => 'Membres', 'route' => 'membres.index', 'actif' => 'membres.*', 'role' => 'comite'],
+        ]],
+        ['titre' => 'Concours', 'liens' => [
+            ['libelle' => 'Résultats', 'route' => 'resultats.gestion', 'actif' => 'resultats.gestion', 'role' => 'moniteur'],
         ]],
         ['titre' => 'Site public', 'liens' => [
             ['libelle' => 'Annonces', 'route' => 'annonces.index', 'actif' => 'annonces.*', 'role' => 'comite'],

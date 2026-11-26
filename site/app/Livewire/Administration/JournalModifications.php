@@ -6,6 +6,7 @@ use App\Models\Annonce;
 use App\Models\BlocContenu;
 use App\Models\JournalModification;
 use App\Models\Partenaire;
+use App\Models\Resultat;
 use App\Models\User;
 use App\Services\Journal;
 use Illuminate\Contracts\View\View;
@@ -30,6 +31,7 @@ class JournalModifications extends Component
         Partenaire::class => 'Partenaires',
         BlocContenu::class => 'Textes du site',
         Annonce::class => 'Annonces',
+        Resultat::class => 'Résultats',
     ];
 
     #[Url(as: 'q', except: '')]

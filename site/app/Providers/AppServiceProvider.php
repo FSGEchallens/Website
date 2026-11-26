@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Enums\Role;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -23,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Dates en français (« 14 septembre 2019 »).
+        Carbon::setLocale(config('app.locale'));
+
         // Mot de passe fort : 12 à 64 caractères, majuscule, minuscule, chiffre et caractère spécial
         // (tous les signes et l'espace sont acceptés). Hors tests, refus des mots de passe ayant fuité
         // (Have I Been Pwned, anonyme : seuls 5 caractères de l'empreinte SHA-1 sont envoyés).
@@ -43,6 +47,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Contenus du site public (partenaires, puis pages…) : comité et administrateur.
         Gate::define('gerer-contenu', fn (User $user) => $user->aAuMoins(Role::Comite));
+
+        // Résultats des concours : publiés par les moniteurs (et le comité, l'administrateur).
+        Gate::define('publier-resultats', fn (User $user) => $user->aAuMoins(Role::Moniteur));
 
         // Journal des modifications (qui a modifié quoi, restauration) : administrateur uniquement pour le moment.
         Gate::define('consulter-journal', fn (User $user) => $user->estAdministrateur());

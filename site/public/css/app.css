@@ -212,6 +212,20 @@ a { color: var(--bleu); }
     .page-contenu__image { max-width: 9rem; }
 }
 
+/* Résultats */
+.resultat h2 { margin: 0 0 .8rem; font-size: 1.25rem; color: #333; }
+.resultat__date { display: block; font-size: .85rem; font-weight: 600; color: var(--vert-fonce); text-transform: uppercase; letter-spacing: .03em; }
+.resultat__modifier { margin-top: 1rem; }
+.galerie { display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: .6rem; margin-top: 1rem; }
+.galerie a { display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 6px; background: var(--gris-clair); }
+.galerie img { width: 100%; height: 100%; object-fit: cover; transition: transform .2s; }
+.galerie a:hover img { transform: scale(1.04); }
+.galerie-edition { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: .75rem; margin-bottom: .75rem; }
+.galerie-edition figure { margin: 0; background: #fff; border: 1px solid var(--gris-clair); border-radius: 6px; padding: .4rem; }
+.galerie-edition img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 4px; }
+.galerie-edition figcaption { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; margin-top: .3rem; }
+.galerie-edition__nouvelle { border-style: dashed !important; border-color: var(--vert) !important; }
+
 /* Pied de page */
 .pied { background: #222; color: #ccc; font-size: .88rem; padding: 1.25rem 0; }
 .pied__contenu { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
