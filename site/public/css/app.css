@@ -113,6 +113,8 @@ h1 { font-size: 1.6rem; margin: 0 0 1rem; }
 [x-cloak] { display: none !important; }
 .avec-oeil { position: relative; }
 .avec-oeil input { padding-right: 2.75rem; }
+/* Masque l'œil ajouté automatiquement par Microsoft Edge : on garde uniquement le nôtre. */
+.avec-oeil input::-ms-reveal, .avec-oeil input::-ms-clear { display: none; }
 .bouton-oeil {
     position: absolute; top: 50%; right: .35rem; transform: translateY(-50%);
     display: flex; align-items: center; justify-content: center;

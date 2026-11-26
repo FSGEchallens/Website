@@ -35,7 +35,7 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
   - redimensionner les photos et supprimer leurs données EXIF/GPS ;
   - garder les secrets dans `.env`, **jamais dans Git** ;
   - respecter la nLPD, car on gère des données d'enfants : page de confidentialité, consentement pour les photos, collecter le minimum.
-- **Environnements** :
+- **Environnements** (voir aussi « Plan de mise en production » plus bas) :
   - **local** (Laragon sur Windows, données **fictives** uniquement) ;
   - **test** (sous-domaine VTX avec sa propre base) ;
   - **production** (gymechallens.ch).
@@ -43,7 +43,7 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
 
 ## Ce que l'on sait de l'hébergement VTX
 - Disponible : PHP 8.3 minimum, création d'au moins une nouvelle base, sous-domaine, envoi SMTP depuis PHP (déjà utilisé par l'ancien site).
-- Le panneau d'hébergement est **Plesk**. Le sous-domaine de test est **NEW.gymechallens.ch**.
+- Le panneau d'hébergement est **Plesk**. Le sous-domaine de test est **test.gymechallens.ch** (renommé depuis NEW.gymechallens.ch le 26.11.2026, dossier compris).
   - Il est actif et tourne en PHP 8.3.37.
   - Il propose les outils « PHP Composer », « Git » et « Tâches planifiées » (cron).
   - Le 26.11.2026, le SSL n'était pas encore activé dessus (« Domaine non protégé »).
@@ -52,12 +52,12 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
   - Un message demandant son activation a été rédigé pour le support VTX.
   - Sans SSH, le plan est le suivant : l'outil Git de Plesk tire le code depuis GitHub, l'outil Composer de Plesk installe les bibliothèques, et les tâches planifiées lancent les scripts PHP (`artisan schedule:run`, et `artisan migrate --force` via « Exécuter maintenant »).
 - Utilisateur système du sous-domaine : `web388433elvu`.
-- Le https est actif sur NEW.gymechallens.ch (Let's Encrypt, avec redirection HTTP → HTTPS).
+- Le https est actif sur test.gymechallens.ch (Let's Encrypt, avec redirection HTTP → HTTPS).
 - Base de test : `fsg_test` sur **MariaDB** (`localhost:3306`), avec l'utilisateur `fsg_test_user`. Le mot de passe est détenu par le webmaster et ne doit jamais être mis dans Git. Sur le serveur, il faudra régler `DB_CONNECTION=mariadb`.
-- **Déploiement sur NEW.gymechallens.ch** (en place et fonctionnel depuis le 26.11.2026) :
-  - **Git de Plesk** : le dépôt `Website.git` (branche main) est déployé automatiquement dans `/NEW.gymechallens.ch`. Pour récupérer les nouveautés depuis GitHub : Git → « Exécuter pull ». Un webhook GitHub reste possible pour automatiser.
-  - **Racine du document** : `/NEW.gymechallens.ch/site/public`. Chemin complet : `/var/www/vhosts/gymechallens.ch/NEW.gymechallens.ch/`.
-  - **PHP Composer de Plesk** : dossier `/NEW.gymechallens.ch/site`, mode **Production**. Après un changement de `composer.lock`, cliquer sur « Installer ».
+- **Déploiement sur test.gymechallens.ch** (en place et fonctionnel depuis le 26.11.2026) :
+  - **Git de Plesk** : le dépôt `Website.git` (branche main) est déployé automatiquement dans `/test.gymechallens.ch`. Pour récupérer les nouveautés depuis GitHub : Git → « Exécuter pull ». Un webhook GitHub reste possible pour automatiser.
+  - **Racine du document** : `/test.gymechallens.ch/site/public`. Chemin complet : `/var/www/vhosts/gymechallens.ch/test.gymechallens.ch/`.
+  - **PHP Composer de Plesk** : dossier `/test.gymechallens.ch/site`, mode **Production**. Après un changement de `composer.lock`, cliquer sur « Installer ».
   - **`.env` du serveur** : créé à la main dans `site/` via le gestionnaire de fichiers. Réglages : `APP_ENV=staging`, `APP_DEBUG=false`, `DB_CONNECTION=mariadb`, `MAIL_MAILER=log`.
   - **Tâche planifiée « Laravel - mise à jour de la base »** : script PHP `site/artisan`, arguments `migrate --force`. Elle est lancée à la main avec « Exécuter maintenant » après chaque nouvelle migration.
   - **E-mails** (fonctionnels depuis le 26.11.2026) :
@@ -104,6 +104,10 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
   - **Données locales** (fictives) : `php artisan migrate:fresh --seed` crée l'administrateur webmaster@gymechallens.ch (mot de passe `password`). Le code de connexion arrive dans Mailpit (http://localhost:8025).
   - **Encodage** : ne pas modifier les fichiers avec `Get-Content`/`Set-Content` de PowerShell 5.1, qui abîme les accents UTF-8. Utiliser les outils d'édition ou `[IO.File]` avec UTF-8.
   - Pour lancer le site : `cd site` puis `php artisan serve`, et ouvrir http://localhost:8000.
+
+## Plan de mise en production (décidé le 26.11.2026)
+- La production sera préparée sur **prod.gymechallens.ch**, avec sa propre base et son propre `.env` (vrais e-mails, sans `MAIL_REDIRECT_TO`, `APP_ENV=production`). Elle sera reliée à une branche Git séparée (par exemple `production`), mise à jour uniquement avec l'accord du webmaster.
+- Le jour du passage, on ne fera **pas de redirection** vers prod.gymechallens.ch. On fera pointer la racine du document de **gymechallens.ch** (et www) vers le dossier du nouveau site. L'ancien WordPress reste dans son dossier, ce qui permet un retour arrière en une minute.
 
 ## Plan par étapes
 1. Fondations : Laravel en local, base de données, déploiement sur le sous-domaine de test. ✅ Terminé le 26.11.2026.
