@@ -5,13 +5,68 @@ namespace Tests\Feature;
 use App\Livewire\Profil\MonProfil;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 class ProfilTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_le_profil_s_ouvre_verrouille(): void
+    {
+        $membre = User::factory()->create(['localite' => 'Bercher']);
+
+        $this->actingAs($membre)->get(route('profil'))->assertSee('Profil verrouillé');
+
+        Livewire::actingAs($membre)
+            ->test(MonProfil::class)
+            ->assertSet('enEdition', false)
+            ->set('localite', 'Echallens')
+            ->call('enregistrerCoordonnees');
+
+        $this->assertSame('Bercher', $membre->fresh()->localite);
+    }
+
+    public function test_annuler_remet_les_valeurs_d_origine(): void
+    {
+        $membre = User::factory()->create(['localite' => 'Bercher']);
+
+        Livewire::actingAs($membre)
+            ->test(MonProfil::class)
+            ->call('modifier')
+            ->set('localite', 'Echallens')
+            ->call('annuler')
+            ->assertSet('enEdition', false)
+            ->assertSet('localite', 'Bercher');
+    }
+
+    public function test_le_membre_change_sa_photo(): void
+    {
+        Storage::fake('local');
+        $membre = User::factory()->create(['nom' => 'Rochat', 'prenom' => 'Aline']);
+
+        Livewire::actingAs($membre)
+            ->test(MonProfil::class)
+            ->call('modifier')
+            ->set('photo', UploadedFile::fake()->image('moi.jpg', 800, 1000))
+            ->call('enregistrerCoordonnees')
+            ->assertHasNoErrors();
+
+        $this->assertSame('FSG-Echallens_Rochat_Aline.jpg', $membre->fresh()->photo);
+        Storage::disk('local')->assertExists('photos-membres/FSG-Echallens_Rochat_Aline.jpg');
+
+        Livewire::actingAs($membre->fresh())
+            ->test(MonProfil::class)
+            ->call('modifier')
+            ->call('retirerPhoto')
+            ->call('enregistrerCoordonnees');
+
+        $this->assertNull($membre->fresh()->photo);
+        Storage::disk('local')->assertMissing('photos-membres/FSG-Echallens_Rochat_Aline.jpg');
+    }
 
     public function test_un_visiteur_doit_se_connecter(): void
     {
@@ -42,6 +97,7 @@ class ProfilTest extends TestCase
         Livewire::actingAs($membre)
             ->test(MonProfil::class)
             ->assertSet('localite', 'Bercher')
+            ->call('modifier')
             ->set('localite', 'Echallens')
             ->set('npa', '1040')
             ->set('telephone', '')
@@ -64,7 +120,7 @@ class ProfilTest extends TestCase
         // Ces propriétés n'existent pas dans le composant profil : impossible de les envoyer.
         foreach (['nom' => 'Pirate', 'email' => 'pirate@example.org', 'avs' => '7561234567897', 'date_sortie' => '2020-01-01'] as $champ => $valeur) {
             try {
-                Livewire::actingAs($membre)->test(MonProfil::class)->set($champ, $valeur)->call('enregistrerCoordonnees');
+                Livewire::actingAs($membre)->test(MonProfil::class)->call('modifier')->set($champ, $valeur)->call('enregistrerCoordonnees');
             } catch (\Throwable) {
                 // Livewire refuse une propriété inconnue : c'est le comportement attendu.
             }
@@ -80,6 +136,7 @@ class ProfilTest extends TestCase
     {
         Livewire::actingAs(User::factory()->create())
             ->test(MonProfil::class)
+            ->call('modifier')
             ->set('npa', '12')
             ->set('email_prive', 'pas-un-email')
             ->set('mobile', 'abc')

@@ -17,21 +17,8 @@
             <section class="carte">
                 <h2>Identité</h2>
                 <div class="identite">
-                    <div class="photo-membre">
-                        <img src="{{ $urlApercu }}" alt="Photo de {{ trim($prenom.' '.$nom) ?: 'ce membre' }}" width="160" height="160">
-                        <div wire:loading wire:target="photo" class="discret">Chargement de la photo…</div>
-                        @if ($enEdition)
-                            <label class="bouton bouton--secondaire bouton--petit">
-                                {{ $aUnePhoto ? 'Changer la photo' : 'Importer une photo' }}
-                                <input type="file" wire:model="photo" accept="image/jpeg,image/png,image/webp" class="visuellement-cache">
-                            </label>
-                            @if ($aUnePhoto)
-                                <button type="button" class="lien" wire:click="retirerPhoto">Retirer la photo</button>
-                            @endif
-                            <div class="aide">JPEG, PNG ou WebP, 10 Mo au maximum. La photo est recadrée en carré.</div>
-                        @endif
-                        @error('photo') <div class="erreur">{{ $message }}</div> @enderror
-                    </div>
+                    <x-champ-photo :url="$urlApercu" :a-une-photo="$aUnePhoto" :modifiable="$enEdition"
+                                   :alt="'Photo de '.(trim($prenom.' '.$nom) ?: 'ce membre')" />
 
                     <div class="grille">
                         <div @class(['champ', 'champ--erreur' => $errors->has('civilite')])>

@@ -1,70 +1,87 @@
 <div>
-    <h1>Mon profil</h1>
+    <div class="barre">
+        <h1>Mon profil</h1>
+        @unless ($enEdition)
+            <button type="button" class="bouton" wire:click="modifier">Modifier</button>
+        @endunless
+    </div>
+
+    @unless ($enEdition)
+        <p class="alerte alerte--info">Profil verrouillé pour éviter une modification involontaire. Cliquez sur <strong>Modifier</strong> pour changer votre photo ou vos coordonnées.</p>
+    @endunless
 
     <section class="carte">
         <h2>Mes informations</h2>
-        <p class="discret">Ces informations sont gérées par le comité. Si quelque chose est faux, contactez-le.</p>
         <div class="identite">
-        <div class="photo-membre">
-            <img src="{{ $membre->urlPhoto() }}" alt="Ma photo" width="160" height="160">
-        </div>
-        <dl class="infos">
-            <dt>Nom</dt>
-            <dd>{{ $membre->civilite?->libelle() }} {{ $membre->nomComplet() }}</dd>
+            <x-champ-photo :url="$urlApercu" :a-une-photo="$aUnePhoto" :modifiable="$enEdition" alt="Ma photo" />
 
-            <dt>E-mail société</dt>
-            <dd>{{ $membre->email }}</dd>
+            <div>
+                <dl class="infos">
+                    <dt>Nom</dt>
+                    <dd>{{ $membre->civilite?->libelle() }} {{ $membre->nomComplet() }}</dd>
 
-            <dt>Autorisation</dt>
-            <dd>
-                @php($role = $membre->role ?? \App\Enums\Role::Membre)
-                <span class="badge badge--{{ $role->value }}">{{ $role->libelle() }}</span>
-            </dd>
+                    <dt>E-mail société</dt>
+                    <dd>{{ $membre->email }}</dd>
 
-            <dt>Membre depuis</dt>
-            <dd>{{ $membre->date_entree?->format('d.m.Y') ?? '—' }}</dd>
+                    <dt>Autorisation</dt>
+                    <dd>
+                        @php($role = $membre->role ?? \App\Enums\Role::Membre)
+                        <span class="badge badge--{{ $role->value }}">{{ $role->libelle() }}</span>
+                    </dd>
 
-            <dt>Date de naissance</dt>
-            <dd>{{ $membre->date_naissance?->format('d.m.Y') ?? '—' }}</dd>
+                    <dt>Membre depuis</dt>
+                    <dd>{{ $membre->date_entree?->format('d.m.Y') ?? '—' }}</dd>
 
-            <dt>N° AVS</dt>
-            <dd>{{ $avsMasque ?? '—' }}</dd>
-        </dl>
+                    <dt>Date de naissance</dt>
+                    <dd>{{ $membre->date_naissance?->format('d.m.Y') ?? '—' }}</dd>
+
+                    <dt>N° AVS</dt>
+                    <dd>{{ $avsMasque ?? '—' }}</dd>
+                </dl>
+                <p class="discret">Ces informations sont gérées par le comité. Si quelque chose est faux, contactez-le.</p>
+            </div>
         </div>
     </section>
 
     <form wire:submit="enregistrerCoordonnees" novalidate>
-        <section class="carte">
-            <h2>Mes coordonnées privées</h2>
-            <p class="discret">Elles servent au comité et à vos moniteurs. Elles ne sont jamais affichées publiquement, sauf si vous le choisissez ci-dessous.</p>
-            <div class="grille">
-                <x-champ nom="rue" libelle="Rue" autocomplete="address-line1" />
-                <x-champ nom="numero" libelle="N°" />
-                <x-champ nom="npa" libelle="Code postal" inputmode="numeric" autocomplete="postal-code" />
-                <x-champ nom="localite" libelle="Localité" autocomplete="address-level2" />
-                <x-champ nom="telephone" libelle="Téléphone" type="tel" autocomplete="tel" />
-                <x-champ nom="mobile" libelle="Mobile" type="tel" autocomplete="tel" />
-                <x-champ nom="email_prive" libelle="E-mail privé" type="email" autocomplete="email" />
-            </div>
-        </section>
+        <fieldset class="verrouillable" @disabled(! $enEdition)>
+            <legend class="visuellement-cache">Mes coordonnées</legend>
 
-        <section class="carte">
-            <h2>Ce que les visiteurs du site peuvent voir</h2>
-            <p class="discret">Par exemple sur la page des moniteurs. Tout est masqué par défaut.</p>
-            <div class="grille">
-                <label class="case"><input type="checkbox" wire:model="afficher_photo"> Afficher ma photo</label>
-                <label class="case"><input type="checkbox" wire:model="afficher_adresse"> Afficher mon adresse</label>
-                <label class="case"><input type="checkbox" wire:model="afficher_telephone"> Afficher mon téléphone</label>
-                <label class="case"><input type="checkbox" wire:model="afficher_mobile"> Afficher mon mobile</label>
-            </div>
-        </section>
+            <section class="carte">
+                <h2>Mes coordonnées privées</h2>
+                <p class="discret">Elles servent au comité et à vos moniteurs. Elles ne sont jamais affichées publiquement, sauf si vous le choisissez ci-dessous.</p>
+                <div class="grille">
+                    <x-champ nom="rue" libelle="Rue" autocomplete="address-line1" />
+                    <x-champ nom="numero" libelle="N°" />
+                    <x-champ nom="npa" libelle="Code postal" inputmode="numeric" autocomplete="postal-code" />
+                    <x-champ nom="localite" libelle="Localité" autocomplete="address-level2" />
+                    <x-champ nom="telephone" libelle="Téléphone" type="tel" autocomplete="tel" />
+                    <x-champ nom="mobile" libelle="Mobile" type="tel" autocomplete="tel" requis />
+                    <x-champ nom="email_prive" libelle="E-mail privé" type="email" autocomplete="email" requis />
+                </div>
+            </section>
 
-        <div class="actions bloc">
-            <button type="submit" class="bouton">
-                <span wire:loading.remove wire:target="enregistrerCoordonnees">Enregistrer mes coordonnées</span>
-                <span wire:loading wire:target="enregistrerCoordonnees">Enregistrement…</span>
-            </button>
-        </div>
+            <section class="carte">
+                <h2>Ce que les visiteurs du site peuvent voir</h2>
+                <p class="discret">Par exemple sur la page des moniteurs. Tout est masqué par défaut.</p>
+                <div class="grille">
+                    <label class="case"><input type="checkbox" wire:model="afficher_photo"> Afficher ma photo</label>
+                    <label class="case"><input type="checkbox" wire:model="afficher_adresse"> Afficher mon adresse</label>
+                    <label class="case"><input type="checkbox" wire:model="afficher_telephone"> Afficher mon téléphone</label>
+                    <label class="case"><input type="checkbox" wire:model="afficher_mobile"> Afficher mon mobile</label>
+                </div>
+            </section>
+        </fieldset>
+
+        @if ($enEdition)
+            <div class="actions bloc">
+                <button type="submit" class="bouton" wire:loading.attr="disabled" wire:target="photo,enregistrerCoordonnees">
+                    <span wire:loading.remove wire:target="enregistrerCoordonnees">Enregistrer</span>
+                    <span wire:loading wire:target="enregistrerCoordonnees">Enregistrement…</span>
+                </button>
+                <button type="button" class="bouton bouton--secondaire" wire:click="annuler">Annuler</button>
+            </div>
+        @endif
     </form>
 
     <section class="carte carte--mot-de-passe">

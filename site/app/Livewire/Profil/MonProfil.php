@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Profil;
 
+use App\Livewire\Concerns\GerePhotoMembre;
 use App\Models\User;
+use App\Services\PhotoMembre;
 use App\Validation\ReglesMembre;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Str;
@@ -12,11 +14,16 @@ use Livewire\Component;
 
 /**
  * Profil du membre connecté : il voit toutes ses données et modifie
- * lui-même ses coordonnées, ses choix d'affichage et son mot de passe.
+ * lui-même sa photo, ses coordonnées, ses choix d'affichage et son mot de passe.
+ * Les coordonnées sont verrouillées tant qu'on n'a pas cliqué sur « Modifier ».
  */
 #[Title('Mon profil')]
 class MonProfil extends Component
 {
+    use GerePhotoMembre;
+
+    public bool $enEdition = false;
+
     public string $rue = '';
 
     public string $numero = '';
@@ -50,17 +57,37 @@ class MonProfil extends Component
         $this->remplir($this->membre());
     }
 
-    public function enregistrerCoordonnees(): void
+    public function modifier(): void
     {
+        $this->enEdition = true;
+    }
+
+    public function annuler(): void
+    {
+        $this->remplir($this->membre()->fresh());
+        $this->reset('photo', 'supprimerPhoto');
+        $this->resetErrorBag();
+        $this->enEdition = false;
+    }
+
+    public function enregistrerCoordonnees(PhotoMembre $photos): void
+    {
+        if (! $this->enEdition) {
+            return;
+        }
+
         $donnees = $this->validate(
-            [...ReglesMembre::coordonnees(), ...ReglesMembre::affichage()],
-            ReglesMembre::messages(),
+            [...ReglesMembre::coordonnees(), ...ReglesMembre::affichage(), ...$this->reglesPhoto()],
+            [...ReglesMembre::messages(), ...$this->messagesPhoto()],
             ReglesMembre::attributs(),
         );
+        unset($donnees['photo']);
 
-        $this->membre()->fill(ReglesMembre::nettoyer($donnees))->save();
+        $membre = $this->membre();
+        $membre->fill(ReglesMembre::nettoyer($donnees))->save();
+        $this->appliquerPhoto($membre, $photos);
 
-        session()->flash('message', 'Vos coordonnées ont été enregistrées.');
+        session()->flash('message', 'Votre profil a été enregistré.');
         $this->redirectRoute('profil', navigate: false);
     }
 
@@ -134,6 +161,8 @@ class MonProfil extends Component
         return view('livewire.profil.mon-profil', [
             'membre' => $membre,
             'avsMasque' => $this->avsMasque($membre->avs),
+            'urlApercu' => $this->urlApercuPhoto($membre, $membre->civilite),
+            'aUnePhoto' => $this->aUnePhoto($membre),
         ]);
     }
 }

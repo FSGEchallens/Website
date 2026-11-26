@@ -4,6 +4,7 @@ namespace App\Livewire\Membres;
 
 use App\Enums\Civilite;
 use App\Enums\Role;
+use App\Livewire\Concerns\GerePhotoMembre;
 use App\Models\User;
 use App\Rules\NumeroAvs;
 use App\Services\PhotoMembre;
@@ -13,8 +14,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
-use Livewire\WithFileUploads;
 
 /**
  * Création et modification d'une fiche membre (comité / webmaster).
@@ -22,7 +21,7 @@ use Livewire\WithFileUploads;
  */
 class FicheMembre extends Component
 {
-    use WithFileUploads;
+    use GerePhotoMembre;
 
     public ?User $membre = null;
 
@@ -70,11 +69,6 @@ class FicheMembre extends Component
 
     public string $role = '';
 
-    /** Nouvelle photo choisie (pas encore enregistrée). */
-    public ?TemporaryUploadedFile $photo = null;
-
-    public bool $supprimerPhoto = false;
-
     public function mount(?User $membre = null): void
     {
         if ($membre === null || ! $membre->exists) {
@@ -111,18 +105,6 @@ class FicheMembre extends Component
         $this->enEdition = false;
     }
 
-    public function retirerPhoto(): void
-    {
-        $this->reset('photo');
-        $this->supprimerPhoto = true;
-    }
-
-    public function updatedPhoto(): void
-    {
-        $this->supprimerPhoto = false;
-        $this->validateOnly('photo');
-    }
-
     /**
      * @return array<string, mixed>
      */
@@ -141,7 +123,7 @@ class FicheMembre extends Component
             ...ReglesMembre::affichage(),
             'compte_wp' => ['nullable', 'string', 'max:60'],
             'role' => ['required', Rule::enum(Role::class)],
-            'photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+            ...$this->reglesPhoto(),
         ];
     }
 
@@ -174,9 +156,7 @@ class FicheMembre extends Component
             'date_naissance.before' => 'La date de naissance doit être dans le passé.',
             'date_naissance.after' => 'La date de naissance n\'est pas plausible.',
             'date_sortie.after_or_equal' => 'La date de sortie ne peut pas être avant la date d\'entrée.',
-            'photo.image' => 'Le fichier choisi n\'est pas une image.',
-            'photo.mimes' => 'La photo doit être au format JPEG, PNG ou WebP.',
-            'photo.max' => 'La photo ne doit pas dépasser 10 Mo.',
+            ...$this->messagesPhoto(),
         ];
     }
 
@@ -203,15 +183,7 @@ class FicheMembre extends Component
 
         DB::transaction(function () use ($membre, $donnees, $role, $photos): void {
             $membre->fill($donnees)->forceFill(['role' => $role])->save();
-
-            if ($this->photo !== null) {
-                $membre->forceFill(['photo' => $photos->enregistrer($membre, $this->photo)])->save();
-            } elseif ($this->supprimerPhoto && $membre->photo !== null) {
-                $photos->supprimer($membre);
-                $membre->forceFill(['photo' => null])->save();
-            } elseif ($membre->photo !== null) {
-                $membre->forceFill(['photo' => $photos->renommerSiNecessaire($membre)])->save();
-            }
+            $this->appliquerPhoto($membre, $photos);
         });
 
         $message = $estNouveau
@@ -308,33 +280,13 @@ class FicheMembre extends Component
         }
     }
 
-    /**
-     * Photo à afficher dans l'aperçu : nouvelle photo choisie, photo actuelle, ou image par défaut selon le titre.
-     */
-    private function urlApercu(): string
-    {
-        if ($this->photo !== null && ! $this->getErrorBag()->has('photo')) {
-            try {
-                return $this->photo->temporaryUrl();
-            } catch (\Throwable) {
-                // Aperçu impossible : on affiche l'image actuelle.
-            }
-        }
-
-        if ($this->membre?->photo !== null && ! $this->supprimerPhoto) {
-            return $this->membre->urlPhoto();
-        }
-
-        return User::urlPhotoParDefaut(Civilite::tryFrom($this->civilite));
-    }
-
     public function render(): View
     {
         return view('livewire.membres.fiche-membre', [
             'civilites' => Civilite::cases(),
             'tousLesRoles' => Role::cases(),
-            'urlApercu' => $this->urlApercu(),
-            'aUnePhoto' => $this->photo !== null || ($this->membre?->photo !== null && ! $this->supprimerPhoto),
+            'urlApercu' => $this->urlApercuPhoto($this->membre, Civilite::tryFrom($this->civilite)),
+            'aUnePhoto' => $this->aUnePhoto($this->membre),
         ])->title($this->membre ? $this->membre->nomComplet() : 'Nouveau membre');
     }
 }

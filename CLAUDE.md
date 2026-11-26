@@ -66,10 +66,8 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
     - Avec `MAIL_REDIRECT_TO=test@gymechallens.ch`, tous les e-mails du site de test arrivent dans cette boîte.
     - Les e-mails de la messagerie se gèrent dans l'espace client VTX, pas dans Plesk.
   - Le compte administrateur du webmaster a été créé sur le site de test le 26.11.2026 (commande `membre:admin`).
-  - **Reste à faire** :
-    - désactiver `display_errors` dans les réglages PHP de Plesk ;
-    - ajouter une tâche cron chaque minute avec `schedule:run` (nécessaire pour les tâches automatiques et la file d'attente des e-mails) ;
-    - vérifier dans les réglages PHP de Plesk que `upload_max_filesize` et `post_max_size` valent au moins 12M, pour l'import des photos.
+  - **Réglages PHP de Plesk** (26.11.2026) : `display_errors` est sur off ; `upload_max_filesize` et `post_max_size` sont à 128M.
+  - **Reste à faire** : ajouter une tâche cron chaque minute avec `schedule:run` (nécessaire pour les tâches automatiques et la file d'attente des e-mails).
 - Si SSH n'est pas disponible : déploiement par FTP, avec `vendor/` préparé en local. Si cron n'est pas disponible : un service externe appelle une URL protégée.
 
 ## Ancien site
