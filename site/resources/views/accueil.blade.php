@@ -17,6 +17,8 @@
         </div>
     </section>
 
+    @include('partials.annonces')
+
     <section @class(['conteneur', 'accueil', 'accueil--une-colonne' => ! $afficherRecrute])>
         <div class="accueil__texte">
             @foreach (['accueil.texte' => 'texte', 'accueil.encart' => 'encart'] as $cle => $presentation)

@@ -59,6 +59,7 @@ return [
             ['libelle' => 'Membres', 'route' => 'membres.index', 'actif' => 'membres.*', 'role' => 'comite'],
         ]],
         ['titre' => 'Site public', 'liens' => [
+            ['libelle' => 'Annonces', 'route' => 'annonces.index', 'actif' => 'annonces.*', 'role' => 'comite'],
             ['libelle' => 'Partenaires', 'route' => 'partenaires.index', 'actif' => 'partenaires.*', 'role' => 'comite'],
         ]],
         ['titre' => 'Administration', 'liens' => [

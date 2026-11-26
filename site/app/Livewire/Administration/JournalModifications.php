@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Administration;
 
+use App\Models\Annonce;
 use App\Models\BlocContenu;
 use App\Models\JournalModification;
 use App\Models\Partenaire;
@@ -28,6 +29,7 @@ class JournalModifications extends Component
         User::class => 'Membres',
         Partenaire::class => 'Partenaires',
         BlocContenu::class => 'Textes du site',
+        Annonce::class => 'Annonces',
     ];
 
     #[Url(as: 'q', except: '')]

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Role;
+use App\Http\Controllers\FichierAnnonceController;
 use App\Http\Controllers\FichierArchiveController;
 use App\Http\Controllers\LogoPartenaireController;
 use App\Http\Controllers\PhotoMembreController;
@@ -12,7 +13,9 @@ use App\Livewire\Auth\SaisieCode;
 use App\Livewire\Membres\FicheMembre;
 use App\Livewire\Membres\ListeMembres;
 use App\Livewire\Profil\MonProfil;
+use App\Livewire\Site\GestionAnnonces;
 use App\Livewire\Site\GestionPartenaires;
+use App\Models\Annonce;
 use App\Models\BlocContenu;
 use App\Models\Partenaire;
 use Illuminate\Http\Request;
@@ -22,7 +25,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', fn () => view('accueil', [
     'partenaires' => Partenaire::visibles()->dansLOrdre()->get(),
     'blocs' => BlocContenu::parCles(['accueil.texte', 'accueil.encart', 'accueil.recrute']),
+    'annonces' => Annonce::actives()->dansLOrdre()->get(),
 ]))->name('accueil');
+
+// Image et fichiers joints des annonces.
+Route::get('/annonces/{annonce}/image', [FichierAnnonceController::class, 'image'])->name('annonces.image');
+Route::get('/annonces/{annonce}/fichiers/{index}', [FichierAnnonceController::class, 'fichier'])->whereNumber('index')->name('annonces.fichier');
 
 // Logo importé d'un partenaire (public).
 Route::get('/partenaires/{partenaire}/logo', LogoPartenaireController::class)->name('partenaires.logo');
@@ -83,4 +91,5 @@ Route::middleware(['auth', 'can:consulter-journal'])->group(function () {
 // Contenus du site public : comité et administrateur uniquement.
 Route::middleware(['auth', 'can:gerer-contenu'])->group(function () {
     Route::livewire('/gestion/partenaires', GestionPartenaires::class)->name('partenaires.index');
+    Route::livewire('/gestion/annonces', GestionAnnonces::class)->name('annonces.index');
 });

@@ -90,6 +90,11 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
     - Le bloc « recrute » a un titre et peut être masqué.
     - Les visiteurs reçoivent du HTML simple, sans Livewire.
     - Chaque modification est inscrite au journal.
+  - **Annonces** (table `annonces`) : elles s'affichent sous le bandeau de l'accueil. Le comité les gère sur `/gestion/annonces` ; sur l'accueil, il dispose de « + Ajouter une annonce » et de « ✎ Modifier ».
+    - Contenu : titre, texte (éditeur), image à gauche, à droite ou en fond, et jusqu'à 6 boutons (lien web ou fichier joint PDF/image).
+    - Affichage : dates « du / au » facultatives, case « active », et ordre réglable.
+    - Fichiers : `storage/app/private/annonces/{images,fichiers}`, servis par `/annonces/{id}/image` et `/annonces/{id}/fichiers/{n}`. Ils sont publics seulement si l'annonce est active (sinon réservés au comité).
+    - ⚠️ Dans un modèle Eloquent, `\->visible` désigne une propriété interne de Laravel : utiliser `getAttribute('visible')`.
   - **Partenaires** : table `partenaires` (nom, lien, logo, ordre, visible), gérée par le comité et l'administrateur sur `/gestion/partenaires` (gate `gerer-contenu`). Un bouton « Modifier les partenaires » apparaît sur l'accueil pour eux.
     - Les 9 logos d'origine restent dans `public/images/partenaires`.
     - Les logos importés sont réduits à 400 × 160 au maximum et réencodés en PNG. Ils sont stockés dans `storage/app/private/logos-partenaires` et servis par `/partenaires/{id}/logo`. Les fichiers SVG sont refusés.
