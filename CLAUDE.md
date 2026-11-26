@@ -43,7 +43,18 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
 
 ## Ce que l'on sait de l'hébergement VTX
 - Disponible : PHP 8.3 minimum, création d'au moins une nouvelle base, sous-domaine, envoi SMTP depuis PHP (déjà utilisé par l'ancien site).
-- **À vérifier** : accès SSH, tâches cron, Composer, possibilité de choisir le dossier racine (pour pointer vers `public/`). Un message à envoyer au support VTX a été préparé.
+- Le panneau d'hébergement est **Plesk**. Le sous-domaine de test est **NEW.gymechallens.ch**.
+  - Il est actif et tourne en PHP 8.3.37.
+  - Il propose les outils « PHP Composer », « Git » et « Tâches planifiées » (cron).
+  - Le 26.11.2026, le SSL n'était pas encore activé dessus (« Domaine non protégé »).
+- L'hébergement est rempli à 86 % (13,2 Go sur 15 Go), surtout par l'ancien site. Il faut surveiller la place restante.
+- **SSH** : le 26.11.2026, Plesk l'affichait comme « Interdit », sans pouvoir le modifier. C'est donc bloqué par VTX.
+  - Un message demandant son activation a été rédigé pour le support VTX.
+  - Sans SSH, le plan est le suivant : l'outil Git de Plesk tire le code depuis GitHub, l'outil Composer de Plesk installe les bibliothèques, et les tâches planifiées lancent les scripts PHP (`artisan schedule:run`, et `artisan migrate --force` via « Exécuter maintenant »).
+- Utilisateur système du sous-domaine : `web388433elvu`.
+- Le https est actif sur NEW.gymechallens.ch (Let's Encrypt, avec redirection HTTP → HTTPS).
+- Base de test : `fsg_test` sur **MariaDB** (`localhost:3306`), avec l'utilisateur `fsg_test_user`. Le mot de passe est détenu par le webmaster et ne doit jamais être mis dans Git. Sur le serveur, il faudra régler `DB_CONNECTION=mariadb`.
+- **À vérifier** : possibilité de choisir le dossier racine (pour pointer vers `public/`), dans Plesk → Paramètres d'hébergement → Type d'hébergement.
 - Si SSH n'est pas disponible : déploiement par FTP, avec `vendor/` préparé en local. Si cron n'est pas disponible : un service externe appelle une URL protégée.
 
 ## Ancien site
