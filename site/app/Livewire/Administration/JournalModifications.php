@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Administration;
 
+use App\Models\BlocContenu;
 use App\Models\JournalModification;
 use App\Models\Partenaire;
 use App\Models\User;
@@ -26,6 +27,7 @@ class JournalModifications extends Component
     public const TYPES = [
         User::class => 'Membres',
         Partenaire::class => 'Partenaires',
+        BlocContenu::class => 'Textes du site',
     ];
 
     #[Url(as: 'q', except: '')]
@@ -100,7 +102,8 @@ class JournalModifications extends Component
             $valeur === null, $valeur === '' => '—',
             is_bool($valeur) => $valeur ? 'Oui' : 'Non',
             in_array($champ, ['visible', 'afficher_mobile'], true) => $valeur ? 'Oui' : 'Non',
-            default => mb_strimwidth((string) $valeur, 0, 120, '…'),
+            // Les textes mis en forme sont affichés sans leurs balises.
+            default => mb_strimwidth(trim(html_entity_decode(strip_tags(str_replace(['</p>', '<br>'], ' ', (string) $valeur)), ENT_QUOTES | ENT_HTML5, 'UTF-8')), 0, 160, '…'),
         };
     }
 

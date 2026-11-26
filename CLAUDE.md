@@ -83,7 +83,13 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
 - `site/` contient l'application **Laravel 13** avec **Livewire 4**. Elle a été créée le 26.11.2026 et utilise PHP 8.3 et MySQL 8.4 de Laragon.
   - En local, la base s'appelle `fsg_echallens` (utilisateur root, sans mot de passe).
   - Les e-mails partent vers Mailpit de Laragon (port 1025, consultables sur http://localhost:8025).
-  - **Page d'accueil** (`/`, vue `accueil.blade.php`) : elle reprend la page statique (bandeau, texte, encadré « recrute », partenaires). Les liens généraux sont dans `config/site.php`. Le texte sera rendu modifiable par le comité à l'étape 2.
+  - **Page d'accueil** (`/`, vue `accueil.blade.php`) : elle reprend la page statique (bandeau, texte, encadré « recrute », partenaires). Les liens généraux sont dans `config/site.php`.
+  - **Textes modifiables** (table `blocs_contenu`, clés `accueil.texte`, `accueil.encart`, `accueil.recrute`) : le comité et l'administrateur les modifient sur place, avec « ✎ Modifier » (composant Livewire `Site\BlocTexte`).
+    - Le petit éditeur maison (`x-editeur-texte` + `editeurTexte` dans `app.js`) propose : gras, italique, souligné, barré, couleurs du club, listes et lien. Le texte collé arrive sans mise en forme.
+    - Le HTML est nettoyé côté serveur par `App\Support\NettoyeurHtml` (liste blanche reconstruite avec DOMDocument, sans bibliothèque externe).
+    - Le bloc « recrute » a un titre et peut être masqué.
+    - Les visiteurs reçoivent du HTML simple, sans Livewire.
+    - Chaque modification est inscrite au journal.
   - **Partenaires** : table `partenaires` (nom, lien, logo, ordre, visible), gérée par le comité et l'administrateur sur `/gestion/partenaires` (gate `gerer-contenu`). Un bouton « Modifier les partenaires » apparaît sur l'accueil pour eux.
     - Les 9 logos d'origine restent dans `public/images/partenaires`.
     - Les logos importés sont réduits à 400 × 160 au maximum et réencodés en PNG. Ils sont stockés dans `storage/app/private/logos-partenaires` et servis par `/partenaires/{id}/logo`. Les fichiers SVG sont refusés.

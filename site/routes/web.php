@@ -12,6 +12,7 @@ use App\Livewire\Membres\FicheMembre;
 use App\Livewire\Membres\ListeMembres;
 use App\Livewire\Profil\MonProfil;
 use App\Livewire\Site\GestionPartenaires;
+use App\Models\BlocContenu;
 use App\Models\Partenaire;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,6 +20,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => view('accueil', [
     'partenaires' => Partenaire::visibles()->dansLOrdre()->get(),
+    'blocs' => BlocContenu::parCles(['accueil.texte', 'accueil.encart', 'accueil.recrute']),
 ]))->name('accueil');
 
 // Logo importé d'un partenaire (public).

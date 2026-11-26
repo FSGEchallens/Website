@@ -60,6 +60,104 @@ document.addEventListener('DOMContentLoaded', mettreAJourBoutonsMenuLateral);
 
 document.addEventListener('alpine:init', () => {
     /*
+     * Petit éditeur de texte (zone « contenteditable » + boutons de mise en forme).
+     * Le HTML produit est envoyé à Livewire, puis nettoyé côté serveur avec une liste blanche.
+     */
+    window.Alpine.data('editeurTexte', (nom) => ({
+        etats: {},
+        paletteOuverte: false,
+        couleurs: [
+            { nom: 'Noir', code: '#333333' },
+            { nom: 'Vert foncé (club)', code: '#5d9733' },
+            { nom: 'Vert (club)', code: '#81d742' },
+            { nom: 'Bleu (club)', code: '#2ea3f2' },
+            { nom: 'Rouge', code: '#c62828' },
+            { nom: 'Orange', code: '#e67e22' },
+            { nom: 'Gris', code: '#666666' },
+        ],
+
+        init() {
+            document.execCommand('defaultParagraphSeparator', false, 'p');
+        },
+
+        commande(nomCommande, valeur = null) {
+            this.$refs.zone.focus();
+            document.execCommand(nomCommande, false, valeur);
+            this.synchroniser();
+            this.majEtats();
+        },
+
+        appliquerCouleur(code) {
+            document.execCommand('styleWithCSS', false, true);
+            this.commande('foreColor', code);
+            document.execCommand('styleWithCSS', false, false);
+            this.paletteOuverte = false;
+        },
+
+        ajouterLien() {
+            const selection = window.getSelection();
+            const plage = selection.rangeCount ? selection.getRangeAt(0).cloneRange() : null;
+
+            if (! plage || plage.collapsed) {
+                window.alert('Sélectionnez d\'abord le texte qui doit devenir un lien.');
+
+                return;
+            }
+
+            let adresse = (window.prompt('Adresse du lien (https://… ou adresse e-mail) :', 'https://') || '').trim();
+
+            if (adresse === '' || adresse === 'https://') {
+                return;
+            }
+
+            if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(adresse)) {
+                adresse = 'mailto:' + adresse;
+            }
+
+            if (! /^(https?:\/\/|mailto:)/i.test(adresse)) {
+                window.alert('Le lien doit commencer par https:// (ou être une adresse e-mail).');
+
+                return;
+            }
+
+            this.$refs.zone.focus();
+            selection.removeAllRanges();
+            selection.addRange(plage);
+            this.commande('createLink', adresse);
+        },
+
+        coller(evenement) {
+            evenement.preventDefault();
+            const texte = (evenement.clipboardData || window.clipboardData).getData('text/plain');
+            document.execCommand('insertText', false, texte);
+            this.synchroniser();
+        },
+
+        synchroniser() {
+            this.$wire.$set(nom, this.$refs.zone.innerHTML, false);
+        },
+
+        majEtats() {
+            const etat = (commande) => {
+                try {
+                    return document.queryCommandState(commande);
+                } catch {
+                    return false;
+                }
+            };
+
+            this.etats = {
+                bold: etat('bold'),
+                italic: etat('italic'),
+                underline: etat('underline'),
+                strikeThrough: etat('strikeThrough'),
+                insertUnorderedList: etat('insertUnorderedList'),
+                insertOrderedList: etat('insertOrderedList'),
+            };
+        },
+    }));
+
+    /*
      * Avertit l'utilisateur s'il quitte une page avec des modifications non enregistrées.
      * - Clic sur un lien du site : message personnalisé.
      * - Actualisation, fermeture, bouton « Précédent » : avertissement standard du navigateur.
