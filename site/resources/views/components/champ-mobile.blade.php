@@ -1,6 +1,6 @@
 {{-- Numéro de mobile avec liste des pays (drapeau + indicatif) : Suisse en premier et présélectionnée,
      puis les autres pays par ordre alphabétique. Propriétés Livewire : « mobile_pays » et « mobile ».
-     Liste fermée : seuls le drapeau et l'indicatif sont affichés (ex. « 🇨🇭 +41 ») ; liste ouverte : noms complets. --}}
+     Liste fermée : seul l'indicatif est affiché (ex. « +41 ») ; liste ouverte : drapeaux et noms complets. --}}
 @props(['requis' => false, 'pays' => 'CH'])
 
 @php
@@ -10,17 +10,17 @@
 
 <div @class(['champ', 'champ--erreur' => $errors->has('mobile') || $errors->has('mobile_pays')])
      x-data="{
-        affichage: @js($choisi['drapeau'].' +'.$choisi['indicatif']),
+        affichage: @js('+'.$choisi['indicatif']),
         actualiser() {
             const option = $refs.paysMobile.selectedOptions[0];
-            if (option) { this.affichage = option.dataset.drapeau + ' +' + option.dataset.indicatif; }
+            if (option) { this.affichage = '+' + option.dataset.indicatif; }
         },
      }"
      x-init="$nextTick(() => actualiser())">
     <label for="champ-mobile">Mobile @if ($requis)<span aria-hidden="true">*</span>@endif</label>
     <div class="groupe-mobile">
         <div class="indicatif">
-            <span class="indicatif__affichage select-drapeaux" x-text="affichage" aria-hidden="true">{{ $choisi['drapeau'] }} +{{ $choisi['indicatif'] }}</span>
+            <span class="indicatif__affichage" x-text="affichage" aria-hidden="true">+{{ $choisi['indicatif'] }}</span>
             <select x-ref="paysMobile" wire:model="mobile_pays" x-on:change="actualiser()" class="select-drapeaux"
                     aria-label="Pays (indicatif téléphonique)">
                 @foreach ($listePays as $iso => $infos)
