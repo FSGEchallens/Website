@@ -30,7 +30,9 @@ class ContactTest extends TestCase
 
         $this->travel(5)->seconds();
 
-        return $formulaire->set('reponse', (string) session('contact.reponse'));
+        return $formulaire
+            ->set('altcha', AltchaTest::resoudre())
+            ->set('reponse', (string) session('contact.reponse'));
     }
 
     public function test_la_page_affiche_les_informations_et_le_formulaire(): void
@@ -131,7 +133,9 @@ class ContactTest extends TestCase
             ->set('prenom', 'Robot')
             ->set('nom', 'Rapide')
             ->set('email', 'robot@example.net')
+            ->set('sujet', 'Robot')
             ->set('message', 'Message envoyé immédiatement.')
+            ->set('altcha', AltchaTest::resoudre())
             ->set('reponse', (string) session('contact.reponse'))
             ->call('envoyer')
             ->assertHasErrors('message');
@@ -171,7 +175,44 @@ class ContactTest extends TestCase
             ->set('email', 'pas-un-email')
             ->set('message', 'court')
             ->call('envoyer')
-            ->assertHasErrors(['prenom', 'nom', 'email', 'message', 'reponse']);
+            ->assertHasErrors(['prenom', 'nom', 'email', 'sujet', 'message', 'altcha', 'reponse']);
+    }
+
+    public function test_sans_captcha_valide_le_message_est_refuse(): void
+    {
+        Mail::fake();
+
+        $this->formulaireRempli()
+            ->set('altcha', '')
+            ->call('envoyer')
+            ->assertHasErrors('altcha');
+
+        $this->formulaireRempli()
+            ->set('altcha', AltchaTest::resoudre(['number' => 999999999]))
+            ->call('envoyer')
+            ->assertHasErrors('altcha')
+            ->assertDispatched('altcha-reinitialiser');
+
+        Mail::assertNothingSent();
+    }
+
+    public function test_une_solution_de_captcha_ne_sert_qu_une_fois(): void
+    {
+        Mail::fake();
+        $solution = AltchaTest::resoudre();
+
+        $this->formulaireRempli()->set('altcha', $solution)->call('envoyer')->assertHasNoErrors();
+        $this->formulaireRempli()->set('altcha', $solution)->call('envoyer')->assertHasErrors('altcha');
+
+        Mail::assertSentCount(1);
+    }
+
+    public function test_le_sujet_est_obligatoire(): void
+    {
+        $this->formulaireRempli()
+            ->set('sujet', '')
+            ->call('envoyer')
+            ->assertHasErrors('sujet');
     }
 
     public function test_le_comite_peut_modifier_les_informations(): void

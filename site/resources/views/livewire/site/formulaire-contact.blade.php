@@ -13,7 +13,7 @@
                 <x-champ nom="nom" libelle="Nom" requis autocomplete="family-name" />
             </div>
             <x-champ nom="email" libelle="Adresse e-mail" type="email" requis autocomplete="email" />
-            <x-champ nom="sujet" libelle="Sujet" />
+            <x-champ nom="sujet" libelle="Sujet" requis />
 
             <div @class(['champ', 'champ--erreur' => $errors->has('message')])>
                 <label for="champ-message">Votre message <span aria-hidden="true">*</span></label>
@@ -25,6 +25,17 @@
             <div class="champ-piege" aria-hidden="true">
                 <label for="champ-site_web">Ne pas remplir ce champ</label>
                 <input id="champ-site_web" type="text" wire:model="site_web" tabindex="-1" autocomplete="off">
+            </div>
+
+            {{-- Captcha ALTCHA : le navigateur fait un petit calcul, puis transmet la preuve au formulaire. --}}
+            <div @class(['champ', 'champ--erreur' => $errors->has('altcha')])
+                 x-data
+                 x-on:altcha-reinitialiser.window="$refs.altcha?.reset?.()">
+                <div wire:ignore>
+                    <altcha-widget x-ref="altcha" challenge="{{ route('altcha.defi') }}" language="fr-fr" name="altcha"
+                                   x-on:statechange="$wire.$set('altcha', $event.detail.state === 'verified' ? $event.detail.payload : '', false)"></altcha-widget>
+                </div>
+                @error('altcha') <div class="erreur">{{ $message }}</div> @enderror
             </div>
 
             <div @class(['champ', 'champ-question', 'champ--erreur' => $errors->has('reponse')])>

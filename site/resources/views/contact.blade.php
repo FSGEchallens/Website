@@ -18,4 +18,8 @@
 
         <livewire:site.formulaire-contact />
     </div>
+
+    {{-- Captcha ALTCHA (logiciel libre, hébergé sur ce site : aucun service externe). --}}
+    <script type="module" src="{{ asset('vendor/altcha/fr-fr.js') }}"></script>
+    <script type="module" src="{{ asset('vendor/altcha/altcha.min.js') }}"></script>
 @endsection

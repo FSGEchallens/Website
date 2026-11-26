@@ -1,0 +1,2 @@
+ALTCHA 3.7.0 (widget, licence MIT) - https://github.com/altcha-org/altcha
+Fichiers : dist/main/altcha.min.js et dist/i18n/fr-fr.js du paquet npm « altcha ».

@@ -3,6 +3,7 @@
 namespace App\Livewire\Site;
 
 use App\Mail\MessageContact;
+use App\Services\Altcha;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
@@ -11,6 +12,7 @@ use Livewire\Component;
 
 /**
  * Formulaire de contact, protégé contre le spam SANS service externe :
+ * - captcha ALTCHA (« Je ne suis pas un robot », petit calcul fait par le navigateur), à usage unique ;
  * - question en toutes lettres (« Combien font sept plus deux ? »), réponse gardée côté serveur ;
  * - champ piège invisible (rempli par les robots) ;
  * - délai minimal avant l'envoi (les robots envoient instantanément) ;
@@ -47,6 +49,9 @@ class FormulaireContact extends Component
     /** Champ piège : invisible pour les humains, rempli par les robots. */
     public string $site_web = '';
 
+    /** Réponse du captcha ALTCHA (remplie par le widget une fois la vérification faite). */
+    public string $altcha = '';
+
     public string $question = '';
 
     public bool $envoye = false;
@@ -57,23 +62,25 @@ class FormulaireContact extends Component
         session()->put('contact.debut', now()->timestamp);
     }
 
-    public function envoyer(): void
+    public function envoyer(Altcha $captcha): void
     {
         $this->validate([
             'prenom' => ['required', 'string', 'max:80', 'not_regex:/[\r\n<>]/'],
             'nom' => ['required', 'string', 'max:80', 'not_regex:/[\r\n<>]/'],
             'email' => ['required', 'email', 'max:255'],
-            'sujet' => ['nullable', 'string', 'max:150', 'not_regex:/[\r\n]/'],
+            'sujet' => ['required', 'string', 'max:150', 'not_regex:/[\r\n]/'],
             'message' => ['required', 'string', 'min:10', 'max:5000'],
+            'altcha' => ['required', 'string', 'max:2000'],
             'reponse' => ['required', 'string', 'max:20'],
         ], [
+            'altcha.required' => 'Cochez la case « Je ne suis pas un robot » et attendez qu’elle affiche « Vérifié ».',
             'prenom.not_regex' => 'Le prénom contient des caractères non autorisés.',
             'nom.not_regex' => 'Le nom contient des caractères non autorisés.',
             'sujet.not_regex' => 'Le sujet ne doit tenir que sur une ligne.',
             'message.min' => 'Le message est trop court.',
             'reponse.required' => 'Répondez à la question anti-robot.',
         ], [
-            'prenom' => 'prénom', 'email' => 'adresse e-mail', 'message' => 'message', 'reponse' => 'réponse',
+            'prenom' => 'prénom', 'email' => 'adresse e-mail', 'sujet' => 'sujet', 'message' => 'message', 'reponse' => 'réponse',
         ]);
 
         // Robot : le champ piège est rempli. On fait comme si tout s'était bien passé, sans rien envoyer.
@@ -85,6 +92,13 @@ class FormulaireContact extends Component
 
         if (now()->timestamp - (int) session('contact.debut', 0) < self::DELAI_MINIMUM_SECONDES) {
             throw ValidationException::withMessages(['message' => 'Envoi trop rapide. Patientez quelques secondes puis réessayez.']);
+        }
+
+        if (! $captcha->verifier($this->altcha)) {
+            $this->reset('altcha');
+            $this->dispatch('altcha-reinitialiser');
+
+            throw ValidationException::withMessages(['altcha' => 'La vérification « Je ne suis pas un robot » a échoué ou a expiré. Cochez à nouveau la case.']);
         }
 
         if (! $this->reponseCorrecte()) {
@@ -108,11 +122,14 @@ class FormulaireContact extends Component
 
         RateLimiter::hit($cleLimite, 10 * 60);
 
+        // La solution du captcha ne pourra plus resservir.
+        $captcha->verifier($this->altcha, consommer: true);
+
         Mail::to(config('site.email_contact'))->send(new MessageContact([
             'prenom' => trim($this->prenom),
             'nom' => trim($this->nom),
             'email' => trim($this->email),
-            'sujet' => trim($this->sujet) ?: null,
+            'sujet' => trim($this->sujet),
             'message' => trim($this->message),
         ]));
 
@@ -128,7 +145,7 @@ class FormulaireContact extends Component
 
     private function terminer(): void
     {
-        $this->reset('prenom', 'nom', 'email', 'sujet', 'message', 'reponse', 'site_web');
+        $this->reset('prenom', 'nom', 'email', 'sujet', 'message', 'reponse', 'site_web', 'altcha');
         $this->resetErrorBag();
         $this->envoye = true;
         session()->forget(['contact.reponse', 'contact.debut']);

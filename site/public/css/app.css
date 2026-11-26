@@ -234,6 +234,13 @@ a { color: var(--bleu); }
 .champ textarea:focus { outline: 2px solid var(--bleu); border-color: var(--bleu); }
 .champ--erreur textarea { border-color: var(--rouge); }
 .champ-question { background: #f6f9f2; border-radius: 6px; padding: .75rem; }
+altcha-widget {
+    --altcha-max-width: 100%;
+    --altcha-border-radius: 6px;
+    --altcha-color-primary: var(--vert-fonce);
+    --altcha-color-success: var(--vert-fonce);
+    display: block;
+}
 /* Champ piège anti-robot : hors de l'écran, invisible pour les humains. */
 .champ-piege { position: absolute !important; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
 @media (max-width: 50rem) {

@@ -95,7 +95,10 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
     - L'Agenda (vide) a été retiré du menu.
   - **Contact** (`/contact`) : la zone « Informations » est un bloc `contact.informations` modifiable par le comité (titre fixe).
     - Le formulaire Livewire `Site\FormulaireContact` envoie à `CONTACT_EMAIL` (par défaut contact@gymechallens.ch), avec Reply-To vers l'expéditeur.
-    - Anti-spam sans service externe : question en toutes lettres (réponse gardée en session), champ piège, délai minimal de 3 s, 3 envois par 10 min et par IP, 2 liens au maximum.
+    - Tous les champs sont obligatoires, sujet compris.
+    - Anti-spam sans service externe :
+      - captcha **ALTCHA** : widget 3.7.0 (MIT) hébergé dans `public/vendor/altcha`. Côté serveur, `App\Services\Altcha` crée les défis (protocole v1 SHA-256 + HMAC, valables 10 min) et les vérifie, chaque solution ne servant qu'une fois. Défis servis par `/altcha/defi` ;
+      - en plus : question en toutes lettres (réponse en session), champ piège, délai minimal de 3 s, 3 envois par 10 min et par IP, 2 liens au maximum.
     - Les messages ne sont pas stockés.
   - **Résultats** (table `resultats`) : page publique `/la-societe/resultats`, du plus récent au plus ancien, 10 par page.
     - Gestion sur `/gestion/resultats`, ouverte aux moniteurs, au comité et à l'administrateur (gate `publier-resultats`).

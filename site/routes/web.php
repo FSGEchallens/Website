@@ -21,6 +21,7 @@ use App\Models\Annonce;
 use App\Models\BlocContenu;
 use App\Models\Partenaire;
 use App\Models\Resultat;
+use App\Services\Altcha;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +40,10 @@ Route::get('/la-societe/historique', fn () => view('pages.contenu', [
     'image' => 'images/societe/Gym-Bruyere_logo.png',
     'texteImage' => 'Logo historique de la Gym de la Bruyère',
 ]))->name('societe.historique');
+
+// Défi du captcha ALTCHA (formulaire de contact), sans service externe.
+Route::get('/altcha/defi', fn (Altcha $altcha) => response()->json($altcha->creerDefi())->header('Cache-Control', 'no-store'))
+    ->middleware('throttle:30,1')->name('altcha.defi');
 
 // Contact : informations modifiables par le comité + formulaire (envoi à contact@gymechallens.ch).
 Route::get('/contact', fn () => view('contact', [
