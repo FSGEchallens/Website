@@ -1,0 +1,91 @@
+/* FSG Echallens – feuille de style de l'application (sans bibliothèque externe) */
+:root {
+    --vert: #81d742;
+    --vert-fonce: #5d9733;
+    --bleu: #2ea3f2;
+    --rouge: #c62828;
+    --gris: #666;
+    --gris-clair: #e5e5e5;
+    --fond: #f7f7f7;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: "Open Sans", Arial, sans-serif;
+    color: #333;
+    background: var(--fond);
+    line-height: 1.5;
+}
+
+a { color: var(--bleu); }
+
+.conteneur { max-width: 70rem; margin: 0 auto; padding: 0 1rem; }
+
+/* En-tête */
+.entete { background: var(--vert-fonce); color: #fff; margin-bottom: 1.5rem; }
+.entete__contenu { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding-top: .8rem; padding-bottom: .8rem; }
+.entete__titre { color: #fff; font-weight: bold; font-size: 1.2rem; text-decoration: none; }
+.entete__menu a { color: #fff; text-decoration: none; padding: .3rem .6rem; border-radius: 3px; }
+.entete__menu a.actif, .entete__menu a:hover { background: rgba(255, 255, 255, .2); }
+
+/* Titres et barres d'outils */
+h1 { font-size: 1.6rem; margin: 0 0 1rem; }
+.barre { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.barre__filtres { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+
+/* Boutons */
+.bouton {
+    display: inline-block; border: 0; border-radius: 4px; cursor: pointer;
+    padding: .55rem 1.1rem; font: inherit; text-decoration: none;
+    background: var(--vert-fonce); color: #fff;
+}
+.bouton:hover { background: #4c7d29; }
+.bouton--secondaire { background: #fff; color: #333; border: 1px solid #ccc; }
+.bouton--secondaire:hover { background: var(--gris-clair); }
+
+/* Cartes */
+.carte { background: #fff; border-top: 4px solid var(--vert); border-radius: 4px; padding: 1.25rem; margin-bottom: 1.25rem; }
+.carte h2 { font-size: 1.15rem; margin: 0 0 1rem; color: var(--vert-fonce); }
+
+/* Alertes */
+.alerte { padding: .75rem 1rem; border-radius: 4px; margin-bottom: 1rem; }
+.alerte--succes { background: #e8f5dc; border-left: 4px solid var(--vert-fonce); }
+.alerte--info { background: #e3f2fd; border-left: 4px solid var(--bleu); }
+
+/* Formulaires */
+.grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; }
+.champ label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: .25rem; }
+.champ input, .champ select, .recherche {
+    width: 100%; padding: .5rem .6rem; font: inherit;
+    border: 1px solid #ccc; border-radius: 4px; background: #fff;
+}
+.champ input:focus, .champ select:focus, .recherche:focus { outline: 2px solid var(--bleu); border-color: var(--bleu); }
+.champ .aide { font-size: .8rem; color: var(--gris); margin-top: .2rem; }
+.champ .erreur { font-size: .85rem; color: var(--rouge); margin-top: .2rem; }
+.champ--erreur input, .champ--erreur select { border-color: var(--rouge); }
+.case { display: flex; align-items: center; gap: .5rem; font-weight: normal; }
+.recherche { max-width: 22rem; }
+.actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+
+/* Tableaux */
+.tableau-conteneur { overflow-x: auto; background: #fff; border-radius: 4px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: .6rem .75rem; border-bottom: 1px solid var(--gris-clair); vertical-align: top; }
+th { background: #fafafa; font-size: .85rem; text-transform: uppercase; color: var(--gris); }
+tr:hover td { background: #fbfdf8; }
+.discret { color: var(--gris); font-size: .9rem; }
+.badge { display: inline-block; font-size: .75rem; padding: .1rem .5rem; border-radius: 10px; background: var(--gris-clair); }
+
+/* Pagination */
+.pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+
+/* Mobile : le tableau devient une liste de cartes */
+@media (max-width: 40rem) {
+    thead { display: none; }
+    table, tbody, tr, td { display: block; width: 100%; }
+    tr { border-bottom: 1px solid var(--gris-clair); padding: .5rem 0; }
+    td { border: 0; padding: .15rem .75rem; }
+    td[data-label]::before { content: attr(data-label) " : "; font-weight: 600; color: var(--gris); }
+}
