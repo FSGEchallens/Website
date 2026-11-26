@@ -56,6 +56,11 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
 - `index.html`, `style.css` et `images/` contiennent une page d'accueil statique, recréée à partir de l'ancien site. Couleurs : vert #81d742 et #5d9733, bleu #2ea3f2. Police : Open Sans.
 - Cette page est publiée via GitHub Pages : https://fsgechallens.github.io/Website/. Le dépôt est probablement public, donc **ne jamais y mettre de secrets ni de données personnelles**.
 - Les liens du menu pointent encore vers l'ancien site WordPress.
+- `site/` contient l'application **Laravel 13** avec **Livewire 4**. Elle a été créée le 26.11.2026 et utilise PHP 8.3 et MySQL 8.4 de Laragon.
+  - En local, la base s'appelle `fsg_echallens` (utilisateur root, sans mot de passe).
+  - Les e-mails partent vers Mailpit de Laragon (port 1025, consultables sur http://localhost:8025).
+  - La page `/` est une page de test qui indique si la base de données est connectée.
+  - Pour lancer le site : `cd site` puis `php artisan serve`, et ouvrir http://localhost:8000.
 
 ## Plan par étapes
 1. Fondations : Laravel en local, base de données, déploiement sur le sous-domaine de test.
