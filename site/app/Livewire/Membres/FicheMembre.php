@@ -13,6 +13,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
@@ -45,7 +46,12 @@ class FicheMembre extends Component
 
     public string $email_prive = '';
 
-    public string $email = '';
+    /** Partie avant le @ de l'e-mail société (le domaine est ajouté automatiquement). */
+    public string $identifiant_email = '';
+
+    /** Ancienne adresse société qui n'est pas @gymechallens.ch : conservée tant qu'aucun identifiant n'est saisi. */
+    #[Locked]
+    public ?string $emailHorsDomaine = null;
 
     public string $avs = '';
 
@@ -107,7 +113,7 @@ class FicheMembre extends Component
             ...ReglesMembre::coordonnees(),
             'avs' => ['nullable', 'string', new NumeroAvs],
             'date_naissance' => ['nullable', 'date', 'before:today', 'after:1900-01-01'],
-            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->membre?->id)],
+            'identifiant_email' => ['nullable', 'string', 'max:64', 'regex:/^[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$/'],
             'date_entree' => ['nullable', 'date'],
             'date_sortie' => ['nullable', 'date', 'after_or_equal:date_entree'],
             ...ReglesMembre::affichage(),
@@ -124,7 +130,7 @@ class FicheMembre extends Component
         return [
             ...ReglesMembre::attributs(),
             'civilite' => 'titre',
-            'email' => 'e-mail société',
+            'identifiant_email' => 'e-mail société',
             'avs' => 'n° AVS',
             'date_naissance' => 'date de naissance',
             'date_entree' => 'date d\'entrée',
@@ -144,8 +150,26 @@ class FicheMembre extends Component
             'date_naissance.before' => 'La date de naissance doit être dans le passé.',
             'date_naissance.after' => 'La date de naissance n\'est pas plausible.',
             'date_sortie.after_or_equal' => 'La date de sortie ne peut pas être avant la date d\'entrée.',
+            'identifiant_email.regex' => 'Utilisez seulement des lettres sans accents, des chiffres, des points, des tirets ou des tirets bas (par exemple prenom.nom).',
             ...$this->messagesPhoto(),
         ];
+    }
+
+    public static function domaineEmail(): string
+    {
+        return (string) config('app.domaine_email');
+    }
+
+    /**
+     * Adresse société complète à partir de l'identifiant saisi (ou l'ancienne adresse conservée).
+     */
+    private function emailSociete(?string $identifiant): ?string
+    {
+        if ($identifiant === null) {
+            return $this->emailHorsDomaine;
+        }
+
+        return mb_strtolower($identifiant).'@'.self::domaineEmail();
     }
 
     public function enregistrer(PhotoMembre $photos): void
@@ -156,6 +180,9 @@ class FicheMembre extends Component
 
         $this->autoriserModification();
 
+        // Si une adresse complète a été collée, on ne garde que la partie avant le @.
+        $this->identifiant_email = trim(explode('@', $this->identifiant_email)[0]);
+
         $donnees = $this->validate();
 
         $role = Role::from($donnees['role']);
@@ -164,7 +191,14 @@ class FicheMembre extends Component
 
         $donnees = ReglesMembre::nettoyer($donnees);
         $donnees['avs'] = NumeroAvs::formater($donnees['avs']);
-        $donnees['email'] = $donnees['email'] !== null ? mb_strtolower($donnees['email']) : null;
+        $donnees['email'] = $this->emailSociete($donnees['identifiant_email']);
+        unset($donnees['identifiant_email']);
+
+        if ($donnees['email'] !== null && User::where('email', $donnees['email'])->whereKeyNot($this->membre?->getKey())->exists()) {
+            throw ValidationException::withMessages([
+                'identifiant_email' => 'L\'adresse '.$donnees['email'].' est déjà utilisée par un autre membre.',
+            ]);
+        }
 
         $estNouveau = $this->membre === null;
         $membre = $this->membre ?? new User;
@@ -196,7 +230,7 @@ class FicheMembre extends Component
         $this->autoriserModification();
 
         if ($this->membre?->email === null) {
-            $this->addError('email', 'Ce membre n\'a pas d\'e-mail société enregistré.');
+            $this->addError('identifiant_email', 'Ce membre n\'a pas d\'e-mail société enregistré.');
 
             return;
         }
@@ -220,7 +254,7 @@ class FicheMembre extends Component
             'localite' => (string) $membre->localite,
             'mobile' => (string) $membre->mobile,
             'email_prive' => (string) $membre->email_prive,
-            'email' => (string) $membre->email,
+            ...$this->separerEmailSociete($membre->email),
             'avs' => (string) $membre->avs,
             'date_naissance' => (string) $membre->date_naissance?->toDateString(),
             'date_entree' => (string) $membre->date_entree?->toDateString(),
@@ -228,6 +262,20 @@ class FicheMembre extends Component
             'afficher_mobile' => (bool) $membre->afficher_mobile,
             'role' => ($membre->role ?? Role::Membre)->value,
         ]);
+    }
+
+    /**
+     * @return array{identifiant_email: string, emailHorsDomaine: ?string}
+     */
+    private function separerEmailSociete(?string $email): array
+    {
+        $suffixe = '@'.self::domaineEmail();
+
+        if ($email !== null && str_ends_with(mb_strtolower($email), $suffixe)) {
+            return ['identifiant_email' => substr($email, 0, -strlen($suffixe)), 'emailHorsDomaine' => null];
+        }
+
+        return ['identifiant_email' => '', 'emailHorsDomaine' => $email];
     }
 
     private function autoriserModification(): void

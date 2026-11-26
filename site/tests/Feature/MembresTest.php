@@ -90,7 +90,7 @@ class MembresTest extends TestCase
             ->assertSet('enEdition', true)
             ->set('npa', '1040')
             ->set('localite', 'Echallens')
-            ->set('email', 'Julie.Exemple@Example.org')
+            ->set('identifiant_email', 'Julie.Exemple')
             ->set('avs', '7561234567897')
             ->set('date_naissance', '1990-05-12')
             ->set('afficher_mobile', true)
@@ -102,7 +102,7 @@ class MembresTest extends TestCase
 
         $this->assertSame(Civilite::Madame, $membre->civilite);
         $this->assertSame(Role::Moniteur, $membre->role);
-        $this->assertSame('julie.exemple@example.org', $membre->email);
+        $this->assertSame('julie.exemple@gymechallens.ch', $membre->email);
         $this->assertSame('756.1234.5678.97', $membre->avs);
         $this->assertTrue($membre->afficher_mobile);
         $this->assertNull($membre->password);
@@ -132,17 +132,14 @@ class MembresTest extends TestCase
 
     public function test_validation_des_champs(): void
     {
-        User::factory()->create(['email' => 'pris@example.org']);
-
         $this->nouveauMembre()
             ->set('npa', '12')
-            ->set('email', 'pris@example.org')
             ->set('avs', '756.1234.5678.98')
             ->set('date_entree', '2025-01-01')
             ->set('date_sortie', '2024-01-01')
             ->set('role', 'pirate')
             ->call('enregistrer')
-            ->assertHasErrors(['npa', 'email', 'avs', 'date_sortie', 'role']);
+            ->assertHasErrors(['npa', 'avs', 'date_sortie', 'role']);
     }
 
     public function test_une_fiche_existante_s_ouvre_verrouillee(): void
@@ -220,13 +217,70 @@ class MembresTest extends TestCase
 
     public function test_un_membre_peut_garder_son_propre_e_mail(): void
     {
-        $membre = User::factory()->create(['email' => 'moi@example.org']);
+        $membre = User::factory()->create(['email' => 'moi@gymechallens.ch']);
 
         Livewire::test(FicheMembre::class, ['membre' => $membre])
             ->call('modifier')
             ->set('nom', 'Nouveau nom')
             ->call('enregistrer')
             ->assertHasNoErrors();
+    }
+
+    public function test_e_mail_societe_saisi_sans_le_domaine(): void
+    {
+        $this->nouveauMembre()
+            ->set('identifiant_email', 'Anne.Rochat@autre-domaine.ch')
+            ->call('enregistrer')
+            ->assertHasNoErrors();
+
+        $this->assertNotNull(User::firstWhere('email', 'anne.rochat@gymechallens.ch'), 'Seule la partie avant le @ est gardée.');
+    }
+
+    public function test_e_mail_societe_deja_utilise_ou_invalide(): void
+    {
+        User::factory()->create(['email' => 'pris@gymechallens.ch']);
+
+        $this->nouveauMembre()
+            ->set('identifiant_email', 'pris')
+            ->call('enregistrer')
+            ->assertHasErrors('identifiant_email');
+
+        $this->nouveauMembre()
+            ->set('identifiant_email', 'éric durand')
+            ->call('enregistrer')
+            ->assertHasErrors(['identifiant_email' => 'regex']);
+    }
+
+    public function test_une_fiche_affiche_seulement_l_identifiant(): void
+    {
+        $membre = User::factory()->create(['email' => 'aline.rochat@gymechallens.ch']);
+
+        Livewire::test(FicheMembre::class, ['membre' => $membre])
+            ->assertSet('identifiant_email', 'aline.rochat')
+            ->assertSee('@gymechallens.ch');
+    }
+
+    public function test_une_ancienne_adresse_hors_domaine_est_conservee(): void
+    {
+        $membre = User::factory()->create(['email' => 'jennifer@gmail.com']);
+
+        Livewire::test(FicheMembre::class, ['membre' => $membre])
+            ->assertSet('identifiant_email', '')
+            ->assertSee('jennifer@gmail.com')
+            ->call('modifier')
+            ->set('localite', 'Echallens')
+            ->call('enregistrer')
+            ->assertHasNoErrors();
+
+        $this->assertSame('jennifer@gmail.com', $membre->fresh()->email);
+
+        Livewire::test(FicheMembre::class, ['membre' => $membre->fresh()])
+            ->call('modifier')
+            ->set('identifiant_email', 'jennifer.elese')
+            ->call('enregistrer')
+            ->assertHasNoErrors();
+
+        $this->assertSame('jennifer.elese@gymechallens.ch', $membre->fresh()->email);
     }
 
     public function test_photo_importee_traitee_et_nommee(): void

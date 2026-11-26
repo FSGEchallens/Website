@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
         User::factory()->avecRole(Role::Administrateur)->create([
             'prenom' => 'Web',
             'nom' => 'Master',
-            'email' => 'webmaster@example.org',
+            'email' => 'webmaster@'.config('app.domaine_email'),
         ]);
         User::factory(5)->avecRole(Role::Comite)->create();
         User::factory(8)->avecRole(Role::Moniteur)->create();

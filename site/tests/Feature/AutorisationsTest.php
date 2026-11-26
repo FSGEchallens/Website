@@ -108,11 +108,11 @@ class AutorisationsTest extends TestCase
             ->set('mobile', '079 000 00 00')
             ->set('email_prive', 'nouveau@example.net')
             ->set('role', 'moniteur')
-            ->set('email', 'nouveau@example.org')
+            ->set('identifiant_email', 'nouveau')
             ->call('enregistrer')
             ->assertHasNoErrors();
 
-        $nouveau = User::firstWhere('email', 'nouveau@example.org');
+        $nouveau = User::firstWhere('email', 'nouveau@gymechallens.ch');
 
         Notification::assertSentTo($nouveau, LienMotDePasse::class, fn (LienMotDePasse $n) => $n->invitation);
     }

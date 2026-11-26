@@ -88,6 +88,7 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
     - Le n° AVS est chiffré dans la base.
     - L'autorisation est stockée dans la colonne `users.role` (membre, moniteur, comité, administrateur ; une seule par personne).
     - Champs obligatoires : titre, prénom, nom, mobile, e-mail privé, autorisation.
+    - E-mail société : on ne saisit que la partie avant le @ ; le domaine (`config('app.domaine_email')`, par défaut gymechallens.ch) est ajouté automatiquement. Une ancienne adresse hors domaine est conservée tant qu'aucun identifiant n'est saisi.
     - Une fiche existante s'ouvre verrouillée : il faut cliquer sur « Modifier » pour l'éditer.
     - **Photo** : recadrée en carré, réduite à 600 × 600 et réencodée en JPEG (sans EXIF ni GPS). Elle est stockée dans `storage/app/private/photos-membres/FSG-Echallens_Nom_Prénom.jpg` et renommée si le nom change. Elle est servie publiquement par `/membres/{id}/photo`. La photo est **toujours** affichée (importée ou image par défaut) et l'adresse **jamais** ; seul le mobile a un choix d'affichage (`afficher_mobile`). Chaque membre peut changer sa propre photo dans « Mon profil ». Images par défaut : `public/images/avatars/{femme,homme}.png`.
     - Pages : `/membres` (liste) et la fiche membre en Livewire. Accès réservé au comité et à l'administrateur.
@@ -100,7 +101,7 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
     - `mail:test adresse` : envoie un e-mail de test ;
     - `membre:admin email Prénom Nom` : crée un administrateur et lui envoie une invitation.
   - **Site de test** : `MAIL_REDIRECT_TO` dans le `.env` envoie tous les e-mails à une seule adresse. Ce réglage n'est jamais actif en production.
-  - **Données locales** (fictives) : `php artisan migrate:fresh --seed` crée l'administrateur webmaster@example.org (mot de passe `password`). Le code de connexion arrive dans Mailpit (http://localhost:8025).
+  - **Données locales** (fictives) : `php artisan migrate:fresh --seed` crée l'administrateur webmaster@gymechallens.ch (mot de passe `password`). Le code de connexion arrive dans Mailpit (http://localhost:8025).
   - **Encodage** : ne pas modifier les fichiers avec `Get-Content`/`Set-Content` de PowerShell 5.1, qui abîme les accents UTF-8. Utiliser les outils d'édition ou `[IO.File]` avec UTF-8.
   - Pour lancer le site : `cd site` puis `php artisan serve`, et ouvrir http://localhost:8000.
 

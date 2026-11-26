@@ -16,6 +16,12 @@ return [
     'name' => env('APP_NAME', 'Laravel'),
 
     /*
+    | Domaine des adresses e-mail société (identifiant de connexion des membres).
+    */
+
+    'domaine_email' => env('DOMAINE_EMAIL_SOCIETE', 'gymechallens.ch'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------

@@ -67,6 +67,14 @@ h1 { font-size: 1.6rem; margin: 0 0 1rem; }
     .infos dd { margin-bottom: .5rem; }
 }
 
+/* E-mail société : identifiant + domaine fixe */
+.groupe-email { display: flex; align-items: stretch; }
+.groupe-email input { flex: 1; min-width: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.groupe-email__domaine {
+    display: flex; align-items: center; padding: 0 .6rem; white-space: nowrap;
+    background: #f0f0f0; color: #555; border: 1px solid #ccc; border-left: 0; border-radius: 0 4px 4px 0;
+}
+
 /* Fiche verrouillée */
 .verrouillable { border: 0; padding: 0; margin: 0; min-width: 0; }
 .verrouillable:disabled input, .verrouillable:disabled select {

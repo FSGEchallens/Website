@@ -41,7 +41,7 @@ class UserFactory extends Factory
             'localite' => fake()->city(),
             'mobile' => '07'.fake()->randomElement(['6', '7', '8', '9']).' '.fake()->numerify('### ## ##'),
             'email_prive' => fake()->unique()->safeEmail(),
-            'email' => $identifiant.'.'.fake()->unique()->numberBetween(1, 99999).'@example.org',
+            'email' => $identifiant.'.'.fake()->unique()->numberBetween(1, 99999).'@'.config('app.domaine_email'),
             'email_verified_at' => now(),
             'date_naissance' => fake()->dateTimeBetween('-70 years', '-16 years'),
             'date_entree' => fake()->dateTimeBetween('-20 years', 'now'),

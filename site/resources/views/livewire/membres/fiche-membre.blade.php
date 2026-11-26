@@ -57,8 +57,20 @@
             <section class="carte">
                 <h2>Société</h2>
                 <div class="grille">
-                    <x-champ nom="email" libelle="E-mail société" type="email"
-                             aide="Sert d'identifiant de connexion. Sans e-mail société, le membre ne peut pas se connecter." />
+                    <div @class(['champ', 'champ--erreur' => $errors->has('identifiant_email')])>
+                        <label for="champ-identifiant_email">E-mail société</label>
+                        <div class="groupe-email">
+                            <input id="champ-identifiant_email" type="text" wire:model="identifiant_email"
+                                   placeholder="prenom.nom" autocomplete="off" autocapitalize="none" spellcheck="false">
+                            <span class="groupe-email__domaine">{{ '@'.\App\Livewire\Membres\FicheMembre::domaineEmail() }}</span>
+                        </div>
+                        @if ($emailHorsDomaine)
+                            <div class="aide">Adresse actuelle : <strong>{{ $emailHorsDomaine }}</strong>. Elle est conservée tant que vous ne saisissez pas d'identifiant {{ '@'.\App\Livewire\Membres\FicheMembre::domaineEmail() }}.</div>
+                        @else
+                            <div class="aide">Sert d'identifiant de connexion. Sans e-mail société, le membre ne peut pas se connecter.</div>
+                        @endif
+                        @error('identifiant_email') <div class="erreur">{{ $message }}</div> @enderror
+                    </div>
                     <x-champ nom="date_entree" libelle="Date d'entrée" type="date" />
                     <x-champ nom="date_sortie" libelle="Date de sortie" type="date" aide="Laisser vide tant que la personne est membre." />
                 </div>
