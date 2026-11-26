@@ -110,7 +110,7 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
     - Avant de remplacer ou supprimer un fichier, appeler `archiverFichier()`. L'ancien fichier est copié dans `storage/app/private/archives-journal`.
     - La restauration (`App\Services\Journal::restaurer`) remet les valeurs « avant » ou fait revenir un élément supprimé, fichiers compris.
     - Le mot de passe n'est jamais conservé, et le n° AVS est affiché masqué.
-    - Conservation : `JOURNAL_CONSERVATION_JOURS` (365 par défaut). Nettoyage chaque nuit à 03:15 par `model:prune` (planificateur).
+    - Conservation : `JOURNAL_CONSERVATION_JOURS` (365 par défaut). Nettoyage chaque nuit à 00:00 (heure suisse) par `model:prune` (planificateur).
     - Page `/administration/journal`, réservée à l'administrateur (gate `consulter-journal`).
   - **Commandes** utilisables depuis les tâches planifiées de Plesk :
     - `mail:test adresse` : envoie un e-mail de test ;

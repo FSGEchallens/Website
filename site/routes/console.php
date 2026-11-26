@@ -7,4 +7,4 @@ use Illuminate\Support\Facades\Schedule;
  */
 
 // Chaque nuit : supprime les entrées du journal (et leurs fichiers archivés) plus anciennes que JOURNAL_CONSERVATION_JOURS.
-Schedule::command('model:prune')->dailyAt('03:15');
+Schedule::command('model:prune')->dailyAt('00:00');
