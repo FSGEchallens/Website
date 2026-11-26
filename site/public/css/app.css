@@ -82,6 +82,28 @@ a { color: var(--bleu); }
 .page-dans-espace .bandeau { margin-top: 0; padding: 3rem 1rem; }
 .page-dans-espace .partenaires { border-radius: 0; }
 
+/* Gestion des partenaires */
+.partenaires__titre { display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+.partenaires__titre h2 { margin: 0; }
+.identite--logo { grid-template-columns: 15rem 1fr; }
+.identite--logo .champ { margin-bottom: 1rem; }
+.logo-partenaire { display: flex; flex-direction: column; align-items: flex-start; gap: .4rem; }
+.logo-partenaire__cadre {
+    width: 14rem; height: 7rem; display: flex; align-items: center; justify-content: center; padding: .5rem;
+    background: #fff; border: 1px dashed #ccc; border-radius: 6px;
+}
+.logo-partenaire__cadre img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.logo-liste { max-width: 7rem; max-height: 3rem; object-fit: contain; }
+.fleches { display: flex; gap: .25rem; }
+.bouton-icone { width: 2rem; height: 2rem; border: 1px solid #ccc; border-radius: 4px; background: #fff; cursor: pointer; font-size: 1rem; }
+.bouton-icone:hover:not(:disabled) { background: var(--gris-clair); }
+.bouton-icone:disabled { opacity: .35; cursor: default; }
+.lien--danger { color: var(--rouge); }
+.ligne-masquee td { opacity: .55; }
+@media (max-width: 40rem) {
+    .identite--logo { grid-template-columns: 1fr; }
+}
+
 /* Pied de page */
 .pied { background: #222; color: #ccc; font-size: .88rem; padding: 1.25rem 0; }
 .pied__contenu { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }

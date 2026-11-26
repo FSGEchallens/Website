@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -39,5 +40,8 @@ class AppServiceProvider extends ServiceProvider
             || ($user->peutGererLesMembres() && ! $membre->estAdministrateur()));
 
         Gate::define('attribuer-role-administrateur', fn (User $user) => $user->estAdministrateur());
+
+        // Contenus du site public (partenaires, puis pages…) : comité et administrateur.
+        Gate::define('gerer-contenu', fn (User $user) => $user->aAuMoins(Role::Comite));
     }
 }

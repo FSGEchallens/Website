@@ -58,6 +58,9 @@ return [
         ['titre' => 'Gestion', 'liens' => [
             ['libelle' => 'Membres', 'route' => 'membres.index', 'actif' => 'membres.*', 'role' => 'comite'],
         ]],
+        ['titre' => 'Site public', 'liens' => [
+            ['libelle' => 'Partenaires', 'route' => 'partenaires.index', 'actif' => 'partenaires.*', 'role' => 'comite'],
+        ]],
     ],
 
 ];

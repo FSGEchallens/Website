@@ -25,14 +25,21 @@
         </aside>
     </section>
 
-    <section class="partenaires">
+    <section class="partenaires" id="partenaires">
         <div class="conteneur">
-            <h2>Nos partenaires</h2>
+            <div class="partenaires__titre">
+                <h2>Nos partenaires</h2>
+                @can('gerer-contenu')
+                    <a href="{{ route('partenaires.index') }}" class="bouton bouton--secondaire bouton--petit">✎ Modifier les partenaires</a>
+                @endcan
+            </div>
             <div class="partenaires__grille">
-                @foreach (config('site.partenaires') as $partenaire)
-                    <a href="{{ $partenaire['url'] }}" target="_blank" rel="noopener">
-                        <img src="{{ asset('images/partenaires/'.$partenaire['logo']) }}" alt="" loading="lazy">
-                        <span>{{ $partenaire['nom'] }}</span>
+                @foreach ($partenaires as $partenaire)
+                    <a @if ($partenaire->url) href="{{ $partenaire->url }}" target="_blank" rel="noopener" @endif>
+                        @if ($partenaire->urlLogo())
+                            <img src="{{ $partenaire->urlLogo() }}" alt="" loading="lazy">
+                        @endif
+                        <span>{{ $partenaire->nom }}</span>
                     </a>
                 @endforeach
             </div>
