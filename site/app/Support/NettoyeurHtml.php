@@ -15,7 +15,7 @@ use DOMNode;
 class NettoyeurHtml
 {
     /** Balises gardées telles quelles. */
-    private const BALISES = ['p', 'br', 'strong', 'em', 'u', 's', 'ul', 'ol', 'li', 'a', 'span'];
+    private const BALISES = ['p', 'br', 'strong', 'em', 'u', 's', 'sup', 'ul', 'ol', 'li', 'a', 'span'];
 
     /** Balises équivalentes, converties. */
     private const CONVERSIONS = [

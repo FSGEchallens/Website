@@ -29,6 +29,7 @@ class NettoyeurHtmlTest extends TestCase
             'style dangereux retiré' => ['<span style="color: expression(alert(1))">x</span>', 'x'],
             'image et iframe supprimées' => ['<p>a<img src="x" onerror="alert(1)"><iframe src="https://x"></iframe>b</p>', '<p>ab</p>'],
             'balise inconnue déballée' => ['<section><p>texte</p></section>', '<p>texte</p>'],
+            'exposant gardé' => ['<p>2<sup onclick="x()">e</sup> groupe</p>', '<p>2<sup>e</sup> groupe</p>'],
             'listes gardées' => ['<ul><li>un</li><li>deux</li></ul>', '<ul><li>un</li><li>deux</li></ul>'],
             'accents et caractères spéciaux' => ['<p>Été « 2026 » & co</p>', '<p>Été « 2026 » &amp; co</p>'],
             'chevrons de texte échappés' => ['&lt;script&gt;alert(1)&lt;/script&gt;', '&lt;script&gt;alert(1)&lt;/script&gt;'],

@@ -151,6 +151,7 @@ document.addEventListener('alpine:init', () => {
                 italic: etat('italic'),
                 underline: etat('underline'),
                 strikeThrough: etat('strikeThrough'),
+                superscript: etat('superscript'),
                 insertUnorderedList: etat('insertUnorderedList'),
                 insertOrderedList: etat('insertOrderedList'),
             };

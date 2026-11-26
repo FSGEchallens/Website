@@ -1,4 +1,4 @@
-{{-- Petit éditeur de texte (gras, italique, souligné, barré, couleur, listes, lien). Sans bibliothèque externe.
+{{-- Petit éditeur de texte (gras, italique, souligné, barré, exposant, couleur, listes, lien). Sans bibliothèque externe.
      Le texte est nettoyé côté serveur (App\Support\NettoyeurHtml) avant d'être enregistré. --}}
 @props(['nom', 'contenu' => ''])
 
@@ -9,6 +9,7 @@
             <button type="button" x-on:mousedown.prevent x-on:click="commande('italic')" :class="{ actif: etats.italic }" title="Italique (Ctrl+I)" aria-label="Italique"><em>I</em></button>
             <button type="button" x-on:mousedown.prevent x-on:click="commande('underline')" :class="{ actif: etats.underline }" title="Souligné (Ctrl+U)" aria-label="Souligné"><u>S</u></button>
             <button type="button" x-on:mousedown.prevent x-on:click="commande('strikeThrough')" :class="{ actif: etats.strikeThrough }" title="Barré" aria-label="Barré"><s>B</s></button>
+            <button type="button" x-on:mousedown.prevent x-on:click="commande('superscript')" :class="{ actif: etats.superscript }" title="Exposant (ex. 2e)" aria-label="Exposant">x<sup>2</sup></button>
 
             <span class="editeur__separateur" aria-hidden="true"></span>
 
