@@ -323,6 +323,11 @@ altcha-widget {
     background: rgba(255, 255, 255, .12); color: #fff; font: inherit; cursor: pointer; text-decoration: none;
 }
 .visionneuse__boutons button:hover, .visionneuse__boutons a:hover { background: rgba(255, 255, 255, .25); }
+.visionneuse__delai select {
+    height: 2.4rem; padding: 0 .4rem; border: 0; border-radius: 4px; background: rgba(255, 255, 255, .12);
+    color: #fff; font: inherit; cursor: pointer;
+}
+.visionneuse__delai select option { color: #333; }
 .visionneuse__fleche { position: absolute; top: 50%; transform: translateY(-50%); width: 3rem; height: 4.5rem; border: 0; border-radius: 6px; background: rgba(255, 255, 255, .1); color: #fff; font-size: 2.4rem; line-height: 1; cursor: pointer; }
 .visionneuse__fleche:hover { background: rgba(255, 255, 255, .25); }
 .visionneuse__fleche--precedente { left: .5rem; }

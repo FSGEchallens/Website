@@ -239,6 +239,18 @@ document.addEventListener('alpine:init', () => {
         diaporama: false,
         minuterie: null,
         departGlisse: null,
+        /** Durée d'affichage de chaque photo pendant le diaporama (secondes), mémorisée par le navigateur. */
+        delai: Number(localStorage.getItem('diaporamaDelai')) || 4,
+        delais: [2, 3, 4, 5, 8, 10],
+
+        changerDelai(secondes) {
+            this.delai = Number(secondes);
+            localStorage.setItem('diaporamaDelai', String(this.delai));
+
+            if (this.diaporama) {
+                this.lancerDiaporama();
+            }
+        },
 
         ouvrir(index, diaporama = false) {
             this.index = index;
@@ -283,7 +295,7 @@ document.addEventListener('alpine:init', () => {
         lancerDiaporama() {
             this.arreterDiaporama();
             this.diaporama = true;
-            this.minuterie = setInterval(() => this.suivante(), 4000);
+            this.minuterie = setInterval(() => this.suivante(), this.delai * 1000);
         },
 
         arreterDiaporama() {
