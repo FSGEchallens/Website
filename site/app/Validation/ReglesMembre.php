@@ -14,15 +14,14 @@ class ReglesMembre
      */
     public static function coordonnees(): array
     {
-        $telephone = ['string', 'max:20', 'regex:/^[0-9+ ().\/-]{6,20}$/'];
+        $numeroDeMobile = ['string', 'max:20', 'regex:/^[0-9+ ().\/-]{6,20}$/'];
 
         return [
             'rue' => ['nullable', 'string', 'max:150'],
             'numero' => ['nullable', 'string', 'max:10'],
             'npa' => ['nullable', 'string', 'regex:/^[0-9]{4,5}$/'],
             'localite' => ['nullable', 'string', 'max:100'],
-            'telephone' => ['nullable', ...$telephone],
-            'mobile' => ['required', ...$telephone],
+            'mobile' => ['required', ...$numeroDeMobile],
             'email_prive' => ['required', 'email', 'max:255'],
         ];
     }
@@ -37,7 +36,6 @@ class ReglesMembre
         return [
             'afficher_photo' => ['boolean'],
             'afficher_adresse' => ['boolean'],
-            'afficher_telephone' => ['boolean'],
             'afficher_mobile' => ['boolean'],
         ];
     }
@@ -49,7 +47,6 @@ class ReglesMembre
     {
         return [
             'npa.regex' => 'Le code postal doit contenir 4 chiffres (5 pour l\'étranger).',
-            'telephone.regex' => 'Le numéro de téléphone n\'est pas valide.',
             'mobile.regex' => 'Le numéro de mobile n\'est pas valide.',
         ];
     }

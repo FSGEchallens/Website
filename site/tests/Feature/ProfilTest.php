@@ -100,7 +100,6 @@ class ProfilTest extends TestCase
             ->call('modifier')
             ->set('localite', 'Echallens')
             ->set('npa', '1040')
-            ->set('telephone', '')
             ->set('afficher_mobile', true)
             ->call('enregistrerCoordonnees')
             ->assertHasNoErrors()
@@ -109,7 +108,6 @@ class ProfilTest extends TestCase
         $membre->refresh();
         $this->assertSame('Echallens', $membre->localite);
         $this->assertSame('1040', $membre->npa);
-        $this->assertNull($membre->telephone);
         $this->assertTrue($membre->afficher_mobile);
     }
 

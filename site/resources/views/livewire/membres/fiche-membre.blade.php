@@ -45,7 +45,6 @@
                     <x-champ nom="numero" libelle="N°" />
                     <x-champ nom="npa" libelle="Code postal" inputmode="numeric" />
                     <x-champ nom="localite" libelle="Localité" />
-                    <x-champ nom="telephone" libelle="Téléphone" type="tel" />
                     <x-champ nom="mobile" libelle="Mobile" type="tel" requis />
                     <x-champ nom="email_prive" libelle="E-mail privé" type="email" requis />
                     <x-champ nom="avs" libelle="N° AVS" placeholder="756.1234.5678.97" autocomplete="off" />
@@ -85,7 +84,6 @@
                 <div class="grille">
                     <label class="case"><input type="checkbox" wire:model="afficher_photo"> Afficher la photo</label>
                     <label class="case"><input type="checkbox" wire:model="afficher_adresse"> Afficher l'adresse</label>
-                    <label class="case"><input type="checkbox" wire:model="afficher_telephone"> Afficher le téléphone</label>
                     <label class="case"><input type="checkbox" wire:model="afficher_mobile"> Afficher le mobile</label>
                 </div>
             </section>

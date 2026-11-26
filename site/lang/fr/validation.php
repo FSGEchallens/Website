@@ -61,7 +61,6 @@ return [
         'rue' => 'rue',
         'numero' => 'n°',
         'localite' => 'localité',
-        'telephone' => 'téléphone',
         'mobile' => 'mobile',
         'password' => 'mot de passe',
         'code' => 'code',

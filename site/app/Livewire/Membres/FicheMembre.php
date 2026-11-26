@@ -41,8 +41,6 @@ class FicheMembre extends Component
 
     public string $localite = '';
 
-    public string $telephone = '';
-
     public string $mobile = '';
 
     public string $email_prive = '';
@@ -60,8 +58,6 @@ class FicheMembre extends Component
     public bool $afficher_photo = false;
 
     public bool $afficher_adresse = false;
-
-    public bool $afficher_telephone = false;
 
     public bool $afficher_mobile = false;
 
@@ -230,7 +226,6 @@ class FicheMembre extends Component
             'numero' => (string) $membre->numero,
             'npa' => (string) $membre->npa,
             'localite' => (string) $membre->localite,
-            'telephone' => (string) $membre->telephone,
             'mobile' => (string) $membre->mobile,
             'email_prive' => (string) $membre->email_prive,
             'email' => (string) $membre->email,
@@ -240,7 +235,6 @@ class FicheMembre extends Component
             'date_sortie' => (string) $membre->date_sortie?->toDateString(),
             'afficher_photo' => (bool) $membre->afficher_photo,
             'afficher_adresse' => (bool) $membre->afficher_adresse,
-            'afficher_telephone' => (bool) $membre->afficher_telephone,
             'afficher_mobile' => (bool) $membre->afficher_mobile,
             'compte_wp' => (string) $membre->compte_wp,
             'role' => ($membre->role ?? Role::Membre)->value,
