@@ -9,10 +9,11 @@ use App\Rules\NumeroAvs;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 /**
- * CrÃ©ation et modification d'une fiche membre (comitÃ© / webmaster).
+ * Création et modification d'une fiche membre (comité / webmaster).
  */
 class FicheMembre extends Component
 {
@@ -66,11 +67,13 @@ class FicheMembre extends Component
     public function mount(?User $membre = null): void
     {
         if ($membre === null || ! $membre->exists) {
+            $this->authorize('gerer-membres');
             $this->date_entree = now()->toDateString();
 
             return;
         }
 
+        $this->authorize('modifier-membre', $membre);
         $this->membre = $membre;
 
         $this->fill([
@@ -141,11 +144,11 @@ class FicheMembre extends Component
         return [
             'civilite' => 'titre',
             'npa' => 'code postal',
-            'email_prive' => 'e-mail privÃ©',
-            'email' => 'e-mail sociÃ©tÃ©',
-            'avs' => 'nÂ° AVS',
+            'email_prive' => 'e-mail privé',
+            'email' => 'e-mail société',
+            'avs' => 'n° AVS',
             'date_naissance' => 'date de naissance',
-            'date_entree' => 'date d\'entrÃ©e',
+            'date_entree' => 'date d\'entrée',
             'date_sortie' => 'date de sortie',
             'compte_wp' => 'compte WordPress',
         ];
@@ -157,21 +160,25 @@ class FicheMembre extends Component
     protected function messages(): array
     {
         return [
-            'date_naissance.before' => 'La date de naissance doit Ãªtre dans le passÃ©.',
+            'date_naissance.before' => 'La date de naissance doit être dans le passé.',
             'date_naissance.after' => 'La date de naissance n\'est pas plausible.',
-            'date_sortie.after_or_equal' => 'La date de sortie ne peut pas Ãªtre avant la date d\'entrÃ©e.',
-            'npa.regex' => 'Le code postal doit contenir 4 chiffres (5 pour l\'Ã©tranger).',
-            'telephone.regex' => 'Le numÃ©ro de tÃ©lÃ©phone n\'est pas valide.',
-            'mobile.regex' => 'Le numÃ©ro de mobile n\'est pas valide.',
+            'date_sortie.after_or_equal' => 'La date de sortie ne peut pas être avant la date d\'entrée.',
+            'npa.regex' => 'Le code postal doit contenir 4 chiffres (5 pour l\'étranger).',
+            'telephone.regex' => 'Le numéro de téléphone n\'est pas valide.',
+            'mobile.regex' => 'Le numéro de mobile n\'est pas valide.',
         ];
     }
 
     public function enregistrer(): void
     {
+        $this->autoriserModification();
+
         $donnees = $this->validate();
 
         $roles = array_map(fn (string $valeur) => Role::from($valeur), $donnees['roles'] ?? []);
         unset($donnees['roles']);
+
+        $this->verifierRoleAdministrateur(in_array(Role::Administrateur, $roles, true));
 
         $donnees = array_map(fn ($valeur) => is_string($valeur) ? (trim($valeur) === '' ? null : trim($valeur)) : $valeur, $donnees);
         $donnees['avs'] = NumeroAvs::formater($donnees['avs']);
@@ -184,11 +191,70 @@ class FicheMembre extends Component
             $membre->synchroniserRoles($roles);
         });
 
-        session()->flash('message', $estNouveau
-            ? 'Le membre '.$membre->nomComplet().' a Ã©tÃ© crÃ©Ã©.'
-            : 'La fiche de '.$membre->nomComplet().' a Ã©tÃ© enregistrÃ©e.');
+        $message = $estNouveau
+            ? 'Le membre '.$membre->nomComplet().' a été créé.'
+            : 'La fiche de '.$membre->nomComplet().' a été enregistrée.';
+
+        if ($estNouveau && $membre->email !== null) {
+            $membre->envoyerInvitation();
+            $message .= ' Un e-mail lui a été envoyé pour choisir son mot de passe.';
+        }
+
+        session()->flash('message', $message);
 
         $this->redirectRoute('membres.index', navigate: false);
+    }
+
+    /**
+     * Renvoie au membre le lien (valable 7 jours) pour choisir son mot de passe.
+     */
+    public function envoyerLienMotDePasse(): void
+    {
+        $this->autoriserModification();
+
+        if ($this->membre?->email === null) {
+            $this->addError('email', 'Ce membre n\'a pas d\'e-mail société enregistré.');
+
+            return;
+        }
+
+        $this->membre->envoyerInvitation();
+
+        session()->flash('message', 'Un lien pour choisir son mot de passe a été envoyé à '.$this->membre->email.'.');
+
+        $this->redirectRoute('membres.edit', $this->membre, navigate: false);
+    }
+
+    private function autoriserModification(): void
+    {
+        $this->membre === null
+            ? $this->authorize('gerer-membres')
+            : $this->authorize('modifier-membre', $this->membre);
+    }
+
+    /**
+     * Seul un administrateur peut donner ou retirer le rôle Administrateur,
+     * et il doit toujours en rester au moins un.
+     */
+    private function verifierRoleAdministrateur(bool $seraAdministrateur): void
+    {
+        $estAdministrateur = $this->membre?->estAdministrateur() ?? false;
+
+        if ($seraAdministrateur === $estAdministrateur) {
+            return;
+        }
+
+        if (! auth()->user()->can('attribuer-role-administrateur')) {
+            throw ValidationException::withMessages([
+                'roles' => 'Seul un administrateur peut donner ou retirer le rôle Administrateur.',
+            ]);
+        }
+
+        if ($estAdministrateur && User::avecRole(Role::Administrateur)->count() <= 1) {
+            throw ValidationException::withMessages([
+                'roles' => 'Il doit toujours rester au moins un administrateur.',
+            ]);
+        }
     }
 
     public function render(): View

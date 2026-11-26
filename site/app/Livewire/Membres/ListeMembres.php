@@ -24,6 +24,11 @@ class ListeMembres extends Component
     #[Url(as: 'role', except: '')]
     public string $role = '';
 
+    public function mount(): void
+    {
+        $this->authorize('gerer-membres');
+    }
+
     public function updatedRecherche(): void
     {
         $this->resetPage();

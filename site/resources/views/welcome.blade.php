@@ -22,6 +22,21 @@
             <p class="ok">La nouvelle application fonctionne.</p>
             <p>Environnement : <strong>{{ app()->environment() }}</strong></p>
             <p>Base de données : <strong>{{ $baseOk ? 'connectée' : 'non connectée' }}</strong></p>
+            @if (session('message'))
+                <p class="ok">{{ session('message') }}</p>
+            @endif
+            @auth
+                <p>Connecté : <strong>{{ auth()->user()->nomComplet() }}</strong></p>
+                @can('gerer-membres')
+                    <p><a href="{{ route('membres.index') }}">Gérer les membres</a></p>
+                @endcan
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit">Déconnexion</button>
+                </form>
+            @else
+                <p><a href="{{ route('login') }}">Se connecter</a></p>
+            @endauth
         </div>
     </main>
 </body>

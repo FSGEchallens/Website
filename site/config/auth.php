@@ -99,6 +99,25 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+
+        // Lien « choisissez votre mot de passe » envoyé à un nouveau membre : valable 7 jours.
+        'invitations' => [
+            'provider' => 'users',
+            'table' => 'invitation_tokens',
+            'expire' => 60 * 24 * 7,
+            'throttle' => 60,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Code de connexion envoyé par e-mail (2e étape)
+    |--------------------------------------------------------------------------
+    */
+
+    'code_connexion' => [
+        'validite_minutes' => 10,
+        'tentatives_max' => 5,
     ],
 
     /*

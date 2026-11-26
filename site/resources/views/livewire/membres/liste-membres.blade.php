@@ -56,7 +56,9 @@
                             {{ $membre->email ?? '—' }}
                         </td>
                         <td>
-                            <a href="{{ route('membres.edit', $membre) }}">Modifier</a>
+                            @can('modifier-membre', $membre)
+                                <a href="{{ route('membres.edit', $membre) }}">Modifier</a>
+                            @endcan
                         </td>
                     </tr>
                 @empty

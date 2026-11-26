@@ -80,6 +80,21 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
   - En local, la base s'appelle `fsg_echallens` (utilisateur root, sans mot de passe).
   - Les e-mails partent vers Mailpit de Laragon (port 1025, consultables sur http://localhost:8025).
   - La page `/` est une page de test qui indique si la base de données est connectée.
+  - **Membres** : la table `users` sert de fiche membre, avec l'e-mail société comme identifiant de connexion.
+    - Le n° AVS est chiffré dans la base.
+    - Les rôles sont stockés dans la table `user_roles` (administrateur, comité, moniteur ; plusieurs possibles par personne).
+    - Pages : `/membres` (liste) et la fiche membre en Livewire. Accès réservé au comité et à l'administrateur.
+    - Règles : le comité ne peut pas modifier un administrateur, seul un administrateur peut donner le rôle Administrateur, et il doit toujours en rester au moins un.
+  - **Connexion** : mot de passe, puis code à 6 chiffres envoyé par e-mail (haché en base, valable 10 min, 5 essais au maximum).
+    - Mot de passe oublié : lien valable 1 h.
+    - Invitation d'un nouveau membre : lien valable 7 jours, avec sa propre table `invitation_tokens`.
+    - Les liens ouvrent un formulaire (POST), pour résister aux scanners d'e-mails.
+  - **Commandes** utilisables depuis les tâches planifiées de Plesk :
+    - `mail:test adresse` : envoie un e-mail de test ;
+    - `membre:admin email Prénom Nom` : crée un administrateur et lui envoie une invitation.
+  - **Site de test** : `MAIL_REDIRECT_TO` dans le `.env` envoie tous les e-mails à une seule adresse. Ce réglage n'est jamais actif en production.
+  - **Données locales** (fictives) : `php artisan migrate:fresh --seed` crée l'administrateur webmaster@example.org (mot de passe `password`). Le code de connexion arrive dans Mailpit (http://localhost:8025).
+  - **Encodage** : ne pas modifier les fichiers avec `Get-Content`/`Set-Content` de PowerShell 5.1, qui abîme les accents UTF-8. Utiliser les outils d'édition ou `[IO.File]` avec UTF-8.
   - Pour lancer le site : `cd site` puis `php artisan serve`, et ouvrir http://localhost:8000.
 
 ## Plan par étapes

@@ -43,6 +43,17 @@
                 <x-champ nom="date_sortie" libelle="Date de sortie" type="date" aide="Laisser vide tant que la personne est membre." />
                 <x-champ nom="compte_wp" libelle="Compte WordPress (ancien site)" />
             </div>
+
+            @if ($membre?->email)
+                <p class="discret">
+                    Compte : {{ $membre->password ? 'mot de passe choisi' : 'mot de passe pas encore choisi' }}
+                    · Dernière connexion : {{ $membre->derniere_connexion_le?->format('d.m.Y à H:i') ?? 'jamais' }}
+                </p>
+                <button type="button" class="bouton bouton--secondaire" wire:click="envoyerLienMotDePasse"
+                        wire:confirm="Envoyer à {{ $membre->email }} un lien pour choisir son mot de passe ?">
+                    Envoyer un lien pour choisir le mot de passe
+                </button>
+            @endif
         </section>
 
         <section class="carte">
@@ -51,11 +62,13 @@
             <div class="grille">
                 @foreach ($tousLesRoles as $role)
                     <label class="case" wire:key="role-{{ $role->value }}">
-                        <input type="checkbox" wire:model="roles" value="{{ $role->value }}">
+                        <input type="checkbox" wire:model="roles" value="{{ $role->value }}"
+                               @disabled($role === \App\Enums\Role::Administrateur && auth()->user()->cannot('attribuer-role-administrateur'))>
                         <span><strong>{{ $role->libelle() }}</strong><br><span class="discret">{{ $role->description() }}</span></span>
                     </label>
                 @endforeach
             </div>
+            @error('roles') <div class="champ"><div class="erreur">{{ $message }}</div></div> @enderror
             @error('roles.*') <div class="champ"><div class="erreur">{{ $message }}</div></div> @enderror
         </section>
 

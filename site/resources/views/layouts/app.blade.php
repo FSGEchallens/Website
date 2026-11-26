@@ -12,7 +12,18 @@
         <div class="conteneur entete__contenu">
             <a href="{{ url('/') }}" class="entete__titre">{{ config('app.name') }}</a>
             <nav class="entete__menu">
-                <a href="{{ route('membres.index') }}" @class(['actif' => request()->routeIs('membres.*')])>Membres</a>
+                @auth
+                    @can('gerer-membres')
+                        <a href="{{ route('membres.index') }}" @class(['actif' => request()->routeIs('membres.*')])>Membres</a>
+                    @endcan
+                    <span class="entete__utilisateur">{{ auth()->user()->prenom }}</span>
+                    <form method="POST" action="{{ route('logout') }}" class="en-ligne">
+                        @csrf
+                        <button type="submit" class="lien-bouton">Déconnexion</button>
+                    </form>
+                @else
+                    <a href="{{ route('login') }}" @class(['actif' => request()->routeIs('login', 'connexion.*')])>Connexion</a>
+                @endauth
             </nav>
         </div>
     </header>

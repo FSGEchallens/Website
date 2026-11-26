@@ -16,6 +16,18 @@ class MembresTest extends TestCase
 {
     use RefreshDatabase;
 
+    private User $administrateur;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->administrateur = User::factory()->avecRoles(Role::Administrateur)->create([
+            'prenom' => 'Web', 'nom' => 'Admin', 'localite' => 'Nulle-part',
+        ]);
+        $this->actingAs($this->administrateur);
+    }
+
     public function test_la_liste_affiche_les_membres_actifs_seulement(): void
     {
         User::factory()->create(['prenom' => 'Alice', 'nom' => 'Actuelle']);
@@ -142,7 +154,7 @@ class MembresTest extends TestCase
             ->call('enregistrer')
             ->assertHasErrors(['roles.0']);
 
-        $this->assertSame(0, User::count());
+        $this->assertSame(1, User::count());
     }
 
     public function test_filtre_de_la_liste_par_role(): void
