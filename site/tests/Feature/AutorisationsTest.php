@@ -115,11 +115,11 @@ class AutorisationsTest extends TestCase
         $membre = User::factory()->create(['email' => 'julie@example.org']);
         $tokenReinitialisation = Password::broker('users')->createToken($membre);
 
-        Livewire::test(NouveauMotDePasse::class, ['token' => $tokenReinitialisation, 'invitation' => true])
-            ->set('email', 'julie@example.org')
-            ->set('password', 'NouveauSecret42')
-            ->set('password_confirmation', 'NouveauSecret42')
+        Livewire::withQueryParams(['email' => 'julie@example.org'])
+            ->test(NouveauMotDePasse::class, ['token' => $tokenReinitialisation, 'invitation' => true])
+            ->set('password', 'Nouveau-Secret42!')
+            ->set('password_confirmation', 'Nouveau-Secret42!')
             ->call('enregistrer')
-            ->assertHasErrors('email');
+            ->assertHasErrors('password');
     }
 }

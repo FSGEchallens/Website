@@ -13,7 +13,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class ConnexionTest extends TestCase
@@ -204,13 +206,13 @@ class ConnexionTest extends TestCase
         Livewire::withQueryParams(['email' => 'julie@example.org'])
             ->test(NouveauMotDePasse::class, ['token' => $token])
             ->assertSet('email', 'julie@example.org')
-            ->set('password', 'NouveauSecret42')
-            ->set('password_confirmation', 'NouveauSecret42')
+            ->set('password', 'Nouveau-Secret42!')
+            ->set('password_confirmation', 'Nouveau-Secret42!')
             ->call('enregistrer')
             ->assertHasNoErrors()
             ->assertRedirect(route('login'));
 
-        $this->assertTrue(Hash::check('NouveauSecret42', $membre->fresh()->password));
+        $this->assertTrue(Hash::check('Nouveau-Secret42!', $membre->fresh()->password));
     }
 
     public function test_mot_de_passe_oublie_ne_revele_pas_si_le_compte_existe(): void
@@ -229,27 +231,77 @@ class ConnexionTest extends TestCase
     {
         $membre = $this->membre();
 
-        Livewire::test(NouveauMotDePasse::class, ['token' => 'faux-jeton'])
-            ->set('email', 'julie@example.org')
-            ->set('password', 'NouveauSecret42')
-            ->set('password_confirmation', 'NouveauSecret42')
+        Livewire::withQueryParams(['email' => 'julie@example.org'])
+            ->test(NouveauMotDePasse::class, ['token' => 'faux-jeton'])
+            ->set('password', 'Nouveau-Secret42!')
+            ->set('password_confirmation', 'Nouveau-Secret42!')
             ->call('enregistrer')
-            ->assertHasErrors('email');
+            ->assertHasErrors('password');
 
         $this->assertTrue(Hash::check('MotDePasse123', $membre->fresh()->password));
     }
 
-    public function test_mot_de_passe_trop_simple_refuse(): void
+    public function test_l_e_mail_du_lien_ne_peut_pas_etre_modifie(): void
+    {
+        $this->expectException(CannotUpdateLockedPropertyException::class);
+
+        Livewire::withQueryParams(['email' => 'julie@example.org'])
+            ->test(NouveauMotDePasse::class, ['token' => 'abc'])
+            ->set('email', 'pirate@example.org');
+    }
+
+    public function test_un_lien_sans_e_mail_est_refuse(): void
+    {
+        Livewire::test(NouveauMotDePasse::class, ['token' => 'abc'])
+            ->set('password', 'Nouveau-Secret42!')
+            ->set('password_confirmation', 'Nouveau-Secret42!')
+            ->call('enregistrer')
+            ->assertHasErrors('password')
+            ->assertSee('Ce lien est incomplet');
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function motsDePasseFaibles(): array
+    {
+        return [
+            'trop court' => ['Court-42!'],
+            'sans majuscule' => ['sans-majuscule-42!'],
+            'sans minuscule' => ['SANS-MINUSCULE-42!'],
+            'sans chiffre' => ['Sans-Chiffre-Ici!'],
+            'sans caractère spécial' => ['SansCaractere42'],
+            'trop long' => ['Aa1!'.str_repeat('x', 61)],
+        ];
+    }
+
+    #[DataProvider('motsDePasseFaibles')]
+    public function test_mot_de_passe_faible_refuse(string $motDePasse): void
     {
         $membre = $this->membre();
         $token = Password::broker('users')->createToken($membre);
 
-        Livewire::test(NouveauMotDePasse::class, ['token' => $token])
-            ->set('email', 'julie@example.org')
-            ->set('password', 'court')
-            ->set('password_confirmation', 'court')
+        Livewire::withQueryParams(['email' => 'julie@example.org'])
+            ->test(NouveauMotDePasse::class, ['token' => $token])
+            ->set('password', $motDePasse)
+            ->set('password_confirmation', $motDePasse)
             ->call('enregistrer')
             ->assertHasErrors('password');
+
+        $this->assertTrue(Hash::check('MotDePasse123', $membre->fresh()->password));
+    }
+
+    public function test_un_espace_compte_comme_caractere_special(): void
+    {
+        $membre = $this->membre();
+        $token = Password::broker('users')->createToken($membre);
+
+        Livewire::withQueryParams(['email' => 'julie@example.org'])
+            ->test(NouveauMotDePasse::class, ['token' => $token])
+            ->set('password', 'Une phrase de 2026')
+            ->set('password_confirmation', 'Une phrase de 2026')
+            ->call('enregistrer')
+            ->assertHasNoErrors();
     }
 
     public function test_invitation_d_un_nouveau_membre(): void
@@ -275,13 +327,13 @@ class ConnexionTest extends TestCase
 
         Livewire::withQueryParams(['email' => 'julie@example.org'])
             ->test(NouveauMotDePasse::class, ['token' => $token, 'invitation' => true])
-            ->set('password', 'PremierSecret42')
-            ->set('password_confirmation', 'PremierSecret42')
+            ->set('password', 'Premier-Secret42!')
+            ->set('password_confirmation', 'Premier-Secret42!')
             ->call('enregistrer')
             ->assertHasNoErrors()
             ->assertRedirect(route('login'));
 
-        $this->assertTrue(Hash::check('PremierSecret42', $membre->fresh()->password));
+        $this->assertTrue(Hash::check('Premier-Secret42!', $membre->fresh()->password));
     }
 
     public function test_un_lien_d_invitation_ne_sert_qu_une_fois(): void
@@ -289,16 +341,16 @@ class ConnexionTest extends TestCase
         $membre = $this->membre(['password' => null]);
         $token = Password::broker('invitations')->createToken($membre);
 
-        foreach (['PremierSecret42' => false, 'DeuxiemeSecret42' => true] as $motDePasse => $erreurAttendue) {
-            $test = Livewire::test(NouveauMotDePasse::class, ['token' => $token, 'invitation' => true])
-                ->set('email', 'julie@example.org')
+        foreach (['Premier-Secret42!' => false, 'Deuxieme-Secret42!' => true] as $motDePasse => $erreurAttendue) {
+            $test = Livewire::withQueryParams(['email' => 'julie@example.org'])
+                ->test(NouveauMotDePasse::class, ['token' => $token, 'invitation' => true])
                 ->set('password', $motDePasse)
                 ->set('password_confirmation', $motDePasse)
                 ->call('enregistrer');
 
-            $erreurAttendue ? $test->assertHasErrors('email') : $test->assertHasNoErrors();
+            $erreurAttendue ? $test->assertHasErrors('password') : $test->assertHasNoErrors();
         }
 
-        $this->assertTrue(Hash::check('PremierSecret42', $membre->fresh()->password));
+        $this->assertTrue(Hash::check('Premier-Secret42!', $membre->fresh()->password));
     }
 }

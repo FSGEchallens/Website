@@ -72,6 +72,24 @@ h1 { font-size: 1.6rem; margin: 0 0 1rem; }
 .champ .aide { font-size: .8rem; color: var(--gris); margin-top: .2rem; }
 .champ .erreur { font-size: .85rem; color: var(--rouge); margin-top: .2rem; }
 .champ--erreur input, .champ--erreur select { border-color: var(--rouge); }
+[x-cloak] { display: none !important; }
+.avec-oeil { position: relative; }
+.avec-oeil input { padding-right: 2.75rem; }
+.bouton-oeil {
+    position: absolute; top: 50%; right: .35rem; transform: translateY(-50%);
+    display: flex; align-items: center; justify-content: center;
+    width: 2.2rem; height: 2.2rem; border: 0; border-radius: 4px; background: transparent;
+    color: var(--gris); cursor: pointer;
+}
+.bouton-oeil:hover { color: #333; background: var(--gris-clair); }
+.bouton-oeil:focus-visible { outline: 2px solid var(--bleu); }
+.champ input.lecture-seule { background: #f0f0f0; color: #555; cursor: not-allowed; }
+.criteres { list-style: none; padding: 0; margin: 0 0 1rem; font-size: .9rem; }
+.criteres li { padding-left: 1.5rem; position: relative; margin-bottom: .2rem; color: #555; }
+.criteres li::before { content: "○"; position: absolute; left: .2rem; color: #999; }
+.criteres li.ok { color: var(--vert-fonce); }
+.criteres li.ok::before { content: "✓"; color: var(--vert-fonce); font-weight: bold; }
+.criteres code { background: #f0f0f0; padding: 0 .3rem; border-radius: 3px; }
 .case { display: flex; align-items: center; gap: .5rem; font-weight: normal; }
 .recherche { max-width: 22rem; }
 .actions { display: flex; flex-wrap: wrap; gap: .75rem; }

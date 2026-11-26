@@ -24,6 +24,8 @@ class NouveauMotDePasse extends Component
     #[Locked]
     public bool $invitation = false;
 
+    /** Vient du lien reçu par e-mail : non modifiable. */
+    #[Locked]
     public string $email = '';
 
     public string $password = '';
@@ -39,10 +41,15 @@ class NouveauMotDePasse extends Component
 
     public function enregistrer(): void
     {
+        if (! filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
+            throw ValidationException::withMessages([
+                'password' => 'Ce lien est incomplet. Ouvrez-le à nouveau depuis l\'e-mail reçu, ou demandez un nouveau lien avec « Mot de passe oublié ».',
+            ]);
+        }
+
         $this->validate([
-            'email' => ['required', 'email'],
             'password' => ['required', 'confirmed', RegleMotDePasse::defaults()],
-        ], attributes: ['email' => 'e-mail', 'password' => 'mot de passe']);
+        ], attributes: ['password' => 'mot de passe']);
 
         $statut = Password::broker($this->invitation ? 'invitations' : 'users')->reset(
             [
@@ -64,7 +71,7 @@ class NouveauMotDePasse extends Component
             $this->reset('password', 'password_confirmation');
 
             throw ValidationException::withMessages([
-                'email' => 'Ce lien n\'est plus valable ou ne correspond pas à cette adresse e-mail. Demandez un nouveau lien avec « Mot de passe oublié ».',
+                'password' => 'Ce lien n\'est plus valable ou ne correspond pas à cette adresse e-mail. Demandez un nouveau lien avec « Mot de passe oublié ».',
             ]);
         }
 

@@ -22,7 +22,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Password::defaults(fn () => Password::min(10)->letters()->numbers());
+        // Mot de passe fort : 12 à 64 caractères, majuscule, minuscule, chiffre et caractère spécial
+        // (tous les signes et l'espace sont acceptés). Hors tests, refus des mots de passe ayant fuité
+        // (Have I Been Pwned, anonyme : seuls 5 caractères de l'empreinte SHA-1 sont envoyés).
+        Password::defaults(function () {
+            $regle = Password::min(12)->max(64)->mixedCase()->numbers()->symbols();
+
+            return $this->app->runningUnitTests() ? $regle : $regle->uncompromised();
+        });
 
         // Voir et créer des membres : comité et administrateur.
         Gate::define('gerer-membres', fn (User $user) => $user->peutGererLesMembres());
