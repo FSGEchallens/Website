@@ -2,56 +2,34 @@
 
 namespace Tests\Feature;
 
-use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
- * Qui peut voir la photo d'un membre.
+ * Les photos importées sont toujours publiques.
  */
 class PhotoMembreTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function membreAvecPhoto(bool $publique): User
+    public function test_photo_importee_visible_par_tous(): void
     {
         Storage::fake('local');
         Storage::disk('local')->put('photos-membres/FSG-Echallens_Test_Anna.jpg', 'jpeg');
+        $membre = User::factory()->create(['photo' => 'FSG-Echallens_Test_Anna.jpg']);
 
-        return User::factory()->create(['photo' => 'FSG-Echallens_Test_Anna.jpg', 'afficher_photo' => $publique]);
+        $this->get(route('membres.photo', $membre))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'image/jpeg');
     }
 
-    public function test_photo_publique_visible_par_tous(): void
+    public function test_sans_photo_importee_l_adresse_renvoie_404_et_le_site_utilise_l_image_par_defaut(): void
     {
-        $membre = $this->membreAvecPhoto(publique: true);
-
-        $this->get(route('membres.photo', $membre))->assertOk();
-    }
-
-    public function test_photo_privee_invisible_pour_les_visiteurs_et_les_autres_membres(): void
-    {
-        $membre = $this->membreAvecPhoto(publique: false);
+        $membre = User::factory()->create(['photo' => null]);
 
         $this->get(route('membres.photo', $membre))->assertNotFound();
-        $this->actingAs(User::factory()->avecRole(Role::Moniteur)->create())
-            ->get(route('membres.photo', $membre))->assertNotFound();
-    }
-
-    public function test_photo_privee_visible_par_le_membre_et_le_comite(): void
-    {
-        $membre = $this->membreAvecPhoto(publique: false);
-
-        $this->actingAs($membre)->get(route('membres.photo', $membre))->assertOk();
-        $this->actingAs(User::factory()->avecRole(Role::Comite)->create())
-            ->get(route('membres.photo', $membre))->assertOk();
-    }
-
-    public function test_pas_de_photo_donne_404(): void
-    {
-        $membre = User::factory()->create(['afficher_photo' => true]);
-
-        $this->get(route('membres.photo', $membre))->assertNotFound();
+        $this->assertStringContainsString('images/avatars/', $membre->urlPhoto());
     }
 }

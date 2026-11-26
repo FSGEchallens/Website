@@ -34,8 +34,6 @@ class ReglesMembre
     public static function affichage(): array
     {
         return [
-            'afficher_photo' => ['boolean'],
-            'afficher_adresse' => ['boolean'],
             'afficher_mobile' => ['boolean'],
         ];
     }

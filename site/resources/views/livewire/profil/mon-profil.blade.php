@@ -49,7 +49,7 @@
 
             <section class="carte">
                 <h2>Mes coordonnées privées</h2>
-                <p class="discret">Elles servent au comité et à vos moniteurs. Elles ne sont jamais affichées publiquement, sauf si vous le choisissez ci-dessous.</p>
+                <p class="discret">Elles servent au comité et à vos moniteurs. Elles ne sont jamais affichées publiquement, sauf votre mobile si vous le choisissez ci-dessous.</p>
                 <div class="grille">
                     <x-champ nom="rue" libelle="Rue" autocomplete="address-line1" />
                     <x-champ nom="numero" libelle="N°" />
@@ -62,10 +62,8 @@
 
             <section class="carte">
                 <h2>Ce que les visiteurs du site peuvent voir</h2>
-                <p class="discret">Par exemple sur la page des moniteurs. Tout est masqué par défaut.</p>
+                <p class="discret">Par exemple sur la page des moniteurs : votre photo et votre nom y sont toujours affichés, votre adresse jamais.</p>
                 <div class="grille">
-                    <label class="case"><input type="checkbox" wire:model="afficher_photo"> Afficher ma photo</label>
-                    <label class="case"><input type="checkbox" wire:model="afficher_adresse"> Afficher mon adresse</label>
                     <label class="case"><input type="checkbox" wire:model="afficher_mobile"> Afficher mon mobile</label>
                 </div>
             </section>

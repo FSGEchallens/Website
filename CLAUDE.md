@@ -89,7 +89,7 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
     - L'autorisation est stockée dans la colonne `users.role` (membre, moniteur, comité, administrateur ; une seule par personne).
     - Champs obligatoires : titre, prénom, nom, mobile, e-mail privé, autorisation.
     - Une fiche existante s'ouvre verrouillée : il faut cliquer sur « Modifier » pour l'éditer.
-    - **Photo** : recadrée en carré, réduite à 600 × 600 et réencodée en JPEG (sans EXIF ni GPS). Elle est stockée dans `storage/app/private/photos-membres/FSG-Echallens_Nom_Prénom.jpg` et renommée si le nom change. Elle est servie par `/membres/{id}/photo` : publiquement si « afficher la photo » est coché, sinon au membre lui-même et au comité. Images par défaut : `public/images/avatars/{femme,homme}.png`.
+    - **Photo** : recadrée en carré, réduite à 600 × 600 et réencodée en JPEG (sans EXIF ni GPS). Elle est stockée dans `storage/app/private/photos-membres/FSG-Echallens_Nom_Prénom.jpg` et renommée si le nom change. Elle est servie publiquement par `/membres/{id}/photo`. La photo est **toujours** affichée (importée ou image par défaut) et l'adresse **jamais** ; seul le mobile a un choix d'affichage (`afficher_mobile`). Chaque membre peut changer sa propre photo dans « Mon profil ». Images par défaut : `public/images/avatars/{femme,homme}.png`.
     - Pages : `/membres` (liste) et la fiche membre en Livewire. Accès réservé au comité et à l'administrateur.
     - Règles : le comité ne peut pas modifier un administrateur, seul un administrateur peut donner le rôle Administrateur, et il doit toujours en rester au moins un.
   - **Connexion** : mot de passe, puis code à 6 chiffres envoyé par e-mail (haché en base, valable 10 min, 5 essais au maximum).

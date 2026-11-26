@@ -36,10 +36,6 @@ class MonProfil extends Component
 
     public string $email_prive = '';
 
-    public bool $afficher_photo = false;
-
-    public bool $afficher_adresse = false;
-
     public bool $afficher_mobile = false;
 
     public string $mot_de_passe_actuel = '';
@@ -133,8 +129,6 @@ class MonProfil extends Component
             'localite' => (string) $membre->localite,
             'mobile' => (string) $membre->mobile,
             'email_prive' => (string) $membre->email_prive,
-            'afficher_photo' => (bool) $membre->afficher_photo,
-            'afficher_adresse' => (bool) $membre->afficher_adresse,
             'afficher_mobile' => (bool) $membre->afficher_mobile,
         ]);
     }

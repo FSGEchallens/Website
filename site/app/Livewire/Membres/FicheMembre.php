@@ -55,10 +55,6 @@ class FicheMembre extends Component
 
     public string $date_sortie = '';
 
-    public bool $afficher_photo = false;
-
-    public bool $afficher_adresse = false;
-
     public bool $afficher_mobile = false;
 
     public string $role = '';
@@ -229,8 +225,6 @@ class FicheMembre extends Component
             'date_naissance' => (string) $membre->date_naissance?->toDateString(),
             'date_entree' => (string) $membre->date_entree?->toDateString(),
             'date_sortie' => (string) $membre->date_sortie?->toDateString(),
-            'afficher_photo' => (bool) $membre->afficher_photo,
-            'afficher_adresse' => (bool) $membre->afficher_adresse,
             'afficher_mobile' => (bool) $membre->afficher_mobile,
             'role' => ($membre->role ?? Role::Membre)->value,
         ]);

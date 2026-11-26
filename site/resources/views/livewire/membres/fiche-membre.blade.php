@@ -39,7 +39,7 @@
 
             <section class="carte">
                 <h2>Données privées</h2>
-                <p class="discret">Jamais affichées publiquement (sauf choix ci-dessous). Le n° AVS est chiffré dans la base de données.</p>
+                <p class="discret">Jamais affichées publiquement, sauf le mobile si la case ci-dessous est cochée. Le n° AVS est chiffré dans la base de données.</p>
                 <div class="grille">
                     <x-champ nom="rue" libelle="Rue" />
                     <x-champ nom="numero" libelle="N°" />
@@ -79,10 +79,8 @@
 
             <section class="carte">
                 <h2>Affichage sur le site</h2>
-                <p class="discret">Ce que les visiteurs pourront voir de ce membre (par exemple sur la page des moniteurs).</p>
+                <p class="discret">Sur les pages publiques (par exemple celle des moniteurs), la photo et le nom sont toujours affichés. L'adresse ne l'est jamais.</p>
                 <div class="grille">
-                    <label class="case"><input type="checkbox" wire:model="afficher_photo"> Afficher la photo</label>
-                    <label class="case"><input type="checkbox" wire:model="afficher_adresse"> Afficher l'adresse</label>
                     <label class="case"><input type="checkbox" wire:model="afficher_mobile"> Afficher le mobile</label>
                 </div>
             </section>
