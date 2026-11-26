@@ -286,6 +286,52 @@ altcha-widget {
 .verrouillable:disabled .indicatif__affichage, .verrouillable:disabled .groupe-mobile input { background: #f0f0f0; color: #555; cursor: not-allowed; }
 .verrouillable:disabled .indicatif select { cursor: not-allowed; }
 
+/* Galerie : albums */
+.albums { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 1.25rem; }
+.album-carte { display: block; background: #fff; border-radius: 8px; overflow: hidden; text-decoration: none; color: #333; box-shadow: 0 1px 4px rgba(0, 0, 0, .08); transition: box-shadow .15s, transform .15s; }
+.album-carte:hover { box-shadow: 0 6px 16px rgba(0, 0, 0, .14); transform: translateY(-2px); }
+.album-carte__image { aspect-ratio: 3 / 2; background: var(--gris-clair); display: flex; align-items: center; justify-content: center; }
+.album-carte__image img { width: 100%; height: 100%; object-fit: cover; }
+.album-carte__texte { display: flex; flex-direction: column; gap: .2rem; padding: .75rem 1rem; }
+.album-carte__texte strong { color: var(--vert-fonce); }
+.album-carte--non-publie { opacity: .7; }
+
+/* Galerie : grille de miniatures */
+.grille-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: .5rem; margin-bottom: 1rem; }
+.grille-photos__vignette { display: block; padding: 0; border: 0; aspect-ratio: 1; overflow: hidden; border-radius: 6px; background: var(--gris-clair); cursor: zoom-in; }
+.grille-photos__vignette img { width: 100%; height: 100%; object-fit: cover; transition: transform .2s; }
+.grille-photos__vignette:hover img, .grille-photos__vignette:focus-visible img { transform: scale(1.05); }
+.grille-photos--gestion figure { margin: 0; background: #fff; border: 1px solid var(--gris-clair); border-radius: 6px; padding: .3rem; }
+.grille-photos--gestion figure.est-couverture { border: 2px solid var(--vert-fonce); }
+.grille-photos--gestion img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; }
+.grille-photos--gestion figcaption { display: flex; justify-content: space-between; align-items: center; gap: .3rem; margin-top: .2rem; font-size: .85rem; }
+.envoi-galerie { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-bottom: 1rem; }
+.envoi-galerie__progression { display: flex; align-items: center; gap: .6rem; width: 100%; }
+.envoi-galerie__progression progress { flex: 0 0 14rem; accent-color: var(--vert-fonce); }
+.bouton--desactive { opacity: .6; pointer-events: none; }
+.bouton--danger { background: var(--rouge); }
+.bouton--danger:hover { background: #a11f1f; }
+.zone-danger { border-top-color: var(--rouge); }
+
+/* Galerie : visionneuse (grande photo, plein écran, diaporama) */
+.visionneuse { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, .94); touch-action: pan-y; }
+.visionneuse__image { max-width: calc(100% - 7rem); max-height: calc(100% - 5rem); object-fit: contain; user-select: none; -webkit-user-drag: none; }
+.visionneuse__barre { position: absolute; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: .6rem 1rem; color: #ddd; font-size: .95rem; }
+.visionneuse__boutons { display: flex; gap: .4rem; }
+.visionneuse__boutons button, .visionneuse__boutons a {
+    min-width: 2.4rem; height: 2.4rem; padding: 0 .7rem; border: 0; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(255, 255, 255, .12); color: #fff; font: inherit; cursor: pointer; text-decoration: none;
+}
+.visionneuse__boutons button:hover, .visionneuse__boutons a:hover { background: rgba(255, 255, 255, .25); }
+.visionneuse__fleche { position: absolute; top: 50%; transform: translateY(-50%); width: 3rem; height: 4.5rem; border: 0; border-radius: 6px; background: rgba(255, 255, 255, .1); color: #fff; font-size: 2.4rem; line-height: 1; cursor: pointer; }
+.visionneuse__fleche:hover { background: rgba(255, 255, 255, .25); }
+.visionneuse__fleche--precedente { left: .5rem; }
+.visionneuse__fleche--suivante { right: .5rem; }
+@media (max-width: 40rem) {
+    .visionneuse__image { max-width: 100%; }
+    .visionneuse__fleche { width: 2.4rem; height: 3.5rem; font-size: 2rem; background: rgba(0, 0, 0, .3); }
+}
+
 /* Pied de page */
 .pied { background: var(--vert-fonce); color: #fff; font-size: .88rem; padding: 1.25rem 0; }
 .pied__contenu { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }

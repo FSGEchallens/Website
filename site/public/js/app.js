@@ -126,7 +126,219 @@ function erreurFichier(fichier, poidsMaxMo, extensions) {
     return '';
 }
 
+/*
+ * Réduit une photo dans le navigateur avant l'envoi (plus rapide, surtout depuis un téléphone).
+ * Renvoie un fichier JPEG d'au plus « tailleMax » pixels de côté.
+ */
+function reduireImage(fichier, tailleMax) {
+    return new Promise((resoudre, rejeter) => {
+        const adresse = URL.createObjectURL(fichier);
+        const image = new Image();
+
+        image.onload = () => {
+            const echelle = Math.min(1, tailleMax / Math.max(image.naturalWidth, image.naturalHeight));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(image.naturalWidth * echelle);
+            canvas.height = Math.round(image.naturalHeight * echelle);
+            const contexte = canvas.getContext('2d');
+            contexte.fillStyle = '#ffffff';
+            contexte.fillRect(0, 0, canvas.width, canvas.height);
+            contexte.imageSmoothingQuality = 'high';
+            contexte.drawImage(image, 0, 0, canvas.width, canvas.height);
+            URL.revokeObjectURL(adresse);
+
+            canvas.toBlob((blob) => {
+                if (! blob) {
+                    rejeter(new Error('conversion'));
+
+                    return;
+                }
+
+                const nom = fichier.name.replace(/\.[^.]+$/, '') + '.jpg';
+                resoudre(new File([blob], nom, { type: 'image/jpeg' }));
+            }, 'image/jpeg', 0.88);
+        };
+
+        image.onerror = () => {
+            URL.revokeObjectURL(adresse);
+            rejeter(new Error('lecture'));
+        };
+
+        image.src = adresse;
+    });
+}
+
 document.addEventListener('alpine:init', () => {
+    /*
+     * Galerie : envoi de nombreuses photos, une par une (réduites par le navigateur), avec progression.
+     * Côté Livewire, chaque photo arrive dans la propriété « photoEnvoyee ».
+     */
+    window.Alpine.data('envoiGalerie', (poidsMaxMo = 25) => ({
+        enCours: false,
+        termine: false,
+        total: 0,
+        faits: 0,
+        erreurs: [],
+
+        async envoyer(evenement) {
+            const fichiers = [...evenement.target.files];
+            evenement.target.value = '';
+
+            if (! fichiers.length) {
+                return;
+            }
+
+            this.erreurs = [];
+            this.total = fichiers.length;
+            this.faits = 0;
+            this.termine = false;
+            this.enCours = true;
+
+            for (const fichier of fichiers) {
+                const probleme = erreurFichier(fichier, 60, ['jpg', 'jpeg', 'png', 'webp']);
+
+                if (probleme) {
+                    this.erreurs.push(probleme);
+                    this.faits++;
+
+                    continue;
+                }
+
+                try {
+                    const reduite = await reduireImage(fichier, 2400);
+
+                    if (reduite.size > poidsMaxMo * 1024 * 1024) {
+                        throw new Error('poids');
+                    }
+
+                    await new Promise((resoudre, rejeter) => {
+                        this.$wire.upload('photoEnvoyee', reduite, resoudre, rejeter);
+                    });
+                } catch (erreur) {
+                    this.erreurs.push(erreur?.message === 'lecture'
+                        ? `« ${fichier.name} » ne peut pas être lue par votre navigateur (photo HEIC d’iPhone ?). Essayez en JPEG.`
+                        : `« ${fichier.name} » n’a pas pu être envoyée. Réessayez.`);
+                }
+
+                this.faits++;
+            }
+
+            this.enCours = false;
+            this.termine = true;
+        },
+    }));
+
+    /*
+     * Galerie : visionneuse (photo en grand, précédente / suivante, clavier, glisser du doigt,
+     * plein écran et diaporama).
+     */
+    window.Alpine.data('visionneuse', (photos) => ({
+        photos,
+        index: 0,
+        ouverte: false,
+        diaporama: false,
+        minuterie: null,
+        departGlisse: null,
+
+        ouvrir(index, diaporama = false) {
+            this.index = index;
+            this.ouverte = true;
+            document.body.style.overflow = 'hidden';
+            this.precharger();
+
+            if (diaporama) {
+                this.lancerDiaporama();
+            }
+        },
+
+        fermer() {
+            this.arreterDiaporama();
+            this.ouverte = false;
+            document.body.style.overflow = '';
+
+            if (document.fullscreenElement) {
+                document.exitFullscreen?.();
+            }
+        },
+
+        suivante() {
+            this.index = (this.index + 1) % this.photos.length;
+            this.precharger();
+        },
+
+        precedente() {
+            this.index = (this.index - 1 + this.photos.length) % this.photos.length;
+            this.precharger();
+        },
+
+        /** Charge à l'avance la photo suivante, pour un affichage sans attente. */
+        precharger() {
+            const suivante = this.photos[(this.index + 1) % this.photos.length];
+
+            if (suivante) {
+                new Image().src = suivante.grande;
+            }
+        },
+
+        lancerDiaporama() {
+            this.arreterDiaporama();
+            this.diaporama = true;
+            this.minuterie = setInterval(() => this.suivante(), 4000);
+        },
+
+        arreterDiaporama() {
+            clearInterval(this.minuterie);
+            this.minuterie = null;
+            this.diaporama = false;
+        },
+
+        basculerDiaporama() {
+            this.diaporama ? this.arreterDiaporama() : this.lancerDiaporama();
+        },
+
+        basculerPleinEcran() {
+            if (document.fullscreenElement) {
+                document.exitFullscreen?.();
+            } else {
+                this.$refs.visionneuse.requestFullscreen?.();
+            }
+        },
+
+        clavier(evenement) {
+            if (! this.ouverte) {
+                return;
+            }
+
+            if (evenement.key === 'ArrowRight') {
+                this.suivante();
+            } else if (evenement.key === 'ArrowLeft') {
+                this.precedente();
+            } else if (evenement.key === 'Escape' && ! document.fullscreenElement) {
+                this.fermer();
+            } else if (evenement.key === ' ') {
+                evenement.preventDefault();
+                this.basculerDiaporama();
+            }
+        },
+
+        debutGlisse(evenement) {
+            this.departGlisse = evenement.clientX;
+        },
+
+        finGlisse(evenement) {
+            if (this.departGlisse === null) {
+                return;
+            }
+
+            const ecart = evenement.clientX - this.departGlisse;
+            this.departGlisse = null;
+
+            if (Math.abs(ecart) > 50) {
+                ecart < 0 ? this.suivante() : this.precedente();
+            }
+        },
+    }));
+
     /*
      * Contrôle des fichiers choisis dans les zones d'import : en cas de problème, le fichier n'est pas
      * envoyé et la raison s'affiche en rouge. À placer sur un élément qui CONTIENT le champ fichier :

@@ -100,6 +100,13 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
       - captcha **ALTCHA** : widget 3.7.0 (MIT) hébergé dans `public/vendor/altcha`. Côté serveur, `App\Services\Altcha` crée les défis (protocole v1 SHA-256 + HMAC, valables 10 min) et les vérifie, chaque solution ne servant qu'une fois. Défis servis par `/altcha/defi` ;
       - en plus : question en toutes lettres (réponse en session), champ piège, délai minimal de 3 s, 3 envois par 10 min et par IP, 2 liens au maximum.
     - Les messages ne sont pas stockés.
+  - **Galerie** (tables `albums` et `photos_galerie`) :
+    - Pages `/galerie` (albums, du plus récent au plus ancien) et `/galerie/{slug}` (grille de miniatures et visionneuse Alpine `visionneuse` : grande photo, flèches, clavier, glisser, plein écran, diaporama de 4 s).
+    - Gestion sur `/gestion/galerie/…`, ouverte aux moniteurs, au comité et à l'administrateur (gate `gerer-galerie`). Jusqu'à 999 photos par album.
+    - Les photos sont réduites par le navigateur (`reduireImage`), envoyées une par une (`envoiGalerie`), puis traitées par `App\Services\PhotosGalerie` : 1920 px et miniature 480 px. Elles sont stockées dans `storage/app/private/galerie/{album}` et servies par `/photos-galerie/{id}`.
+    - Suppressions : corbeille (soft delete), restaurable depuis le journal (l'album revient avec ses photos). Effacement définitif par `model:prune` après `JOURNAL_CONSERVATION_JOURS`.
+    - La page d'un album n'a pas de composant Livewire : elle charge `@livewireScripts` pour avoir Alpine.
+    - Ancienne galerie (NextGEN) : 8 albums, 622 photos, pas encore importés.
   - **Résultats** (table `resultats`) : page publique `/la-societe/resultats`, du plus récent au plus ancien, 10 par page.
     - Gestion sur `/gestion/resultats`, ouverte aux moniteurs, au comité et à l'administrateur (gate `publier-resultats`).
     - Contenu : date (+ date de fin facultative), titre, texte (éditeur) et 1 à 10 photos.

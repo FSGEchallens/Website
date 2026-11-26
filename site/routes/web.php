@@ -4,6 +4,7 @@ use App\Enums\Role;
 use App\Http\Controllers\FichierAnnonceController;
 use App\Http\Controllers\FichierArchiveController;
 use App\Http\Controllers\LogoPartenaireController;
+use App\Http\Controllers\PhotoGalerieController;
 use App\Http\Controllers\PhotoMembreController;
 use App\Http\Controllers\PhotoResultatController;
 use App\Livewire\Administration\JournalModifications;
@@ -11,12 +12,14 @@ use App\Livewire\Auth\Connexion;
 use App\Livewire\Auth\MotDePasseOublie;
 use App\Livewire\Auth\NouveauMotDePasse;
 use App\Livewire\Auth\SaisieCode;
+use App\Livewire\Galerie\GestionAlbum;
 use App\Livewire\Membres\FicheMembre;
 use App\Livewire\Membres\ListeMembres;
 use App\Livewire\Profil\MonProfil;
 use App\Livewire\Site\GestionAnnonces;
 use App\Livewire\Site\GestionPartenaires;
 use App\Livewire\Site\GestionResultats;
+use App\Models\Album;
 use App\Models\Annonce;
 use App\Models\BlocContenu;
 use App\Models\Partenaire;
@@ -55,6 +58,16 @@ Route::get('/la-societe/resultats', fn () => view('resultats', [
     'resultats' => Resultat::where('visible', true)->duPlusRecent()->paginate(10),
 ]))->name('resultats.index');
 Route::get('/resultats/{resultat}/photos/{index}', PhotoResultatController::class)->whereNumber('index')->name('resultats.photo');
+
+// Galerie photo : albums publiés (ceux en préparation sont visibles par ceux qui gèrent la galerie).
+Route::get('/galerie', fn () => view('galerie.index', [
+    'albums' => Album::query()
+        ->when(! (auth()->user()?->can('gerer-galerie') ?? false), fn ($q) => $q->where('visible', true))
+        ->withCount('photos')
+        ->duPlusRecent()
+        ->get(),
+]))->name('galerie.index');
+Route::get('/photos-galerie/{photo}', PhotoGalerieController::class)->whereNumber('photo')->name('galerie.photo');
 
 // Image et fichiers joints des annonces.
 Route::get('/annonces/{annonce}/image', [FichierAnnonceController::class, 'image'])->name('annonces.image');
@@ -115,6 +128,19 @@ Route::middleware(['auth', 'can:consulter-journal'])->group(function () {
     Route::get('/administration/journal/{entree}/fichier/{index}', FichierArchiveController::class)
         ->whereNumber('index')->name('journal.fichier');
 });
+
+// Galerie : gestion des albums et des photos (moniteurs, comité et administrateur).
+Route::middleware(['auth', 'can:gerer-galerie'])->group(function () {
+    Route::livewire('/gestion/galerie/nouvel-album', GestionAlbum::class)->name('galerie.nouvel-album');
+    Route::livewire('/gestion/galerie/{album}', GestionAlbum::class)->name('galerie.gestion');
+});
+
+// Page publique d'un album (après les routes de gestion).
+Route::get('/galerie/{album}', function (Album $album) {
+    abort_unless($album->estPublie() || (auth()->user()?->can('gerer-galerie') ?? false), 404);
+
+    return view('galerie.album', ['album' => $album, 'photos' => $album->photos()->get()]);
+})->name('galerie.album');
 
 // Résultats : moniteurs, comité et administrateur.
 Route::middleware(['auth', 'can:publier-resultats'])->group(function () {

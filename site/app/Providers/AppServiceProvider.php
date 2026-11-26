@@ -51,6 +51,9 @@ class AppServiceProvider extends ServiceProvider
         // Résultats des concours : publiés par les moniteurs (et le comité, l'administrateur).
         Gate::define('publier-resultats', fn (User $user) => $user->aAuMoins(Role::Moniteur));
 
+        // Galerie photo (albums et photos) : moniteurs, comité et administrateur.
+        Gate::define('gerer-galerie', fn (User $user) => $user->aAuMoins(Role::Moniteur));
+
         // Journal des modifications (qui a modifié quoi, restauration) : administrateur uniquement pour le moment.
         Gate::define('consulter-journal', fn (User $user) => $user->estAdministrateur());
     }

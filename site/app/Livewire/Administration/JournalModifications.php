@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Administration;
 
+use App\Models\Album;
 use App\Models\Annonce;
 use App\Models\BlocContenu;
 use App\Models\JournalModification;
 use App\Models\Partenaire;
+use App\Models\PhotoGalerie;
 use App\Models\Resultat;
 use App\Models\User;
 use App\Services\Journal;
@@ -32,6 +34,8 @@ class JournalModifications extends Component
         BlocContenu::class => 'Textes du site',
         Annonce::class => 'Annonces',
         Resultat::class => 'Résultats',
+        Album::class => 'Albums photo',
+        PhotoGalerie::class => 'Photos de la galerie',
     ];
 
     #[Url(as: 'q', except: '')]

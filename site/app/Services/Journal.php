@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\JournalModification;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -110,6 +111,17 @@ class Journal
 
         return self::avecNote('Restauration de l\'entrée n° '.$entree->id, fn () => DB::transaction(function () use ($entree, $classe, $valeurs) {
             if ($entree->action === JournalModification::SUPPRESSION) {
+                // Élément mis à la corbeille (galerie) : on le sort de la corbeille au lieu de le recréer.
+                if (in_array(SoftDeletes::class, class_uses_recursive($classe), true)) {
+                    $dansLaCorbeille = $classe::onlyTrashed()->find($entree->sujet_id);
+
+                    if ($dansLaCorbeille !== null) {
+                        $dansLaCorbeille->restore();
+
+                        return $dansLaCorbeille;
+                    }
+                }
+
                 if ($classe::query()->whereKey($entree->sujet_id)->exists()) {
                     throw new RuntimeException('Cet élément existe déjà : il a sans doute déjà été restauré.');
                 }

@@ -45,7 +45,7 @@ return [
             ['libelle' => 'Volleyball', 'url' => $ancienSite.'/groupes/volleyball/'],
             ['libelle' => 'Tarifs', 'url' => $ancienSite.'/groupes/tarifs/', 'titre' => true],
         ]],
-        ['libelle' => 'Galerie', 'url' => $ancienSite.'/galerie/'],
+        ['libelle' => 'Galerie', 'route' => 'galerie.index'],
         ['libelle' => 'Inscription', 'url' => $ancienSite.'/inscription/'],
         ['libelle' => 'Contact', 'route' => 'contact'],
     ],
@@ -57,8 +57,9 @@ return [
         ['titre' => 'Gestion', 'liens' => [
             ['libelle' => 'Membres', 'route' => 'membres.index', 'actif' => 'membres.*', 'role' => 'comite'],
         ]],
-        ['titre' => 'Concours', 'liens' => [
+        ['titre' => 'Concours et photos', 'liens' => [
             ['libelle' => 'Résultats', 'route' => 'resultats.gestion', 'actif' => 'resultats.gestion', 'role' => 'moniteur'],
+            ['libelle' => 'Galerie', 'route' => 'galerie.index', 'actif' => 'galerie.*', 'role' => 'moniteur'],
         ]],
         ['titre' => 'Site public', 'liens' => [
             ['libelle' => 'Annonces', 'route' => 'annonces.index', 'actif' => 'annonces.*', 'role' => 'comite'],
