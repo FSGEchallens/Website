@@ -58,7 +58,6 @@ return [
     'attributes' => [
         'prenom' => 'prénom',
         'nom' => 'nom',
-        'surnom' => 'surnom',
         'rue' => 'rue',
         'numero' => 'n°',
         'localite' => 'localité',

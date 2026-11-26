@@ -38,9 +38,6 @@
                     <tr wire:key="membre-{{ $membre->id }}">
                         <td data-label="Nom">
                             <strong>{{ $membre->nom }}</strong> {{ $membre->prenom }}
-                            @if ($membre->surnom)
-                                <span class="discret">« {{ $membre->surnom }} »</span>
-                            @endif
                             @unless ($membre->estActif())
                                 <span class="badge">ancien membre</span>
                             @endunless

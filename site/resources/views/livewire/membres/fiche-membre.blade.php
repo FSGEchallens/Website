@@ -16,9 +16,7 @@
                     @error('civilite') <div class="erreur">{{ $message }}</div> @enderror
                 </div>
                 <x-champ nom="prenom" libelle="Prénom" requis autocomplete="off" />
-                <x-champ nom="nom" libelle="Nom" requis autocomplete="off" />
-                <x-champ nom="surnom" libelle="Surnom" aide="Facultatif, affiché à la place du prénom si renseigné." />
-            </div>
+                <x-champ nom="nom" libelle="Nom" requis autocomplete="off" />            </div>
         </section>
 
         <section class="carte">

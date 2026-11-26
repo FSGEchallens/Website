@@ -6,9 +6,7 @@
         <p class="discret">Ces informations sont gérées par le comité. Si quelque chose est faux, contactez-le.</p>
         <dl class="infos">
             <dt>Nom</dt>
-            <dd>{{ $membre->civilite?->libelle() }} {{ $membre->nomComplet() }}
-                @if ($membre->surnom) <span class="discret">« {{ $membre->surnom }} »</span> @endif
-            </dd>
+            <dd>{{ $membre->civilite?->libelle() }} {{ $membre->nomComplet() }}</dd>
 
             <dt>E-mail société</dt>
             <dd>{{ $membre->email }}</dd>

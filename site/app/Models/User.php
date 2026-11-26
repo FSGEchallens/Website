@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Password;
  * `avs` est chiffré dans la base avec la clé APP_KEY.
  */
 #[Fillable([
-    'civilite', 'prenom', 'nom', 'surnom',
+    'civilite', 'prenom', 'nom',
     'rue', 'numero', 'npa', 'localite', 'telephone', 'mobile', 'email_prive',
     'email', 'avs', 'date_naissance', 'date_entree', 'date_sortie',
     'afficher_photo', 'afficher_adresse', 'afficher_telephone', 'afficher_mobile',
@@ -193,7 +193,7 @@ class User extends Authenticatable
     }
 
     /**
-     * Recherche simple sur le prénom, le nom, le surnom, la localité et les e-mails.
+     * Recherche simple sur le prénom, le nom, la localité et les e-mails.
      *
      * @param  Builder<User>  $query
      */
@@ -206,7 +206,7 @@ class User extends Authenticatable
         }
 
         $query->where(function (Builder $q) use ($terme): void {
-            foreach (['prenom', 'nom', 'surnom', 'localite', 'email', 'email_prive'] as $colonne) {
+            foreach (['prenom', 'nom', 'localite', 'email', 'email_prive'] as $colonne) {
                 $q->orWhere($colonne, 'like', '%'.$terme.'%');
             }
         });

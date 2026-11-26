@@ -26,8 +26,6 @@ class FicheMembre extends Component
 
     public string $nom = '';
 
-    public string $surnom = '';
-
     public string $rue = '';
 
     public string $numero = '';
@@ -81,7 +79,6 @@ class FicheMembre extends Component
             'civilite' => $membre->civilite?->value ?? '',
             'prenom' => $membre->prenom,
             'nom' => $membre->nom,
-            'surnom' => (string) $membre->surnom,
             'rue' => (string) $membre->rue,
             'numero' => (string) $membre->numero,
             'npa' => (string) $membre->npa,
@@ -112,7 +109,6 @@ class FicheMembre extends Component
             'civilite' => ['nullable', Rule::enum(Civilite::class)],
             'prenom' => ['required', 'string', 'max:100'],
             'nom' => ['required', 'string', 'max:100'],
-            'surnom' => ['nullable', 'string', 'max:100'],
             ...ReglesMembre::coordonnees(),
             'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->membre?->id)],
             'avs' => ['nullable', 'string', new NumeroAvs],

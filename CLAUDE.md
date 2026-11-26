@@ -12,7 +12,7 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
 
 ### Fonctionnalités voulues
 - Comptes membres avec connexion **2FA**. D'abord par code e-mail ou application d'authentification ; le SMS (payant) en option plus tard.
-- Page profil avec surnom, et coordonnées privées jamais affichées publiquement.
+- Page profil, avec des coordonnées privées jamais affichées publiquement. Le surnom a été abandonné à la demande du webmaster.
 - **Rôles** : membre, moniteur principal, moniteur secondaire, comité, webmaster (admin). Les rôles sont attribués par le webmaster et le comité. Une personne peut avoir plusieurs rôles. Le rôle de moniteur est lié à un cours précis. L'affichage du site s'adapte au rôle.
 - **Cours** : saisons, groupes, horaires, salles, moniteurs. Le comité les gère sans passer par le webmaster.
 - **Inscriptions en ligne**, avec les statuts : nouvelle, à l'essai, inscrit, démission, annulé.
