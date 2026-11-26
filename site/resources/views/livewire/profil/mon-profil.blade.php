@@ -61,9 +61,7 @@
             </section>
 
             <section class="carte">
-                <h2>Ce que les visiteurs du site peuvent voir</h2>
-                <p class="discret">Par exemple sur la page des moniteurs : votre photo et votre nom y sont toujours affichés, votre adresse jamais.</p>
-                <div class="grille">
+                <h2>Ce que les visiteurs du site peuvent voir</h2>                <div class="grille">
                     <label class="case"><input type="checkbox" wire:model="afficher_mobile"> Afficher mon mobile</label>
                 </div>
             </section>

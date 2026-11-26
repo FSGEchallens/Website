@@ -78,9 +78,7 @@
             </section>
 
             <section class="carte">
-                <h2>Affichage sur le site</h2>
-                <p class="discret">Sur les pages publiques (par exemple celle des moniteurs), la photo et le nom sont toujours affichés. L'adresse ne l'est jamais.</p>
-                <div class="grille">
+                <h2>Affichage sur le site</h2>                <div class="grille">
                     <label class="case"><input type="checkbox" wire:model="afficher_mobile"> Afficher le mobile</label>
                 </div>
             </section>
