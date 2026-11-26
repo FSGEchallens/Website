@@ -59,6 +59,39 @@ document.addEventListener('click', (evenement) => {
 document.addEventListener('DOMContentLoaded', mettreAJourBoutonsMenuLateral);
 
 /*
+ * Met un numéro de mobile suisse au format « +41 79 123 45 67 » (même règle que App\Support\NumeroMobile).
+ * Laisse la saisie telle quelle si ce n'est pas un mobile suisse : le serveur affichera l'erreur.
+ */
+function formaterMobile(saisie) {
+    const chiffres = String(saisie).replace(/\(\s*0\s*\)/g, '').replace(/\D/g, '');
+    let national = chiffres;
+
+    if (chiffres.startsWith('0041')) {
+        national = chiffres.slice(4);
+    } else if (chiffres.startsWith('41') && chiffres.length === 11) {
+        national = chiffres.slice(2);
+    } else if (chiffres.startsWith('0')) {
+        national = chiffres.slice(1);
+    }
+
+    if (! /^7[4-9]\d{7}$/.test(national)) {
+        return saisie;
+    }
+
+    return `+41 ${national.slice(0, 2)} ${national.slice(2, 5)} ${national.slice(5, 7)} ${national.slice(7, 9)}`;
+}
+
+/** À appeler quand on quitte un champ mobile : corrige l'affichage et prévient Livewire. */
+function formaterChampMobile(champ) {
+    const formate = formaterMobile(champ.value);
+
+    if (formate !== champ.value) {
+        champ.value = formate;
+        champ.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+}
+
+/*
  * Vérifie un fichier AVANT son envoi (format et poids), pour afficher la raison précise d'un refus.
  * Renvoie un message d'erreur en français, ou une chaîne vide si le fichier convient.
  */

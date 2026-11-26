@@ -39,7 +39,7 @@ class UserFactory extends Factory
             'numero' => (string) fake()->numberBetween(1, 120),
             'npa' => (string) fake()->numberBetween(1000, 1999),
             'localite' => fake()->city(),
-            'mobile' => '07'.fake()->randomElement(['6', '7', '8', '9']).' '.fake()->numerify('### ## ##'),
+            'mobile' => '+41 7'.fake()->randomElement(['6', '7', '8', '9']).' '.fake()->numerify('### ## ##'),
             'email_prive' => fake()->unique()->safeEmail(),
             'email' => $identifiant.'.'.fake()->unique()->numberBetween(1, 99999).'@'.config('app.domaine_email'),
             'email_verified_at' => now(),

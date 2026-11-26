@@ -117,6 +117,7 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
     - Le n° AVS est chiffré dans la base.
     - L'autorisation est stockée dans la colonne `users.role` (membre, moniteur, comité, administrateur ; une seule par personne).
     - Champs obligatoires : titre, prénom, nom, mobile, e-mail privé, autorisation.
+    - Mobile : uniquement les mobiles suisses (074 à 079), toujours enregistrés au format `+41 79 123 45 67` (`App\Support\NumeroMobile`, règle `MobileSuisse`, mise en forme en quittant le champ par `formaterChampMobile`).
     - E-mail société : on ne saisit que la partie avant le @ ; le domaine (`config('app.domaine_email')`, par défaut gymechallens.ch) est ajouté automatiquement. Une ancienne adresse hors domaine est conservée tant qu'aucun identifiant n'est saisi.
     - Une fiche existante s'ouvre verrouillée : il faut cliquer sur « Modifier » pour l'éditer.
     - **Photo** : recadrée en carré, réduite à 600 × 600 et réencodée en JPEG (sans EXIF ni GPS). Elle est stockée dans `storage/app/private/photos-membres/FSG-Echallens_Nom_Prénom.jpg` et renommée si le nom change. Elle est servie publiquement par `/membres/{id}/photo`. La photo est **toujours** affichée (importée ou image par défaut) et l'adresse **jamais** ; seul le mobile a un choix d'affichage (`afficher_mobile`). Chaque membre peut changer sa propre photo dans « Mon profil ». Images par défaut : `public/images/avatars/{femme,homme}.png`.

@@ -2,6 +2,9 @@
 
 namespace App\Validation;
 
+use App\Rules\MobileSuisse;
+use App\Support\NumeroMobile;
+
 /**
  * Règles de saisie communes à la fiche membre (comité) et au profil (membre lui-même).
  */
@@ -10,18 +13,16 @@ class ReglesMembre
     /**
      * Coordonnées privées, modifiables par le membre lui-même.
      *
-     * @return array<string, array<int, string>>
+     * @return array<string, array<int, mixed>>
      */
     public static function coordonnees(): array
     {
-        $numeroDeMobile = ['string', 'max:20', 'regex:/^[0-9+ ().\/-]{6,20}$/'];
-
         return [
             'rue' => ['nullable', 'string', 'max:150'],
             'numero' => ['nullable', 'string', 'max:10'],
             'npa' => ['nullable', 'string', 'regex:/^[0-9]{4,5}$/'],
             'localite' => ['nullable', 'string', 'max:100'],
-            'mobile' => ['required', ...$numeroDeMobile],
+            'mobile' => ['required', 'string', 'max:25', new MobileSuisse],
             'email_prive' => ['required', 'email', 'max:255'],
         ];
     }
@@ -45,7 +46,6 @@ class ReglesMembre
     {
         return [
             'npa.regex' => 'Le code postal doit contenir 4 chiffres (5 pour l\'étranger).',
-            'mobile.regex' => 'Le numéro de mobile n\'est pas valide.',
         ];
     }
 
@@ -61,16 +61,23 @@ class ReglesMembre
     }
 
     /**
-     * Remplace les textes vides par NULL et retire les espaces superflus.
+     * Remplace les textes vides par NULL, retire les espaces superflus
+     * et met le mobile au format +41 79 123 45 67.
      *
      * @param  array<string, mixed>  $donnees
      * @return array<string, mixed>
      */
     public static function nettoyer(array $donnees): array
     {
-        return array_map(
+        $donnees = array_map(
             fn ($valeur) => is_string($valeur) ? (trim($valeur) === '' ? null : trim($valeur)) : $valeur,
             $donnees,
         );
+
+        if (array_key_exists('mobile', $donnees) && $donnees['mobile'] !== null) {
+            $donnees['mobile'] = NumeroMobile::normaliser($donnees['mobile']) ?? $donnees['mobile'];
+        }
+
+        return $donnees;
     }
 }

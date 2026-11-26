@@ -133,6 +133,30 @@ class ProfilTest extends TestCase
         $this->assertNull($membre->date_sortie);
     }
 
+    public function test_le_mobile_est_enregistre_au_format_41(): void
+    {
+        $membre = User::factory()->create();
+
+        Livewire::actingAs($membre)
+            ->test(MonProfil::class)
+            ->call('modifier')
+            ->set('mobile', '0761234567')
+            ->call('enregistrerCoordonnees')
+            ->assertHasNoErrors();
+
+        $this->assertSame('+41 76 123 45 67', $membre->fresh()->mobile);
+
+        Livewire::actingAs($membre->fresh())
+            ->test(MonProfil::class)
+            ->call('modifier')
+            ->set('mobile', '021 881 25 62')
+            ->call('enregistrerCoordonnees')
+            ->assertHasErrors('mobile')
+            ->assertSee('mobile suisse');
+
+        $this->assertSame('+41 76 123 45 67', $membre->fresh()->mobile);
+    }
+
     public function test_validation_des_coordonnees(): void
     {
         Livewire::actingAs(User::factory()->create())
