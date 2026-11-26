@@ -85,6 +85,7 @@ class ContactTest extends TestCase
         $mail->assertSeeInText("Julie L'Exemple");
         $mail->assertSeeInText("C'est <b>moi</b>");
         $mail->assertSeeInText('(sans sujet)');
+        $mail->assertSeeInText('formulaire de contact du site www.gymechallens.ch');
     }
 
     public function test_la_reponse_en_lettres_est_acceptee(): void

@@ -7,6 +7,9 @@
 
 return [
 
+    // Adresse publique du site, affichée dans les textes (ex. e-mails du formulaire de contact).
+    'adresse_publique' => 'www.gymechallens.ch',
+
     'facebook' => 'https://www.facebook.com/fsgechallens',
 
     'inscription' => 'https://gymechallens.ch/inscription/',

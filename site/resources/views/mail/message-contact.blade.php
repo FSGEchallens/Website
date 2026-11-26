@@ -1,5 +1,5 @@
 {{-- E-mail en TEXTE BRUT (aucun HTML) : affichage sans échappement, pour garder les apostrophes et accents lisibles. --}}
-Nouveau message envoyé depuis le formulaire de contact du site {!! config('app.url') !!}
+Nouveau message envoyé depuis le formulaire de contact du site {!! config('site.adresse_publique') !!}
 
 De : {!! $donnees['prenom'] !!} {!! $donnees['nom'] !!} <{!! $donnees['email'] !!}>
 Sujet : {!! $donnees['sujet'] ?: '(sans sujet)' !!}
