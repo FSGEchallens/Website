@@ -110,7 +110,8 @@ class ComiteTest extends TestCase
         $this->actingAs($this->comite())
             ->get(route('membres.index'))
             ->assertSee('★ Comité')
-            ->assertSee('data-infobulle="Présidente · presidente@gymechallens.ch · position 1 sur la page du comité"', false);
+            ->assertSee('data-infobulle="Présidente · presidente@gymechallens.ch"', false)
+            ->assertDontSee('sur la page du comité"', false);
     }
 
     public function test_un_moniteur_ne_peut_pas_changer_l_ordre(): void

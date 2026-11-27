@@ -59,6 +59,72 @@ document.addEventListener('click', (evenement) => {
 document.addEventListener('DOMContentLoaded', mettreAJourBoutonsMenuLateral);
 
 /*
+ * Infobulles : tout élément avec l'attribut data-infobulle affiche son texte au survol (ou au focus clavier).
+ * La bulle est posée au-dessus de toute la page (position fixe) : elle n'est jamais coupée par un tableau.
+ */
+(() => {
+    let bulle = null;
+    let cibleActuelle = null;
+
+    function creerBulle() {
+        bulle = document.createElement('div');
+        bulle.className = 'infobulle-flottante';
+        bulle.setAttribute('role', 'tooltip');
+        document.body.appendChild(bulle);
+    }
+
+    function montrer(cible) {
+        if (! bulle) {
+            creerBulle();
+        }
+
+        cibleActuelle = cible;
+        bulle.textContent = cible.dataset.infobulle;
+        bulle.classList.add('visible');
+
+        const zone = cible.getBoundingClientRect();
+        const marge = 8;
+        let haut = zone.top - bulle.offsetHeight - marge;
+
+        // Pas assez de place au-dessus : on l'affiche en dessous.
+        if (haut < marge) {
+            haut = zone.bottom + marge;
+        }
+
+        const gauche = Math.min(
+            window.innerWidth - bulle.offsetWidth - marge,
+            Math.max(marge, zone.left + zone.width / 2 - bulle.offsetWidth / 2),
+        );
+
+        bulle.style.top = `${haut}px`;
+        bulle.style.left = `${gauche}px`;
+    }
+
+    function cacher() {
+        cibleActuelle = null;
+        bulle?.classList.remove('visible');
+    }
+
+    document.addEventListener('mouseover', (evenement) => {
+        const cible = evenement.target.closest?.('[data-infobulle]');
+
+        if (cible && cible !== cibleActuelle) {
+            montrer(cible);
+        } else if (! cible && cibleActuelle) {
+            cacher();
+        }
+    });
+
+    document.addEventListener('focusin', (evenement) => {
+        const cible = evenement.target.closest?.('[data-infobulle]');
+        cible ? montrer(cible) : cacher();
+    });
+
+    document.addEventListener('focusout', cacher);
+    window.addEventListener('scroll', cacher, true);
+})();
+
+/*
  * Met un numéro de mobile suisse au format « +41 79 123 45 67 » (même règle que App\Support\NumeroMobile).
  * Laisse la saisie telle quelle si ce n'est pas un mobile suisse : le serveur affichera l'erreur.
  */
