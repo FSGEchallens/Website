@@ -1,0 +1,5 @@
+# Fichiers de données personnelles : jamais dans Git (dépôt public).
+*.xlsx
+*.xls
+*.csv
+*.ods

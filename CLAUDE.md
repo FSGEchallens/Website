@@ -180,6 +180,10 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
     - Chaque zone d'import vérifie le format et le poids dans le navigateur avant l'envoi (`controleFichiers` dans `app.js`) et affiche la raison d'un refus en rouge.
     - Limite d'envoi Livewire : 20 Mo (`config/livewire.php`). Le message « failed to upload » est traduit (`validation.uploaded`).
     - Avatar : recadrage dans un rond (déplacer, zoomer) avant l'envoi (`recadrageAvatar`). Il envoie une image de 600 × 600 px via `$wire.upload('photo', …)`.
+  - **Compléter les fiches depuis une liste du personnel** : commande `membres:completer` (fichier Excel .xlsx ou CSV, lu sans bibliothèque par `App\Support\LecteurTableur`). Colonnes : Titre, Prénom, Nom, Rue, N°, Code postal, Localité, Mobile, E-Mail (privé).
+    - Le fichier est déposé sur le serveur dans `site/storage/app/private/import/personnel.xlsx`, puis **supprimé après l'import** (sauf `--garder`).
+    - Seuls les membres existants sont complétés (retrouvés par prénom et nom) : personne n'est ajouté, et les absents sont listés. Un champ déjà rempli n'est pas écrasé (sauf `--remplacer`). Le journal enregistre les modifications.
+    - `.gitignore` (racine) exclut `*.xlsx`, `*.xls`, `*.csv` et `*.ods` : ces listes ne vont jamais dans Git.
   - **Commandes** utilisables depuis les tâches planifiées de Plesk :
     - `mail:test adresse` : envoie un e-mail de test ;
     - `membre:admin email Prénom Nom` : crée un administrateur et lui envoie une invitation.
