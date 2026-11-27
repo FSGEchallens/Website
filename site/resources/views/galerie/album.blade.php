@@ -21,6 +21,10 @@
             @if ($peutGerer)
                 <a href="{{ route('galerie.gestion', $album) }}" class="bouton bouton--secondaire">✎ Gérer l'album</a>
             @endif
+            @if ($photos->isNotEmpty())
+                {{-- Lance la visionneuse (plus bas dans la page) en mode diaporama. --}}
+                <button type="button" class="bouton" x-data x-on:click="$dispatch('lancer-diaporama')">▶ Diaporama</button>
+            @endif
             <a href="{{ route('galerie.index') }}" class="bouton bouton--secondaire">← Tous les albums</a>
         </div>
     </div>
@@ -29,7 +33,7 @@
         <p>{{ $album->description }}</p>
     @endif
 
-    <div x-data="visionneuse(@js($listePhotos))" x-on:keydown.window="clavier($event)">
+    <div x-data="visionneuse(@js($listePhotos))" x-on:keydown.window="clavier($event)" x-on:lancer-diaporama.window="ouvrir(0, true)">
         <div class="grille-photos">
             @forelse ($photos as $index => $photo)
                 <button type="button" class="grille-photos__vignette" x-on:click="ouvrir({{ $index }})" aria-label="Agrandir la photo {{ $index + 1 }}">
@@ -39,10 +43,6 @@
                 <p class="discret">Cet album ne contient pas encore de photo.</p>
             @endforelse
         </div>
-
-        @if ($photos->isNotEmpty())
-            <button type="button" class="bouton" x-on:click="ouvrir(0, true)">▶ Diaporama</button>
-        @endif
 
         {{-- Visionneuse --}}
         <div class="visionneuse" x-ref="visionneuse" x-show="ouverte" x-cloak role="dialog" aria-modal="true" aria-label="Visionneuse de photos"
