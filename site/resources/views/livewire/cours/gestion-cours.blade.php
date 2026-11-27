@@ -177,9 +177,7 @@
 
                         <div class="bloc">
                             <label class="libelle-bloc">Informations du tarif</label>
-                            <x-editeur-texte nom="donnees.infos_tarif" :contenu="$donnees['infos_tarif'] ?? ''" />
-                            <div class="aide">Cours d’essai, durée, assurance… (une liste à puces convient bien).</div>
-                        </div>
+                            <x-editeur-texte nom="donnees.infos_tarif" :contenu="$donnees['infos_tarif'] ?? ''" />                        </div>
 
                         <label class="case"><input type="checkbox" wire:model="donnees.visible"> Afficher ce groupe sur le site</label>
                     @else
