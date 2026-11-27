@@ -19,7 +19,6 @@ return [
             ['libelle' => 'Historique', 'route' => 'societe.historique'],
             ['libelle' => 'Le comité', 'route' => 'societe.comite'],
             ['libelle' => 'Statuts', 'route' => 'societe.statuts'],
-            ['libelle' => 'PVs assemblées générales', 'url' => $ancienSite.'/pvs-assemblees-generales/'],
             ['libelle' => 'Résultats', 'route' => 'resultats.index'],
         ]],
         ['libelle' => 'Les groupes', 'large' => true, 'sous_menu' => [

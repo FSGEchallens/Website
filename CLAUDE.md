@@ -97,7 +97,7 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
       - Le comité et l'administrateur peuvent changer l'ordre avec ↑ ↓ (composant `Site\OrdreComite`).
       - Le mobile ne s'affiche que si `afficher_mobile` est coché.
     - Statuts : `/la-societe/statuts` affiche le PDF dans la page, avec un bouton « Télécharger ». Le PDF est stocké dans `storage/app/private/documents/statuts.pdf` (jamais dans Git) et servi par `/la-societe/statuts/FSG-Echallens-Statuts.pdf`. Le comité le remplace sur la page (composant `Site\DocumentStatuts`, PDF de 10 Mo au maximum). L'ancienne version est archivée au journal (bloc `societe.statuts`).
-    - L'Agenda (vide) a été retiré du menu.
+    - L'Agenda (vide) et les PVs des assemblées générales ont été retirés du menu.
   - **Contact** (`/contact`) : la zone « Informations » est un bloc `contact.informations` modifiable par le comité (titre fixe).
     - Le formulaire Livewire `Site\FormulaireContact` envoie à `CONTACT_EMAIL` (par défaut contact@gymechallens.ch), avec Reply-To vers l'expéditeur.
     - Tous les champs sont obligatoires, sujet compris.
