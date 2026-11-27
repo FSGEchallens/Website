@@ -205,52 +205,42 @@
                             <div class="aide">Laissez le jour et les heures vides si le cours a plusieurs sessions par semaine.</div>
                         @endif
 
-                        <fieldset class="groupe">
-                            <legend>Salles</legend>
-                            @if (($donnees['salles'] ?? []) === [])
-                                <p class="discret">
-                                    @if ($type === 'session' && $parent && $parent->idsSalles() !== [])
-                                        Aucune : ce sont celles du cours ({{ $nomsSalles($parent->idsSalles()) }}).
-                                    @else
-                                        Aucune salle choisie.
-                                    @endif
-                                </p>
-                            @else
-                                <ul class="liste-moniteurs">
-                                    @foreach ($donnees['salles'] as $index => $id)
-                                        <li wire:key="salle-choisie-{{ $id }}">
-                                            {{ $sallesParId->get($id)?->libelleComplet() ?? 'Salle introuvable' }}
-                                            <button type="button" class="lien lien--danger" wire:click="retirerSalle({{ $index }})">retirer</button>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            @endif
-                            <div class="ajout-moniteur">
-                                <select wire:model="salleAAjouter" aria-label="Salle à ajouter">
-                                    @php
-                                        $choisies = $donnees['salles'] ?? [];
-                                        // Une fois une salle choisie, seules les autres salles du même bâtiment sont proposées.
-                                        $batimentChoisi = $choisies !== [] ? $sallesParId->get($choisies[0])?->batiment_id : null;
-                                        $proposees = $salles->reject(fn ($s) => in_array($s->id, $choisies, true) || ($batimentChoisi !== null && $s->batiment_id !== $batimentChoisi));
-                                    @endphp
-                                    <option value="">{{ $batimentChoisi ? '— Ajouter une autre salle du bâtiment —' : '— Ajouter une salle —' }}</option>
-                                    @foreach ($proposees->groupBy(fn ($s) => $s->batiment?->nom ?? 'Sans bâtiment') as $nomBatiment => $sallesDuBatiment)
-                                        <optgroup label="{{ $nomBatiment }}">
+                        @php
+                            $choisies = array_map('intval', $donnees['salles'] ?? []);
+                            $resume = $choisies !== [] ? $nomsSalles($choisies) : null;
+                            $heritees = $type === 'session' && $parent && $parent->idsSalles() !== [] ? $nomsSalles($parent->idsSalles()) : null;
+                        @endphp
+                        <div @class(['champ', 'champ--erreur' => $errors->has('donnees.salles') || $errors->has('donnees.salles.*')])>
+                            <label id="libelle-salles">Salles</label>
+                            <div class="choix-multiple" x-data="{ ouvert: false }" x-on:click.outside="ouvert = false" x-on:keydown.escape.stop="ouvert = false">
+                                <button type="button" class="choix-multiple__bouton" x-on:click="ouvert = ! ouvert" :aria-expanded="ouvert"
+                                        aria-haspopup="true" aria-labelledby="libelle-salles">
+                                    <span>{{ $resume ?? ($heritees ? 'Comme le cours : '.$heritees : '— Choisir —') }}</span>
+                                    <span aria-hidden="true">▾</span>
+                                </button>
+                                <div class="choix-multiple__liste" x-show="ouvert" x-cloak>
+                                    @forelse ($salles->groupBy(fn ($s) => $s->batiment?->nom ?? 'Sans bâtiment') as $nomBatiment => $sallesDuBatiment)
+                                        <div class="choix-multiple__groupe" role="group" aria-label="{{ $nomBatiment }}">
+                                            <div class="choix-multiple__titre">{{ $nomBatiment }}</div>
                                             @foreach ($sallesDuBatiment as $salle)
-                                                <option value="{{ $salle->id }}">{{ $salle->nom }}</option>
+                                                <label class="case" wire:key="choix-salle-{{ $salle->id }}">
+                                                    <input type="checkbox" value="{{ $salle->id }}" wire:model.live="donnees.salles"> {{ $salle->nom }}
+                                                </label>
                                             @endforeach
-                                        </optgroup>
-                                    @endforeach
-                                </select>
-                                <button type="button" class="bouton bouton--secondaire bouton--petit" wire:click="ajouterSalle">Ajouter</button>
+                                        </div>
+                                    @empty
+                                        <p class="discret">Aucune salle : ajoutez-en dans « Bâtiments et salles ».</p>
+                                    @endforelse
+                                </div>
                             </div>
                             <div class="aide">
-                                Plusieurs salles possibles si elles sont dans le même bâtiment (ex. Court-Champ : Salle 3 + Salle 4 pour la salle double entière).
+                                Plusieurs salles possibles si elles sont dans le même bâtiment (ex. Court-Champ 3-4 : Salle 3 + Salle 4 pour la salle double entière).
+                                @if ($type === 'session') Sans salle cochée, ce sont celles du cours. @endif
                                 Une salle manque ? Ajoutez-la dans <a href="{{ route('salles.gestion') }}" target="_blank">Bâtiments et salles</a>, puis rouvrez cette fenêtre.
                             </div>
-                            @error('donnees.salles') <div class="erreur">{{ $message }}</div> @enderror
-                            @error('donnees.salles.*') <div class="erreur">{{ $message }}</div> @enderror
-                        </fieldset>
+                            @error('donnees.salles') <div class="erreur" role="alert">{{ $message }}</div> @enderror
+                            @error('donnees.salles.*') <div class="erreur" role="alert">{{ $message }}</div> @enderror
+                        </div>
 
                         <fieldset class="groupe">
                             <legend>Moniteurs</legend>

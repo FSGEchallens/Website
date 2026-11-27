@@ -618,3 +618,11 @@ tr:hover td { background: #fbfdf8; }
 @media (max-width: 40rem) {
     .salle { grid-template-areas: "photo" "texte" "salles"; }
 }
+/* Liste déroulante à cases à cocher (salles d'un cours) */
+.choix-multiple { position: relative; }
+.choix-multiple__bouton { display: flex; justify-content: space-between; align-items: center; gap: .5rem; width: 100%; padding: .5rem .6rem; font: inherit; text-align: left; background: #fff; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+.champ--erreur .choix-multiple__bouton { border-color: var(--rouge); }
+.choix-multiple__liste { position: absolute; z-index: 10; left: 0; right: 0; top: calc(100% + 2px); max-height: 16rem; overflow-y: auto; background: #fff; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 4px 12px rgba(0, 0, 0, .15); padding: .4rem .6rem; }
+.choix-multiple__groupe + .choix-multiple__groupe { border-top: 1px solid var(--gris-clair); margin-top: .3rem; padding-top: .3rem; }
+.choix-multiple__titre { font-weight: 600; font-size: .85rem; color: var(--vert-fonce); margin-bottom: .15rem; }
+.choix-multiple .case { padding: .15rem 0 .15rem .5rem; }

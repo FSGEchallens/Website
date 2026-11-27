@@ -128,15 +128,19 @@ class GestionCoursTest extends TestCase
             ->test(GestionCours::class)
             ->call('nouveauCours', $groupe->id)
             ->assertSee('Simplemembre Zoé')
-            ->assertSee('<optgroup label="Echallens, Court-Champ">', false)
+            // Liste déroulante à cases à cocher, groupées par bâtiment.
+            ->assertSee('<div class="choix-multiple__titre">Echallens, Court-Champ</div>', false)
+            ->assertSee('<div class="choix-multiple__titre">Poliez-le-Grand</div>', false)
             ->set('moniteurAAjouter', $membre->id)->call('ajouterMoniteur')
-            ->set('salleAAjouter', $salle->id)->call('ajouterSalle')
-            // Une fois une salle choisie, les autres bâtiments ne sont plus proposés…
-            ->assertDontSee('<optgroup label="Poliez-le-Grand">', false)
-            // … et sont refusés.
-            ->set('salleAAjouter', $ailleurs->id)->call('ajouterSalle')
+            // Des salles de deux bâtiments : refus immédiat…
+            ->set('donnees.salles', [(string) $salle->id, (string) $ailleurs->id])
             ->assertHasErrors('donnees.salles')
-            ->set('salleAAjouter', $salle4->id)->call('ajouterSalle')
+            ->assertSee('Les salles d’un cours doivent être dans le même bâtiment.')
+            ->call('enregistrer')
+            ->assertHasErrors('donnees.salles')
+            // … deux salles du même bâtiment : accepté.
+            ->set('donnees.salles', [(string) $salle->id, (string) $salle4->id])
+            ->assertHasNoErrors()
             ->call('enregistrer')
             ->assertHasNoErrors();
 

@@ -41,8 +41,6 @@ class GestionCours extends Component
 
     public ?int $moniteurAAjouter = null;
 
-    public ?int $salleAAjouter = null;
-
     public ?string $confirmation = null;
 
     public function mount(): void
@@ -115,7 +113,7 @@ class GestionCours extends Component
 
     public function fermer(): void
     {
-        $this->reset('type', 'editionId', 'parentId', 'donnees', 'moniteurAAjouter', 'salleAAjouter');
+        $this->reset('type', 'editionId', 'parentId', 'donnees', 'moniteurAAjouter');
         $this->resetValidation();
     }
 
@@ -132,34 +130,18 @@ class GestionCours extends Component
         $this->moniteurAAjouter = null;
     }
 
-    public function ajouterSalle(): void
+    /**
+     * Cases à cocher des salles : contrôle immédiat (salles d'un seul bâtiment), le refus s'affiche tout de suite.
+     */
+    public function updatedDonnees(mixed $valeur, string $cle): void
     {
-        $id = (int) $this->salleAAjouter;
-        $salles = $this->donnees['salles'] ?? [];
-
-        $salle = $id > 0 ? Salle::find($id) : null;
-        $this->resetValidation('donnees.salles');
-
-        if ($salle !== null && ! in_array($id, $salles, true)) {
-            // Plusieurs salles seulement dans un même bâtiment.
-            if ($salles !== [] && Salle::whereKey($salles)->where('batiment_id', '!=', $salle->batiment_id)->exists()) {
-                $this->addError('donnees.salles', 'Les salles d’un cours doivent être dans le même bâtiment.');
-
-                return;
-            }
-
-            $salles[] = $id;
+        if ($cle !== 'salles' && ! str_starts_with($cle, 'salles.')) {
+            return;
         }
 
-        $this->donnees['salles'] = array_values($salles);
-        $this->salleAAjouter = null;
-    }
-
-    public function retirerSalle(int $index): void
-    {
-        $salles = $this->donnees['salles'] ?? [];
-        unset($salles[$index]);
-        $this->donnees['salles'] = array_values($salles);
+        $this->donnees['salles'] = array_values(array_unique(array_map('intval', array_filter((array) ($this->donnees['salles'] ?? []), fn ($id) => $id !== '' && $id !== null))));
+        $this->resetValidation(['donnees.salles', 'donnees.salles.*']);
+        $this->validateOnly('donnees.salles', $this->reglesHoraire(obligatoire: false));
     }
 
     public function retirerMoniteur(int $index): void
