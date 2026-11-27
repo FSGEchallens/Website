@@ -148,8 +148,6 @@
                                 </datalist>
                             </div>
                         </div>
-                        <x-champ nom="donnees.slug" libelle="Adresse de la page"
-                                 aide="Fin de l’adresse de la page (ex. agres-kids-plaisir). Laissée vide, elle est créée à partir du nom." />
 
                         <div class="bloc">
                             <label class="libelle-bloc">Description</label>

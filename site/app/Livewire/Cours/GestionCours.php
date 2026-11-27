@@ -12,8 +12,6 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -54,7 +52,7 @@ class GestionCours extends Component
     public function nouveauGroupe(): void
     {
         $this->ouvrir('groupe', 0, null, [
-            'nom' => '', 'slug' => '', 'categorie' => '', 'description' => '', 'age' => '', 'prerequis' => '',
+            'nom' => '', 'categorie' => '', 'description' => '', 'age' => '', 'prerequis' => '',
             'concours' => '', 'prix' => '', 'infos_tarif' => '', 'visible' => true,
         ]);
     }
@@ -64,7 +62,7 @@ class GestionCours extends Component
         $groupe = Groupe::findOrFail($id);
 
         $this->ouvrir('groupe', $groupe->id, null, [
-            'nom' => $groupe->nom, 'slug' => $groupe->slug, 'categorie' => (string) $groupe->categorie,
+            'nom' => $groupe->nom, 'categorie' => (string) $groupe->categorie,
             'description' => (string) $groupe->description, 'age' => (string) $groupe->age,
             'prerequis' => (string) $groupe->prerequis, 'concours' => (string) $groupe->concours,
             'prix' => $groupe->prix === null ? '' : (string) (float) $groupe->prix,
@@ -274,7 +272,7 @@ class GestionCours extends Component
     protected function validationAttributes(): array
     {
         return [
-            'donnees.nom' => 'nom', 'donnees.slug' => 'adresse de la page', 'donnees.categorie' => 'catégorie',
+            'donnees.nom' => 'nom', 'donnees.categorie' => 'catégorie',
             'donnees.age' => 'âge', 'donnees.prerequis' => 'prérequis', 'donnees.concours' => 'concours',
             'donnees.prix' => 'prix', 'donnees.infos_tarif' => 'informations du tarif', 'donnees.jour' => 'jour',
             'donnees.heure_debut' => 'heure de début', 'donnees.heure_fin' => 'heure de fin', 'donnees.salles' => 'salles', 'donnees.salles.*' => 'salle',
@@ -284,11 +282,8 @@ class GestionCours extends Component
 
     private function enregistrerGroupe(): void
     {
-        $this->donnees['slug'] = Str::slug(trim((string) ($this->donnees['slug'] ?? '')) ?: (string) ($this->donnees['nom'] ?? ''));
-
         $this->validate([
             'donnees.nom' => ['required', 'string', 'max:150'],
-            'donnees.slug' => ['required', 'string', 'max:160', Rule::unique('groupes', 'slug')->ignore($this->editionId ?: null)],
             'donnees.categorie' => ['nullable', 'string', 'max:100'],
             'donnees.description' => ['nullable', 'string', 'max:50000'],
             'donnees.age' => ['nullable', 'string', 'max:150'],
@@ -305,7 +300,6 @@ class GestionCours extends Component
 
         $groupe->fill([
             'nom' => trim($d['nom']),
-            'slug' => $d['slug'],
             'categorie' => $this->texteOuNull($d['categorie'] ?? null),
             'description' => NettoyeurHtml::estVide($description) ? null : NettoyeurHtml::nettoyer($description),
             'age' => $this->texteOuNull($d['age'] ?? null),
@@ -317,6 +311,8 @@ class GestionCours extends Component
         ]);
 
         if (! $groupe->exists) {
+            // Adresse de la page créée à partir du nom, puis gardée telle quelle (les liens ne cassent pas si le nom change).
+            $groupe->slug = Groupe::slugLibre($groupe->nom);
             $groupe->forceFill(['ordre' => (int) Groupe::max('ordre') + 1]);
         }
 

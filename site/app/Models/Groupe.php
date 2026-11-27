@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 /**
  * Groupe de gym (ex. « Enfantine », « Agrès kids concours ») : page publique, âge, tarif…
@@ -46,6 +47,21 @@ class Groupe extends Model
     public function scopeDansLOrdre(Builder $query): void
     {
         $query->orderBy('ordre')->orderBy('id');
+    }
+
+    /**
+     * Adresse de page libre tirée du nom (ex. « agres-kids-plaisir », sinon « agres-kids-plaisir-2 »…).
+     */
+    public static function slugLibre(string $nom): string
+    {
+        $base = Str::slug($nom) ?: 'groupe';
+        $slug = $base;
+
+        for ($numero = 2; static::where('slug', $slug)->exists(); $numero++) {
+            $slug = $base.'-'.$numero;
+        }
+
+        return $slug;
     }
 
     public function libelleJournal(): string

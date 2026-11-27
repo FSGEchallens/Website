@@ -66,6 +66,19 @@ class GestionCoursTest extends TestCase
 
         $groupe = Groupe::firstOrFail();
         $this->assertSame('gym-danse-plaisir', $groupe->slug);
+
+        // L'adresse n'est pas affichée, et reste la même si le nom change ; un 2e groupe du même nom en reçoit une autre.
+        $composant->call('modifierGroupe', $groupe->id)
+            ->assertDontSee('Adresse de la page')
+            ->set('donnees.nom', 'Gym-danse plaisir (6-7 ans)')
+            ->call('enregistrer')
+            ->assertHasNoErrors()
+            ->call('nouveauGroupe')
+            ->set('donnees.nom', 'Gym-danse plaisir')
+            ->call('enregistrer')
+            ->assertHasNoErrors();
+        $this->assertSame('gym-danse-plaisir', $groupe->fresh()->slug);
+        $this->assertSame('gym-danse-plaisir-2', Groupe::latest('id')->first()->slug);
         $this->assertStringNotContainsString('script', (string) $groupe->description);
         $this->assertSame('220.00', $groupe->prix);
 
