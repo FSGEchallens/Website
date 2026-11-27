@@ -234,6 +234,21 @@
                             @if ($type === 'session')
                                 <div class="aide">Sans salle cochée, ce sont celles du cours.</div>
                             @endif
+                            @if ($sallesRefusees !== [])
+                                <div class="fenetre fenetre--alerte" role="alertdialog" aria-modal="true" aria-labelledby="titre-refus-salles"
+                                     x-data x-init="$nextTick(() => $refs.ok.focus())" x-on:keydown.escape.stop="$wire.confirmerRefusSalles()">
+                                    <div class="fenetre__boite">
+                                        <h3 id="titre-refus-salles">Salle d’un autre bâtiment</h3>
+                                        <p>
+                                            Les salles d’un cours doivent être dans le même bâtiment.
+                                            « {{ \App\Models\Salle::libellePour($sallesRefusees, $salles) }} » va être décochée.
+                                        </p>
+                                        <div class="actions actions--fenetre">
+                                            <button type="button" class="bouton" x-ref="ok" wire:click="confirmerRefusSalles">OK</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
                             @error('donnees.salles') <div class="erreur" role="alert">{{ $message }}</div> @enderror
                             @error('donnees.salles.*') <div class="erreur" role="alert">{{ $message }}</div> @enderror
                         </div>

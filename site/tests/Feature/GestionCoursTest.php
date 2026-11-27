@@ -132,12 +132,18 @@ class GestionCoursTest extends TestCase
             ->assertSee('<div class="choix-multiple__titre">Echallens, Court-Champ</div>', false)
             ->assertSee('<div class="choix-multiple__titre">Poliez-le-Grand</div>', false)
             ->set('moniteurAAjouter', $membre->id)->call('ajouterMoniteur')
-            // Des salles de deux bâtiments : refus immédiat…
+            ->set('donnees.salles', [(string) $salle->id])
+            // Une salle d'un autre bâtiment cochée en plus : fenêtre « OK »…
             ->set('donnees.salles', [(string) $salle->id, (string) $ailleurs->id])
-            ->assertHasErrors('donnees.salles')
+            ->assertSet('sallesRefusees', [$ailleurs->id])
             ->assertSee('Les salles d’un cours doivent être dans le même bâtiment.')
+            // … l'enregistrement est refusé tant qu'elle est cochée…
             ->call('enregistrer')
             ->assertHasErrors('donnees.salles')
+            // … et OK la décoche.
+            ->call('confirmerRefusSalles')
+            ->assertSet('sallesRefusees', [])
+            ->assertSet('donnees.salles', [$salle->id])
             // … deux salles du même bâtiment : accepté.
             ->set('donnees.salles', [(string) $salle->id, (string) $salle4->id])
             ->assertHasNoErrors()

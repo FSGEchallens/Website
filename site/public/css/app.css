@@ -628,3 +628,7 @@ tr:hover td { background: #fbfdf8; }
 .champ .choix-multiple label.case { display: flex; align-items: center; gap: .5rem; margin: 0; padding: .3rem .5rem; font-weight: normal; font-size: 1rem; cursor: pointer; border-radius: 4px; }
 .champ .choix-multiple label.case:hover { background: #f6f9f2; }
 .champ .choix-multiple input[type="checkbox"] { width: auto; flex: 0 0 auto; margin: 0; padding: 0; }
+/* Fenêtre « OK » par-dessus une autre fenêtre (ex. salle d'un autre bâtiment) */
+.fenetre--alerte { z-index: 200; background: rgba(0, 0, 0, .35); }
+.fenetre--alerte .fenetre__boite { max-width: 24rem; border-top: 4px solid var(--rouge); }
+.fenetre--alerte h3 { color: var(--rouge); }

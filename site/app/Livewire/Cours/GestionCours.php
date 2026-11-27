@@ -113,7 +113,7 @@ class GestionCours extends Component
 
     public function fermer(): void
     {
-        $this->reset('type', 'editionId', 'parentId', 'donnees', 'moniteurAAjouter');
+        $this->reset('type', 'editionId', 'parentId', 'donnees', 'moniteurAAjouter', 'sallesRefusees');
         $this->resetValidation();
     }
 
@@ -131,7 +131,26 @@ class GestionCours extends Component
     }
 
     /**
-     * Cases à cocher des salles : contrôle immédiat (salles d'un seul bâtiment), le refus s'affiche tout de suite.
+     * Salle(s) cochée(s) en dernier, refusée(s) car d'un autre bâtiment : une fenêtre « OK » s'affiche,
+     * et OK les décoche.
+     *
+     * @var array<int, int>
+     */
+    #[Locked]
+    public array $sallesRefusees = [];
+
+    /** Salles cochées avant le dernier clic (le temps de la requête). @var array<int, int> */
+    private array $sallesAvant = [];
+
+    public function updatingDonnees(mixed $valeur, string $cle): void
+    {
+        if ($cle === 'salles' || str_starts_with($cle, 'salles.')) {
+            $this->sallesAvant = array_map('intval', (array) ($this->donnees['salles'] ?? []));
+        }
+    }
+
+    /**
+     * Cases à cocher des salles : contrôle immédiat, les salles doivent être dans un seul bâtiment.
      */
     public function updatedDonnees(mixed $valeur, string $cle): void
     {
@@ -139,9 +158,22 @@ class GestionCours extends Component
             return;
         }
 
-        $this->donnees['salles'] = array_values(array_unique(array_map('intval', array_filter((array) ($this->donnees['salles'] ?? []), fn ($id) => $id !== '' && $id !== null))));
+        $salles = array_values(array_unique(array_map('intval', array_filter((array) ($this->donnees['salles'] ?? []), fn ($id) => $id !== '' && $id !== null))));
+        $this->donnees['salles'] = $salles;
         $this->resetValidation(['donnees.salles', 'donnees.salles.*']);
-        $this->validateOnly('donnees.salles', $this->reglesHoraire(obligatoire: false));
+
+        if (Salle::whereKey($salles)->distinct()->count('batiment_id') > 1) {
+            $this->sallesRefusees = array_values(array_diff($salles, $this->sallesAvant)) ?: [end($salles)];
+        }
+    }
+
+    /**
+     * « OK » dans la fenêtre de refus : décoche la ou les salles cochées en dernier.
+     */
+    public function confirmerRefusSalles(): void
+    {
+        $this->donnees['salles'] = array_values(array_diff(array_map('intval', $this->donnees['salles'] ?? []), $this->sallesRefusees));
+        $this->sallesRefusees = [];
     }
 
     public function retirerMoniteur(int $index): void
