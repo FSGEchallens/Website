@@ -102,6 +102,17 @@ class ComiteTest extends TestCase
         $this->assertSame([$b->id, $a->id], User::duComite()->pluck('id')->all());
     }
 
+    public function test_badge_comite_avec_infobulle_dans_la_liste_des_membres(): void
+    {
+        User::factory()->create(['nom' => 'Rochat', 'comite_membre' => true, 'comite_fonction' => 'Présidente', 'comite_email' => 'presidente@gymechallens.ch', 'comite_ordre' => 1]);
+        User::factory()->create(['nom' => 'Dupont', 'comite_membre' => false]);
+
+        $this->actingAs($this->comite())
+            ->get(route('membres.index'))
+            ->assertSee('★ Comité')
+            ->assertSee('data-infobulle="Présidente · presidente@gymechallens.ch · position 1 sur la page du comité"', false);
+    }
+
     public function test_un_moniteur_ne_peut_pas_changer_l_ordre(): void
     {
         $this->actingAs(User::factory()->avecRole(Role::Moniteur)->create())

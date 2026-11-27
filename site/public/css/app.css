@@ -355,6 +355,21 @@ altcha-widget {
 .comite-carte a { word-break: break-word; }
 .comite-carte__ordre { display: flex; justify-content: center; gap: .4rem; margin-top: .75rem; }
 
+/* Badge « ★ Comité » dans la liste des membres, avec infobulle */
+.badge--comite-page { background: var(--vert-fonce); color: #fff; cursor: help; }
+.infobulle { position: relative; }
+.infobulle::after {
+    content: attr(data-infobulle); position: absolute; left: 50%; bottom: calc(100% + .45rem); transform: translateX(-50%);
+    z-index: 40; width: max-content; max-width: 18rem; padding: .45rem .65rem; border-radius: 6px;
+    background: #333; color: #fff; font-size: .8rem; font-weight: 400; line-height: 1.35; white-space: normal; text-align: left;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .2); opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .15s;
+}
+.infobulle::before {
+    content: ""; position: absolute; left: 50%; bottom: calc(100% + .1rem); transform: translateX(-50%);
+    border: .35rem solid transparent; border-top-color: #333; opacity: 0; visibility: hidden; transition: opacity .15s;
+}
+.infobulle:hover::after, .infobulle:focus::after, .infobulle:hover::before, .infobulle:focus::before { opacity: 1; visibility: visible; }
+
 /* Pied de page */
 .pied { background: var(--vert-fonce); color: #fff; font-size: .88rem; padding: 1.25rem 0; }
 .pied__contenu { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }

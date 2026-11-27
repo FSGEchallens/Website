@@ -39,6 +39,11 @@
                         <td data-label="Nom">
                             <img src="{{ $membre->urlPhoto() }}" alt="" class="vignette" loading="lazy" width="40" height="40">
                             <strong>{{ $membre->nom }}</strong> {{ $membre->prenom }}
+                            @if ($membre->comite_membre)
+                                @php($infoComite = trim(($membre->comite_fonction ?: 'Fonction non indiquée').' · '.($membre->comite_email ?: 'e-mail société affiché').' · position '.$membre->comite_ordre.' sur la page du comité'))
+                                <span class="badge badge--comite-page infobulle" tabindex="0" data-infobulle="{{ $infoComite }}"
+                                      aria-label="Fait partie du comité : {{ $infoComite }}">★ Comité</span>
+                            @endif
                             @unless ($membre->estActif())
                                 <span class="badge">ancien membre</span>
                             @endunless
