@@ -210,7 +210,7 @@
                         @endphp
                         <div @class(['champ', 'champ--erreur' => $errors->has('donnees.salles') || $errors->has('donnees.salles.*')])>
                             <label id="libelle-salles">Salles</label>
-                            <div class="choix-multiple" x-data="{ ouvert: false }" x-on:click.outside="ouvert = false" x-on:keydown.escape.stop="ouvert = false">
+                            <div class="choix-multiple" x-data="{ ouvert: false }" x-on:click.outside="if (! $event.target.closest('.fenetre--alerte')) ouvert = false" x-on:keydown.escape.stop="ouvert = false">
                                 <button type="button" class="choix-multiple__bouton" x-on:click="ouvert = ! ouvert" :aria-expanded="ouvert"
                                         aria-haspopup="true" aria-labelledby="libelle-salles">
                                     <span>{{ $resume ?? ($heritees ? 'Comme le cours : '.$heritees : '— Choisir —') }}</span>
