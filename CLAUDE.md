@@ -92,6 +92,10 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
     - Chaque modification est inscrite au journal.
   - **Pages « La société »** : la vue générique `pages/contenu.blade.php` affiche un titre, une image facultative et un bloc `blocs_contenu` modifiable sur place par le comité.
     - Historique : `/la-societe/historique` (clé `societe.historique`), avec le logo Gym de la Bruyère.
+    - Le comité : `/la-societe/comite`. On y affiche les membres cochés « Fait partie du comité » dans leur fiche (colonnes `users.comite_membre`, `comite_fonction`, `comite_email`, `comite_ordre`), indépendamment du niveau d'autorisation, pour permettre les transitions.
+      - Dans la fiche membre, une petite fenêtre permet de saisir la fonction (obligatoire) et l'e-mail de fonction (identifiant + domaine). Sans e-mail de fonction, c'est l'e-mail société qui s'affiche.
+      - Le comité et l'administrateur peuvent changer l'ordre avec ↑ ↓ (composant `Site\OrdreComite`).
+      - Le mobile ne s'affiche que si `afficher_mobile` est coché.
     - L'Agenda (vide) a été retiré du menu.
   - **Contact** (`/contact`) : la zone « Informations » est un bloc `contact.informations` modifiable par le comité (titre fixe).
     - Le formulaire Livewire `Site\FormulaireContact` envoie à `CONTACT_EMAIL` (par défaut contact@gymechallens.ch), avec Reply-To vers l'expéditeur.

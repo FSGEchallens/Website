@@ -341,6 +341,20 @@ altcha-widget {
     .visionneuse__fleche { width: 2.4rem; height: 3.5rem; font-size: 2rem; background: rgba(0, 0, 0, .3); }
 }
 
+/* Comité : fiche membre (fenêtre) et page publique */
+.comite-fiche__resume { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-top: .6rem; padding: .6rem .8rem; background: #f6f9f2; border-radius: 6px; }
+.fenetre { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(0, 0, 0, .5); }
+.fenetre__boite { background: #fff; border-radius: 8px; padding: 1.25rem; width: 100%; max-width: 26rem; box-shadow: 0 10px 30px rgba(0, 0, 0, .3); }
+.fenetre__boite h3 { margin: 0 0 1rem; color: var(--vert-fonce); }
+.fenetre__boite .champ { margin-bottom: 1rem; }
+.comite { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: 1.25rem; }
+.comite-carte { background: #fff; border-radius: 8px; padding: 1.25rem 1rem; text-align: center; box-shadow: 0 1px 4px rgba(0, 0, 0, .08); border-top: 4px solid var(--vert-fonce); }
+.comite-carte img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto .75rem; display: block; border: 1px solid var(--gris-clair); }
+.comite-carte__fonction { color: var(--vert-fonce); font-weight: 700; text-transform: uppercase; font-size: .85rem; letter-spacing: .03em; }
+.comite-carte__nom { font-size: 1.1rem; font-weight: 600; margin: .2rem 0 .5rem; }
+.comite-carte a { word-break: break-word; }
+.comite-carte__ordre { display: flex; justify-content: center; gap: .4rem; margin-top: .75rem; }
+
 /* Pied de page */
 .pied { background: var(--vert-fonce); color: #fff; font-size: .88rem; padding: 1.25rem 0; }
 .pied__contenu { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }

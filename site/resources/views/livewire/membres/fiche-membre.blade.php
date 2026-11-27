@@ -92,8 +92,50 @@
             </section>
 
             <section class="carte">
-                <h2>Affichage sur le site</h2>                <div class="grille">
+                <h2>Affichage sur le site</h2>
+                <div class="grille">
                     <label class="case"><input type="checkbox" wire:model="afficher_mobile"> Afficher le mobile</label>
+                </div>
+            </section>
+
+            {{-- Page « Le comité » : composition choisie à la main, indépendante de l'autorisation. --}}
+            <section class="carte" x-data="{ fenetre: false }">
+                <h2>Comité</h2>
+                <div class="comite-fiche">
+                    <label class="case"><input type="checkbox" wire:model.live="comite_membre"> Fait partie du comité (affiché sur la page « Le comité »)</label>
+
+                    @if ($comite_membre)
+                        <div class="comite-fiche__resume">
+                            <span>
+                                <strong>{{ $comite_fonction ?: 'Fonction à indiquer' }}</strong>
+                                · {{ $comite_identifiant_email ? $comite_identifiant_email.'@'.\App\Livewire\Membres\FicheMembre::domaineEmail() : 'e-mail société affiché' }}
+                            </span>
+                            <button type="button" class="lien" x-on:click="fenetre = true">Fonction et e-mail…</button>
+                        </div>
+                    @endif
+                    @error('comite_fonction') <div class="erreur">{{ $message }}</div> @enderror
+                    @error('comite_identifiant_email') <div class="erreur">{{ $message }}</div> @enderror
+                </div>
+
+                {{-- Petite fenêtre : fonction et e-mail de fonction --}}
+                <div class="fenetre" x-show="fenetre" x-cloak x-on:keydown.escape.window="fenetre = false" role="dialog" aria-modal="true" aria-labelledby="titre-fenetre-comite">
+                    <div class="fenetre__boite" x-on:click.outside="fenetre = false">
+                        <h3 id="titre-fenetre-comite">Fonction au comité</h3>
+                        <x-champ nom="comite_fonction" libelle="Fonction" requis placeholder="Ex. Présidente, Caissière, Secrétaire…" />
+                        <div @class(['champ', 'champ--erreur' => $errors->has('comite_identifiant_email')])>
+                            <label for="champ-comite_identifiant_email">E-mail de fonction (facultatif)</label>
+                            <div class="groupe-email">
+                                <input id="champ-comite_identifiant_email" type="text" wire:model="comite_identifiant_email"
+                                       placeholder="presidente" autocomplete="off" autocapitalize="none" spellcheck="false">
+                                <span class="groupe-email__domaine">{{ '@'.\App\Livewire\Membres\FicheMembre::domaineEmail() }}</span>
+                            </div>
+                            <div class="aide">Affiché sur la page du comité à la place de l'e-mail société.</div>
+                        </div>
+                        <div class="actions">
+                            <button type="button" class="bouton" x-on:click="fenetre = false; $wire.$refresh()">OK</button>
+                        </div>
+                        <p class="discret">N'oubliez pas d'<strong>enregistrer</strong> la fiche ensuite.</p>
+                    </div>
                 </div>
             </section>
         </fieldset>

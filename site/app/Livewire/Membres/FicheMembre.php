@@ -69,6 +69,14 @@ class FicheMembre extends Component
 
     public string $role = '';
 
+    /** Composition affichée sur la page « Le comité » (indépendante de l'autorisation). */
+    public bool $comite_membre = false;
+
+    public string $comite_fonction = '';
+
+    /** Partie avant le @ de l'e-mail de fonction (ex. « presidente »). */
+    public string $comite_identifiant_email = '';
+
     public function mount(?User $membre = null): void
     {
         if ($membre === null || ! $membre->exists) {
@@ -122,6 +130,9 @@ class FicheMembre extends Component
             'date_sortie' => ['nullable', 'date', 'after_or_equal:date_entree'],
             ...ReglesMembre::affichage(),
             'role' => ['required', Rule::enum(Role::class)],
+            'comite_membre' => ['boolean'],
+            'comite_fonction' => ['nullable', 'required_if:comite_membre,true', 'string', 'max:80'],
+            'comite_identifiant_email' => ['nullable', 'string', 'max:64', 'regex:/^[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$/'],
             ...$this->reglesPhoto(),
         ];
     }
@@ -141,6 +152,8 @@ class FicheMembre extends Component
             'date_sortie' => 'date de sortie',
             'role' => 'autorisation',
             'photo' => 'photo',
+            'comite_fonction' => 'fonction au comité',
+            'comite_identifiant_email' => 'e-mail de fonction',
         ];
     }
 
@@ -155,6 +168,8 @@ class FicheMembre extends Component
             'date_naissance.after' => 'La date de naissance n\'est pas plausible.',
             'date_sortie.after_or_equal' => 'La date de sortie ne peut pas être avant la date d\'entrée.',
             'identifiant_email.regex' => 'Utilisez seulement des lettres sans accents, des chiffres, des points, des tirets ou des tirets bas (par exemple prenom.nom).',
+            'comite_fonction.required_if' => 'Indiquez la fonction au comité (par exemple Présidente), via « Fonction et e-mail… ».',
+            'comite_identifiant_email.regex' => 'E-mail de fonction : utilisez seulement des lettres sans accents, des chiffres, des points ou des tirets (par exemple presidente).',
             ...$this->messagesPhoto(),
         ];
     }
@@ -186,6 +201,7 @@ class FicheMembre extends Component
 
         // Si une adresse complète a été collée, on ne garde que la partie avant le @.
         $this->identifiant_email = trim(explode('@', $this->identifiant_email)[0]);
+        $this->comite_identifiant_email = trim(explode('@', $this->comite_identifiant_email)[0]);
 
         $donnees = $this->validate();
 
@@ -196,7 +212,13 @@ class FicheMembre extends Component
         $donnees = ReglesMembre::nettoyer($donnees);
         $donnees['avs'] = NumeroAvs::formater($donnees['avs']);
         $donnees['email'] = $this->emailSociete($donnees['identifiant_email']);
-        unset($donnees['identifiant_email']);
+        $donnees['comite_email'] = $donnees['comite_identifiant_email'] !== null
+            ? mb_strtolower($donnees['comite_identifiant_email']).'@'.self::domaineEmail()
+            : null;
+        unset($donnees['identifiant_email'], $donnees['comite_identifiant_email']);
+
+        // Une personne qui rejoint le comité est placée à la fin de la page « Le comité ».
+        $rejointLeComite = $donnees['comite_membre'] && ! ($this->membre?->comite_membre ?? false);
 
         if ($donnees['email'] !== null && User::where('email', $donnees['email'])->whereKeyNot($this->membre?->getKey())->exists()) {
             throw ValidationException::withMessages([
@@ -207,8 +229,14 @@ class FicheMembre extends Component
         $estNouveau = $this->membre === null;
         $membre = $this->membre ?? new User;
 
-        DB::transaction(function () use ($membre, $donnees, $role, $photos): void {
-            $membre->fill($donnees)->forceFill(['role' => $role])->save();
+        DB::transaction(function () use ($membre, $donnees, $role, $photos, $rejointLeComite): void {
+            $membre->fill($donnees)->forceFill(['role' => $role]);
+
+            if ($rejointLeComite) {
+                $membre->comite_ordre = (int) User::where('comite_membre', true)->max('comite_ordre') + 1;
+            }
+
+            $membre->save();
             $this->appliquerPhoto($membre, $photos);
         });
 
@@ -266,6 +294,9 @@ class FicheMembre extends Component
             'date_sortie' => (string) $membre->date_sortie?->toDateString(),
             'afficher_mobile' => (bool) $membre->afficher_mobile,
             'role' => ($membre->role ?? Role::Membre)->value,
+            'comite_membre' => (bool) $membre->comite_membre,
+            'comite_fonction' => (string) $membre->comite_fonction,
+            'comite_identifiant_email' => $this->separerEmailSociete($membre->comite_email)['identifiant_email'],
         ]);
     }
 

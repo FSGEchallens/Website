@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\Password;
     'rue', 'numero', 'npa', 'localite', 'mobile', 'email_prive',
     'email', 'avs', 'date_naissance', 'date_entree', 'date_sortie',
     'afficher_mobile',
+    'comite_membre', 'comite_fonction', 'comite_email',
 ])]
 #[Hidden(['password', 'remember_token', 'avs', 'code_connexion'])]
 class User extends Authenticatable
@@ -50,7 +51,27 @@ class User extends Authenticatable
             'photo' => 'Photo', 'email' => 'E-mail société', 'role' => 'Autorisation', 'avs' => 'N° AVS',
             'date_naissance' => 'Date de naissance', 'date_entree' => 'Date d\'entrée', 'date_sortie' => 'Date de sortie',
             'afficher_mobile' => 'Afficher le mobile', 'password' => 'Mot de passe',
+            'comite_membre' => 'Fait partie du comité', 'comite_fonction' => 'Fonction au comité',
+            'comite_email' => 'E-mail de fonction', 'comite_ordre' => 'Ordre au comité',
         ];
+    }
+
+    /**
+     * Personnes affichées sur la page « Le comité », dans l'ordre choisi par le comité.
+     *
+     * @param  Builder<User>  $query
+     */
+    public function scopeDuComite(Builder $query): void
+    {
+        $query->where('comite_membre', true)->orderBy('comite_ordre')->orderBy('nom')->orderBy('prenom');
+    }
+
+    /**
+     * E-mail affiché sur la page du comité : l'adresse de fonction (presidente@…), sinon l'e-mail société.
+     */
+    public function emailComite(): ?string
+    {
+        return $this->comite_email ?: $this->email;
     }
 
     /**
@@ -68,6 +89,8 @@ class User extends Authenticatable
             'date_entree' => 'date',
             'date_sortie' => 'date',
             'afficher_mobile' => 'boolean',
+            'comite_membre' => 'boolean',
+            'comite_ordre' => 'integer',
             'code_connexion_expire_le' => 'datetime',
             'derniere_connexion_le' => 'datetime',
         ];

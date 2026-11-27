@@ -24,6 +24,7 @@ use App\Models\Annonce;
 use App\Models\BlocContenu;
 use App\Models\Partenaire;
 use App\Models\Resultat;
+use App\Models\User;
 use App\Services\Altcha;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,6 +48,11 @@ Route::get('/la-societe/historique', fn () => view('pages.contenu', [
 // Défi du captcha ALTCHA (formulaire de contact), sans service externe.
 Route::get('/altcha/defi', fn (Altcha $altcha) => response()->json($altcha->creerDefi())->header('Cache-Control', 'no-store'))
     ->middleware('throttle:30,1')->name('altcha.defi');
+
+// La société → Le comité : personnes cochées « Fait partie du comité », dans l'ordre choisi.
+Route::get('/la-societe/comite', fn () => view('comite', [
+    'membres' => User::duComite()->get(),
+]))->name('societe.comite');
 
 // Contact : informations modifiables par le comité + formulaire (envoi à contact@gymechallens.ch).
 Route::get('/contact', fn () => view('contact', [
