@@ -32,6 +32,7 @@
                 <div class="salle__texte">
                     <h2>{{ $batiment->nom }}</h2>
                     <p>{{ $batiment->adresseComplete() ?: 'Adresse à compléter' }}</p>
+                    <p class="discret">{{ $batiment->aDesCoordonnees() ? 'GPS : '.$batiment->coordonnees() : 'Coordonnées GPS à compléter' }}</p>
                     @if ($batiment->informations)
                         <p class="discret">{!! nl2br(e($batiment->informations)) !!}</p>
                     @endif
@@ -109,14 +110,16 @@
 
                     <fieldset class="groupe">
                         <legend>Carte Google</legend>
-                        @if ($apercu->urlCarteIntegree() && ($rue || $localite))
+                        <x-champ nom="coordonnees" libelle="Coordonnées GPS (latitude, longitude)" modificateur=".blur" placeholder="46.636370, 6.633660"
+                                 aide="Pour viser exactement le bâtiment : dans Google Maps, clic droit sur le bâtiment, puis cliquer sur les chiffres affichés en haut du menu pour les copier. Sans coordonnées, c’est l’adresse qui est utilisée." />
+                        @if ($apercu->urlCarteIntegree() && ($rue || $localite || $apercu->aDesCoordonnees()))
                             <iframe class="salle__carte" src="{{ $apercu->urlCarteIntegree() }}" title="Carte du bâtiment" loading="lazy"
                                     referrerpolicy="no-referrer-when-downgrade" wire:key="carte-{{ md5($apercu->adresseComplete()) }}"></iframe>
                         @else
-                            <p class="discret">La carte s’affiche dès que l’adresse est saisie.</p>
+                            <p class="discret">La carte s’affiche dès que l’adresse ou les coordonnées sont saisies.</p>
                         @endif
                         <x-champ nom="lien_carte" libelle="Lien Google Maps (facultatif)" type="url" placeholder="https://maps.app.goo.gl/…"
-                                 aide="Pour pointer sur une entrée précise : dans Google Maps, « Partager » puis « Copier le lien ». Sans lien, l’adresse est utilisée." />
+                                 aide="Pour pointer sur une entrée précise : dans Google Maps, « Partager » puis « Copier le lien ». Facultatif si les coordonnées sont saisies." />
                     </fieldset>
 
                     <fieldset class="groupe" x-data="controleFichiers(15, ['jpg', 'jpeg', 'png', 'webp'])" x-on:change.capture="verifier($event)">

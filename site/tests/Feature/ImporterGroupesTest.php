@@ -82,7 +82,8 @@ class ImporterGroupesTest extends TestCase
 
         // 2 × 2 h = « 4h de cours chaque semaine » : un seul cours avec 2 sessions.
         $cours = $concours->cours()->with('sessions')->sole();
-        $courtChamp = Batiment::where('nom', 'Echallens, Court-Champ')->sole();
+        $courtChamp = Batiment::where('nom', 'Echallens, Court-Champ 3-4')->sole();
+        $this->assertSame('46.636380, 6.632780', $courtChamp->coordonnees());
         $salle3 = $courtChamp->salles()->where('nom', 'Salle 3')->sole();
         $this->assertSame([$salle3->id], $cours->salles);
         $this->assertSame('Echallens', $courtChamp->localite);

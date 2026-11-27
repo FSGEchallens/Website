@@ -38,6 +38,9 @@ class GestionSalles extends Component
 
     public string $localite = '';
 
+    /** Coordonnées GPS copiées depuis Google Maps, ex. « 46.636370, 6.633660 ». */
+    public string $coordonnees = '';
+
     public string $lien_carte = '';
 
     public string $informations = '';
@@ -86,6 +89,7 @@ class GestionSalles extends Component
         $this->rue = (string) $batiment->rue;
         $this->npa = (string) $batiment->npa;
         $this->localite = (string) $batiment->localite;
+        $this->coordonnees = (string) $batiment->coordonnees();
         $this->lien_carte = (string) $batiment->lien_carte;
         $this->informations = (string) $batiment->informations;
         $this->photos = $batiment->photos ?? [];
@@ -135,6 +139,11 @@ class GestionSalles extends Component
             'rue' => ['nullable', 'string', 'max:150'],
             'npa' => ['nullable', 'string', 'regex:/^\d{4,5}$/'],
             'localite' => ['nullable', 'string', 'max:100'],
+            'coordonnees' => ['nullable', 'string', 'max:60', function (string $attribut, mixed $valeur, \Closure $echec): void {
+                if (trim((string) $valeur) !== '' && Batiment::lireCoordonnees((string) $valeur) === null) {
+                    $echec('Les coordonnées doivent avoir la forme « 46.636370, 6.633660 » (latitude, longitude).');
+                }
+            }],
             'lien_carte' => ['nullable', 'url:https', 'max:500'],
             'informations' => ['nullable', 'string', 'max:2000'],
             'sallesInitiales' => ['nullable', 'string', 'max:2000'],
@@ -162,7 +171,7 @@ class GestionSalles extends Component
      */
     protected function validationAttributes(): array
     {
-        return ['rue' => 'rue', 'npa' => 'NPA', 'localite' => 'localité', 'lien_carte' => 'lien Google Maps', 'sallesInitiales' => 'salles'];
+        return ['rue' => 'rue', 'npa' => 'NPA', 'localite' => 'localité', 'coordonnees' => 'coordonnées', 'lien_carte' => 'lien Google Maps', 'sallesInitiales' => 'salles'];
     }
 
     public function enregistrer(PhotosBatiment $photos): void
@@ -193,6 +202,8 @@ class GestionSalles extends Component
                 'rue' => $this->texteOuNull($this->rue),
                 'npa' => $this->texteOuNull($this->npa),
                 'localite' => $this->texteOuNull($this->localite),
+                'latitude' => Batiment::lireCoordonnees($this->coordonnees)[0] ?? null,
+                'longitude' => Batiment::lireCoordonnees($this->coordonnees)[1] ?? null,
                 'lien_carte' => $this->texteOuNull($this->lien_carte),
                 'informations' => $this->texteOuNull($this->informations),
             ]);
@@ -317,7 +328,7 @@ class GestionSalles extends Component
 
     private function viderFormulaire(): void
     {
-        $this->reset('edition', 'nom', 'rue', 'npa', 'localite', 'lien_carte', 'informations', 'photos', 'nouvellesPhotos', 'sallesInitiales', 'confirmation');
+        $this->reset('edition', 'nom', 'rue', 'npa', 'localite', 'coordonnees', 'lien_carte', 'informations', 'photos', 'nouvellesPhotos', 'sallesInitiales', 'confirmation');
         $this->resetValidation();
     }
 
@@ -347,7 +358,11 @@ class GestionSalles extends Component
         $batimentEdite = $this->edition ? Batiment::find($this->edition) : null;
 
         // Aperçu de la carte à partir de l'adresse en cours de saisie.
-        $apercu = new Batiment(['nom' => $this->nom, 'rue' => $this->rue, 'npa' => $this->npa, 'localite' => $this->localite, 'lien_carte' => $this->lien_carte ?: null]);
+        $coordonnees = Batiment::lireCoordonnees($this->coordonnees);
+        $apercu = new Batiment([
+            'nom' => $this->nom, 'rue' => $this->rue, 'npa' => $this->npa, 'localite' => $this->localite,
+            'latitude' => $coordonnees[0] ?? null, 'longitude' => $coordonnees[1] ?? null, 'lien_carte' => $this->lien_carte ?: null,
+        ]);
 
         return view('livewire.cours.gestion-salles', [
             'batiments' => Batiment::with('salles')->orderBy('nom')->get(),

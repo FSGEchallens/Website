@@ -43,6 +43,8 @@ class GestionSallesTest extends TestCase
             ->set('npa', '1040')
             ->set('localite', 'Echallens')
             ->assertSee('maps.google.com/maps?q=Chemin%20du%20Coll%C3%A8ge%203%2C%201040%20Echallens', false)
+            ->set('coordonnees', '46.63637, 6.63366')
+            ->assertSee('maps.google.com/maps?q=46.636370%2C6.633660', false)
             ->set('informations', 'Entrée côté parking')
             ->set('nouvellesPhotos', [UploadedFile::fake()->image('batiment.jpg', 2400, 1800), UploadedFile::fake()->image('entree.png', 800, 600)])
             ->call('enregistrer')
@@ -58,7 +60,8 @@ class GestionSallesTest extends TestCase
         $this->assertSame(1600, $largeur);
 
         $this->get($batiment->urlPhoto(1, miniature: true))->assertOk()->assertHeader('Content-Type', 'image/jpeg');
-        $this->assertStringContainsString('google.com/maps/search', (string) $batiment->urlCarte());
+        $this->assertSame('46.636370, 6.633660', $batiment->coordonnees());
+        $this->assertSame('https://www.google.com/maps/search/?api=1&query=46.636370%2C6.633660', $batiment->urlCarte());
         $this->assertSame('Echallens, Court-Champ – Salle 4', $batiment->salles[1]->libelleComplet());
     }
 
@@ -141,5 +144,19 @@ class GestionSallesTest extends TestCase
         $this->assertCount(2, $batiment->fresh()->photos);
         Storage::disk('local')->assertMissing('batiments/'.$retiree);
         $this->assertNotEmpty(JournalModification::latest('id')->first()->fichiers);
+    }
+
+    public function test_des_coordonnees_mal_formees_sont_refusees(): void
+    {
+        Livewire::actingAs($this->comite())
+            ->test(GestionSalles::class)
+            ->call('ajouter')
+            ->set('nom', 'Bâtiment')
+            ->set('coordonnees', '46,6 nord')
+            ->call('enregistrer')
+            ->assertHasErrors('coordonnees');
+
+        $this->assertSame([46.64134, 6.63015], Batiment::lireCoordonnees('46.641340,6.630150'));
+        $this->assertNull(Batiment::lireCoordonnees('146.6, 6.6'));
     }
 }

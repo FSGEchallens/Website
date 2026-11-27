@@ -437,9 +437,16 @@ class ImporterGroupes extends Command
         $nomBatiment = trim($nomBatiment, ' ,') ?: $nom;
         $localite = trim((string) preg_split('/[,(]/', $nomBatiment)[0]);
 
-        $batiment = Batiment::firstOrCreate(['nom' => $nomBatiment], ['localite' => $localite ?: null]);
+        return array_map(function (string $nomSalle) use ($nomBatiment, $localite): int {
+            // Bâtiments connus (config/batiments.php) : ex. Court-Champ réparti en 3 bâtiments, coordonnées GPS.
+            $nomReel = config('batiments.regroupements.'.$nomBatiment.'.'.$nomSalle, $nomBatiment);
+            [$latitude, $longitude] = config('batiments.coordonnees')[$nomReel] ?? [null, null];
 
-        return array_map(function (string $nomSalle) use ($batiment): int {
+            $batiment = Batiment::firstOrCreate(
+                ['nom' => $nomReel],
+                ['localite' => $localite ?: null, 'latitude' => $latitude, 'longitude' => $longitude],
+            );
+
             $salle = Salle::firstOrNew(['batiment_id' => $batiment->id, 'nom' => $nomSalle]);
 
             if (! $salle->exists) {
