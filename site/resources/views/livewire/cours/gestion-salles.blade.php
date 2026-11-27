@@ -15,8 +15,11 @@
         @forelse ($salles as $salle)
             <article class="salle carte" wire:key="salle-{{ $salle->id }}">
                 <div class="salle__photo">
-                    @if ($salle->photo)
-                        <img src="{{ $salle->urlPhoto(miniature: true) }}" alt="Photo de la salle {{ $salle->nom }}" loading="lazy">
+                    @if ($salle->photos)
+                        <img src="{{ $salle->urlPhoto(0, miniature: true) }}" alt="Photo de la salle {{ $salle->nom }}" loading="lazy">
+                        @if (count($salle->photos) > 1)
+                            <span class="salle__nombre-photos">{{ count($salle->photos) }} photos</span>
+                        @endif
                     @else
                         <span class="discret">Pas de photo</span>
                     @endif
@@ -28,7 +31,8 @@
                         <p class="discret">{!! nl2br(e($salle->informations)) !!}</p>
                     @endif
                     <p class="discret">
-                        Utilisée par {{ $salle->cours_count }} cours{{ $salle->sessions_count ? ' et '.$salle->sessions_count.' session(s)' : '' }}
+                        @php($u = $utilisations[$salle->id] ?? ['cours' => 0, 'sessions' => 0])
+                        Utilisée par {{ $u['cours'] }} cours{{ $u['sessions'] ? ' et '.$u['sessions'].' session(s)' : '' }}
                     </p>
                     <div class="actions">
                         <a href="{{ $salle->urlCarte() }}" target="_blank" rel="noopener">Voir sur Google Maps</a>
@@ -77,29 +81,57 @@
                     </fieldset>
 
                     <fieldset class="groupe" x-data="controleFichiers(15, ['jpg', 'jpeg', 'png', 'webp'])" x-on:change.capture="verifier($event)">
-                        <legend>Photo</legend>
-                        <div class="salle__photo salle__photo--formulaire">
-                            @if ($photo && ! $errors->has('photo'))
-                                <img src="{{ $photo->temporaryUrl() }}" alt="Aperçu de la nouvelle photo">
-                            @elseif ($salleEditee?->photo && ! $retirerPhoto)
-                                <img src="{{ $salleEditee->urlPhoto(miniature: true) }}" alt="Photo actuelle">
-                            @else
-                                <span class="discret">Pas de photo</span>
-                            @endif
-                        </div>
+                        @php($nombrePhotos = count($photos) + count($nouvellesPhotos))
+                        <legend>Photos ({{ $nombrePhotos }} / {{ \App\Models\Salle::PHOTOS_MAX }})</legend>
+
+                        @if ($nombrePhotos > 0)
+                            <div class="galerie-edition">
+                                @foreach ($photos as $index => $nom)
+                                    @php($indexBase = array_search($nom, $salleEditee?->photos ?? [], true))
+                                    <figure wire:key="photo-{{ $nom }}">
+                                        @if ($indexBase !== false)
+                                            <img src="{{ $salleEditee->urlPhoto($indexBase, miniature: true) }}" alt="Photo {{ $index + 1 }}">
+                                        @endif
+                                        <figcaption>
+                                            <button type="button" class="bouton-icone" wire:click="deplacerPhoto({{ $index }}, -1)" @disabled($loop->first) title="Vers la gauche" aria-label="Déplacer vers la gauche">←</button>
+                                            <button type="button" class="bouton-icone" wire:click="deplacerPhoto({{ $index }}, 1)" @disabled($loop->last) title="Vers la droite" aria-label="Déplacer vers la droite">→</button>
+                                            <button type="button" class="lien lien--danger" wire:click="retirerPhoto({{ $index }})">Retirer</button>
+                                        </figcaption>
+                                    </figure>
+                                @endforeach
+
+                                @foreach ($nouvellesPhotos as $index => $fichier)
+                                    <figure wire:key="nouvelle-{{ $index }}" class="galerie-edition__nouvelle">
+                                        @if (! $errors->has('nouvellesPhotos.'.$index))
+                                            <img src="{{ $fichier->temporaryUrl() }}" alt="Nouvelle photo {{ $index + 1 }}">
+                                        @endif
+                                        <figcaption>
+                                            <span class="badge">nouvelle</span>
+                                            <button type="button" class="lien lien--danger" wire:click="retirerNouvellePhoto({{ $index }})">Retirer</button>
+                                        </figcaption>
+                                    </figure>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="discret">Pas encore de photo.</p>
+                        @endif
+
                         <div class="actions">
-                            <label class="bouton bouton--secondaire bouton--petit">
-                                {{ ($photo || $salleEditee?->photo) ? 'Changer la photo' : 'Choisir une photo' }}
-                                <input type="file" wire:model="photo" accept="image/jpeg,image/png,image/webp" class="visuellement-cache">
-                            </label>
-                            @if ($salleEditee?->photo && ! $photo && ! $retirerPhoto)
-                                <button type="button" class="lien lien--danger" wire:click="$set('retirerPhoto', true)">Retirer la photo</button>
+                            @if ($nombrePhotos < \App\Models\Salle::PHOTOS_MAX)
+                                <label class="bouton bouton--secondaire bouton--petit">
+                                    {{ count($nouvellesPhotos) ? 'Choisir d’autres photos' : 'Ajouter des photos' }}
+                                    <input type="file" wire:model="nouvellesPhotos" multiple accept="image/jpeg,image/png,image/webp" class="visuellement-cache">
+                                </label>
                             @endif
-                            <span wire:loading wire:target="photo" class="discret">Envoi en cours…</span>
+                            <span wire:loading wire:target="nouvellesPhotos" class="discret">Envoi en cours…</span>
                         </div>
-                        <div class="aide">JPEG, PNG ou WebP, 15 Mo au maximum. La photo est réduite et ses données GPS sont supprimées.</div>
+                        <div class="aide">
+                            Jusqu’à {{ \App\Models\Salle::PHOTOS_MAX }} photos (JPEG, PNG ou WebP, 15 Mo au maximum chacune). La première est la photo principale.
+                            Les photos sont réduites et leurs données GPS sont supprimées.
+                        </div>
                         <div class="erreur" x-show="erreurFichier" x-text="erreurFichier" x-cloak role="alert"></div>
-                        @error('photo') <div class="erreur">{{ $message }}</div> @enderror
+                        @error('nouvellesPhotos') <div class="erreur">{{ $message }}</div> @enderror
+                        @error('nouvellesPhotos.*') <div class="erreur">{{ $message }}</div> @enderror
                     </fieldset>
 
                     <div class="actions actions--fenetre">

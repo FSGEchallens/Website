@@ -8,13 +8,13 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * Sert la photo d'une salle (publique), ou sa miniature avec ?miniature=1.
+ * Sert une photo d'une salle (publique), ou sa miniature avec ?miniature=1.
  */
 class PhotoSalleController extends Controller
 {
-    public function __invoke(Request $request, Salle $salle, PhotosSalle $photos): BinaryFileResponse
+    public function __invoke(Request $request, Salle $salle, int $index, PhotosSalle $photos): BinaryFileResponse
     {
-        $chemin = $photos->chemin($salle, $request->boolean('miniature'));
+        $chemin = $photos->chemin($salle, $index, $request->boolean('miniature'));
 
         abort_if($chemin === null, 404);
 

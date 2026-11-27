@@ -127,7 +127,7 @@ Route::post('/apercu-niveau', function (Request $request) {
 })->middleware('auth')->name('apercu-niveau');
 
 // Photo d'une salle (publique).
-Route::get('/salles/{salle}/photo', PhotoSalleController::class)->name('salles.photo');
+Route::get('/salles/{salle}/photos/{index}', PhotoSalleController::class)->whereNumber('index')->name('salles.photo');
 
 // Photo d'un membre (toujours publique).
 Route::get('/membres/{membre}/photo', PhotoMembreController::class)->name('membres.photo');

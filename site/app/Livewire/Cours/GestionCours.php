@@ -42,6 +42,8 @@ class GestionCours extends Component
 
     public ?int $moniteurAAjouter = null;
 
+    public ?int $salleAAjouter = null;
+
     public ?string $confirmation = null;
 
     public function mount(): void
@@ -75,7 +77,7 @@ class GestionCours extends Component
         $groupe = Groupe::findOrFail($groupeId);
 
         $this->ouvrir('cours', 0, $groupe->id, [
-            'nom' => '', 'jour' => '', 'heure_debut' => '', 'heure_fin' => '', 'salle_id' => '',
+            'nom' => '', 'jour' => '', 'heure_debut' => '', 'heure_fin' => '', 'salles' => [],
             'moniteurs' => [], 'remarque' => '', 'actif' => true,
         ]);
     }
@@ -87,7 +89,7 @@ class GestionCours extends Component
         $this->ouvrir('cours', $cours->id, $cours->groupe_id, [
             'nom' => (string) $cours->nom, 'jour' => (string) ($cours->jour ?? ''),
             'heure_debut' => substr((string) $cours->heure_debut, 0, 5), 'heure_fin' => substr((string) $cours->heure_fin, 0, 5),
-            'salle_id' => (string) ($cours->salle_id ?? ''), 'moniteurs' => $cours->idsMoniteurs(),
+            'salles' => $cours->idsSalles(), 'moniteurs' => $cours->idsMoniteurs(),
             'remarque' => (string) $cours->remarque, 'actif' => $cours->actif,
         ]);
     }
@@ -97,7 +99,7 @@ class GestionCours extends Component
         $cours = Cours::findOrFail($coursId);
 
         $this->ouvrir('session', 0, $cours->id, [
-            'jour' => '', 'heure_debut' => '', 'heure_fin' => '', 'salle_id' => '', 'moniteurs' => [], 'remarque' => '',
+            'jour' => '', 'heure_debut' => '', 'heure_fin' => '', 'salles' => [], 'moniteurs' => [], 'remarque' => '',
         ]);
     }
 
@@ -108,13 +110,13 @@ class GestionCours extends Component
         $this->ouvrir('session', $session->id, $session->cours_id, [
             'jour' => (string) $session->jour,
             'heure_debut' => substr((string) $session->heure_debut, 0, 5), 'heure_fin' => substr((string) $session->heure_fin, 0, 5),
-            'salle_id' => (string) ($session->salle_id ?? ''), 'moniteurs' => $session->idsMoniteurs(), 'remarque' => (string) $session->remarque,
+            'salles' => $session->idsSalles(), 'moniteurs' => $session->idsMoniteurs(), 'remarque' => (string) $session->remarque,
         ]);
     }
 
     public function fermer(): void
     {
-        $this->reset('type', 'editionId', 'parentId', 'donnees', 'moniteurAAjouter');
+        $this->reset('type', 'editionId', 'parentId', 'donnees', 'moniteurAAjouter', 'salleAAjouter');
         $this->resetValidation();
     }
 
@@ -129,6 +131,26 @@ class GestionCours extends Component
 
         $this->donnees['moniteurs'] = array_values($moniteurs);
         $this->moniteurAAjouter = null;
+    }
+
+    public function ajouterSalle(): void
+    {
+        $id = (int) $this->salleAAjouter;
+        $salles = $this->donnees['salles'] ?? [];
+
+        if ($id > 0 && ! in_array($id, $salles, true) && Salle::whereKey($id)->exists()) {
+            $salles[] = $id;
+        }
+
+        $this->donnees['salles'] = array_values($salles);
+        $this->salleAAjouter = null;
+    }
+
+    public function retirerSalle(int $index): void
+    {
+        $salles = $this->donnees['salles'] ?? [];
+        unset($salles[$index]);
+        $this->donnees['salles'] = array_values($salles);
     }
 
     public function retirerMoniteur(int $index): void
@@ -245,7 +267,7 @@ class GestionCours extends Component
             'donnees.nom' => 'nom', 'donnees.slug' => 'adresse de la page', 'donnees.categorie' => 'catégorie',
             'donnees.age' => 'âge', 'donnees.prerequis' => 'prérequis', 'donnees.concours' => 'concours',
             'donnees.prix' => 'prix', 'donnees.infos_tarif' => 'informations du tarif', 'donnees.jour' => 'jour',
-            'donnees.heure_debut' => 'heure de début', 'donnees.heure_fin' => 'heure de fin', 'donnees.salle_id' => 'salle',
+            'donnees.heure_debut' => 'heure de début', 'donnees.heure_fin' => 'heure de fin', 'donnees.salles' => 'salles', 'donnees.salles.*' => 'salle',
             'donnees.remarque' => 'remarque', 'donnees.description' => 'description',
         ];
     }
@@ -343,7 +365,8 @@ class GestionCours extends Component
             'donnees.jour' => [$requis, 'nullable', 'integer', 'between:1,7'],
             'donnees.heure_debut' => [$requis, 'nullable', 'date_format:H:i'],
             'donnees.heure_fin' => [$requis, 'nullable', 'date_format:H:i', 'after:donnees.heure_debut'],
-            'donnees.salle_id' => ['nullable', 'integer', 'exists:salles,id'],
+            'donnees.salles' => ['array', 'max:6'],
+            'donnees.salles.*' => ['integer', 'distinct', 'exists:salles,id'],
             'donnees.moniteurs' => ['array', 'max:10'],
             'donnees.moniteurs.*' => ['integer', 'distinct', 'exists:users,id'],
             'donnees.remarque' => ['nullable', 'string', 'max:255'],
@@ -360,7 +383,7 @@ class GestionCours extends Component
             'jour' => ($d['jour'] ?? '') === '' ? null : (int) $d['jour'],
             'heure_debut' => $this->texteOuNull($d['heure_debut'] ?? null),
             'heure_fin' => $this->texteOuNull($d['heure_fin'] ?? null),
-            'salle_id' => ($d['salle_id'] ?? '') === '' ? null : (int) $d['salle_id'],
+            'salles' => array_values(array_map('intval', $d['salles'] ?? [])),
             'moniteurs' => array_values(array_map('intval', $d['moniteurs'] ?? [])),
             'remarque' => $this->texteOuNull($d['remarque'] ?? null),
         ];
@@ -407,7 +430,7 @@ class GestionCours extends Component
 
     public function render(): View
     {
-        $groupes = Groupe::dansLOrdre()->with(['cours.salle', 'cours.sessions.salle'])->get();
+        $groupes = Groupe::dansLOrdre()->with(['cours.sessions'])->get();
 
         $idsMoniteurs = $groupes->flatMap(fn (Groupe $g) => $g->cours->flatMap(
             fn (Cours $c) => array_merge($c->idsMoniteurs(), $c->sessions->flatMap(fn (SessionCours $s) => $s->idsMoniteurs())->all())

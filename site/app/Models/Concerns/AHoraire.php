@@ -6,7 +6,8 @@ use App\Models\User;
 use Illuminate\Support\Collection;
 
 /**
- * Jour, heures et moniteurs d'un cours ou d'une session.
+ * Jour, heures, salles et moniteurs d'un cours ou d'une session.
+ * `salles` est une liste d'identifiants de salles (une ou plusieurs).
  * `moniteurs` est une liste ordonnée d'identifiants de membres : le premier est le moniteur principal.
  */
 trait AHoraire
@@ -28,6 +29,16 @@ trait AHoraire
         }
 
         return $this->libelleJour().' '.substr((string) $this->heure_debut, 0, 5).'–'.substr((string) $this->heure_fin, 0, 5);
+    }
+
+    /**
+     * Salles utilisées (ex. Court-Champ 3 et 4 pour la salle double entière).
+     *
+     * @return array<int, int>
+     */
+    public function idsSalles(): array
+    {
+        return array_values(array_map('intval', $this->salles ?? []));
     }
 
     /**

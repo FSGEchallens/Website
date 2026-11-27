@@ -51,7 +51,7 @@ class ImporterGroupesTest extends TestCase
                 ['Jeudi 18:00-20:00</p><p>COMPLET', 'Anna Fictive', 'Echallens, court-champs 3'],
             ], '4h')),
             'exemple.test/groupes/enfantine/' => Http::response($this->page([
-                ['Mardi 16:30-17:30', 'Bruno Inconnu', 'Echallens, court-champs 4'],
+                ['Mardi 16:30-17:30', 'Bruno Inconnu', 'Echallens, court-champs 3+4'],
                 ['Jeudi 16:30-17:30', 'Anna Fictive', 'Poliez-le-Grand (grande salle)'],
             ], '1h')),
             '*' => Http::response('', 404),
@@ -81,8 +81,9 @@ class ImporterGroupesTest extends TestCase
 
         // 2 × 2 h = « 4h de cours chaque semaine » : un seul cours avec 2 sessions.
         $cours = $concours->cours()->with('sessions')->sole();
-        $this->assertSame('Echallens, Court-Champ 3', $cours->salle->nom);
-        $this->assertSame('Echallens', $cours->salle->localite);
+        $salle3 = Salle::where('nom', 'Echallens, Court-Champ 3')->sole();
+        $this->assertSame([$salle3->id], $cours->salles);
+        $this->assertSame('Echallens', $salle3->localite);
         // Carla est présentée sur la page sans créneau : moniteur secondaire.
         $this->assertSame([$anna->id, $carla->id], $cours->moniteurs);
         $this->assertSame('COMPLET', $cours->remarque);
@@ -92,7 +93,9 @@ class ImporterGroupesTest extends TestCase
         $enfantine = Groupe::where('slug', 'enfantine-1-2-harmos')->firstOrFail();
         $this->assertSame(2, $enfantine->cours()->count());
         $this->assertSame([$bruno->id, $carla->id], $enfantine->cours()->first()->moniteurs);
-        $this->assertSame('Poliez-le-Grand (Grande salle)', $enfantine->cours()->get()->last()->salle->nom);
+        // « Court-Champ 3+4 » = les deux salles de la salle double.
+        $this->assertSame(Salle::whereIn('nom', ['Echallens, Court-Champ 3', 'Echallens, Court-Champ 4'])->orderBy('nom')->pluck('id')->all(), $enfantine->cours()->first()->salles);
+        $this->assertSame(Salle::where('nom', 'Poliez-le-Grand (Grande salle)')->pluck('id')->all(), $enfantine->cours()->get()->last()->salles);
         $this->assertSame(3, Salle::count());
 
         // Relancer ne crée pas de doublon.

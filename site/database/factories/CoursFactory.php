@@ -22,7 +22,7 @@ class CoursFactory extends Factory
             'jour' => 2,
             'heure_debut' => '18:00',
             'heure_fin' => '19:00',
-            'salle_id' => null,
+            'salles' => [],
             'moniteurs' => [],
             'remarque' => null,
             'actif' => true,

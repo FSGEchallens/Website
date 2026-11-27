@@ -7,11 +7,11 @@ use Database\Factories\SalleFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * Salle de gym : nom, adresse (rue, NPA, localité, pour la carte Google), photo et informations pratiques (accès, parking…).
- * La photo est stockée hors du dossier public (storage/app/private/salles) et servie par PhotoSalleController.
+ * Salle de gym : nom, adresse (rue, NPA, localité, pour la carte Google), 1 à 3 photos et informations pratiques
+ * (accès, parking…). Les photos sont stockées hors du dossier public (storage/app/private/salles) et servies
+ * par PhotoSalleController.
  */
 #[Fillable(['nom', 'rue', 'npa', 'localite', 'lien_carte', 'informations'])]
 class Salle extends Model
@@ -23,20 +23,21 @@ class Salle extends Model
 
     public const DOSSIER = 'salles';
 
-    /**
-     * @return HasMany<Cours, $this>
-     */
-    public function cours(): HasMany
-    {
-        return $this->hasMany(Cours::class);
-    }
+    public const PHOTOS_MAX = 3;
 
     /**
-     * @return HasMany<SessionCours, $this>
+     * Nombre de cours et de sessions qui utilisent cette salle.
+     *
+     * @return array{cours: int, sessions: int}
      */
-    public function sessions(): HasMany
+    public function utilisations(): array
     {
-        return $this->hasMany(SessionCours::class);
+        $utilise = fn (int $id) => fn (array $salles) => in_array($id, array_map('intval', $salles), true);
+
+        return [
+            'cours' => Cours::whereNotNull('salles')->pluck('salles')->filter($utilise($this->id))->count(),
+            'sessions' => SessionCours::whereNotNull('salles')->pluck('salles')->filter($utilise($this->id))->count(),
+        ];
     }
 
     /**
@@ -71,17 +72,28 @@ class Salle extends Model
         return $recherche ? 'https://www.google.com/maps/search/?api=1&query='.rawurlencode($recherche) : null;
     }
 
-    public function urlPhoto(bool $miniature = false): ?string
+    public function urlPhoto(int $index = 0, bool $miniature = false): ?string
     {
-        if ($this->photo === null) {
+        $nom = $this->photos[$index] ?? null;
+
+        if ($nom === null) {
             return null;
         }
 
         return route('salles.photo', array_filter([
             'salle' => $this,
+            'index' => $index,
             'miniature' => $miniature ? 1 : null,
-            'v' => substr(md5((string) $this->photo), 0, 8),
-        ]));
+            'v' => substr(md5((string) $nom), 0, 8),
+        ], fn ($valeur) => $valeur !== null));
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return ['photos' => 'array'];
     }
 
     public function libelleJournal(): string
@@ -94,6 +106,6 @@ class Salle extends Model
      */
     public static function libellesChampsJournal(): array
     {
-        return ['nom' => 'Nom', 'rue' => 'Rue', 'npa' => 'NPA', 'localite' => 'Localité', 'lien_carte' => 'Lien Google Maps', 'informations' => 'Informations', 'photo' => 'Photo'];
+        return ['nom' => 'Nom', 'rue' => 'Rue', 'npa' => 'NPA', 'localite' => 'Localité', 'lien_carte' => 'Lien Google Maps', 'informations' => 'Informations', 'photos' => 'Photos'];
     }
 }

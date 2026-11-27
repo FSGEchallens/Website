@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
- * Photo d'une salle : une version 1600 px et une miniature 480 px, en JPEG sans métadonnées (ni EXIF ni GPS).
- * L'ancienne photo est archivée dans le journal avant d'être remplacée ou supprimée.
+ * Photos d'une salle (3 au maximum) : une version 1600 px et une miniature 480 px, en JPEG sans métadonnées
+ * (ni EXIF ni GPS). Une photo retirée est archivée dans le journal avant d'être supprimée.
  */
 class PhotosSalle
 {
@@ -18,14 +18,12 @@ class PhotosSalle
     private const TAILLE_MINIATURE = 480;
 
     /**
-     * Traite et enregistre la photo, retire l'ancienne et renvoie le nom du nouveau fichier.
+     * Traite et enregistre une photo, et renvoie le nom du fichier.
      */
     public function enregistrer(Salle $salle, string $cheminSource): string
     {
-        $photo = TraitementImage::versJpeg($cheminSource, self::TAILLE, 'photo');
-        $miniature = TraitementImage::versJpeg($cheminSource, self::TAILLE_MINIATURE, 'photo', 75);
-
-        $this->supprimer($salle);
+        $photo = TraitementImage::versJpeg($cheminSource, self::TAILLE, 'nouvellesPhotos');
+        $miniature = TraitementImage::versJpeg($cheminSource, self::TAILLE_MINIATURE, 'nouvellesPhotos', 75);
 
         $nom = 'salle-'.(Str::slug(Str::limit($salle->nom, 40, '')) ?: 'photo').'-'.Str::lower(Str::random(6)).'.jpg';
         $disque = Storage::disk(Salle::DISQUE);
@@ -35,25 +33,33 @@ class PhotosSalle
         return $nom;
     }
 
-    public function supprimer(Salle $salle): void
+    public function supprimer(Salle $salle, string $nom): void
     {
-        if ($salle->photo === null) {
-            return;
-        }
-
-        $nom = basename($salle->photo);
-        $salle->archiverFichier('photo', Salle::DISQUE, Salle::DOSSIER.'/'.$nom);
+        $nom = basename($nom);
+        $salle->archiverFichier('photos', Salle::DISQUE, Salle::DOSSIER.'/'.$nom);
         Storage::disk(Salle::DISQUE)->delete([Salle::DOSSIER.'/'.$nom, Salle::DOSSIER.'/'.self::nomMiniature($nom)]);
     }
 
-    public function chemin(Salle $salle, bool $miniature = false): ?string
+    public function supprimerTout(Salle $salle): void
     {
-        if ($salle->photo === null) {
+        foreach ($salle->photos ?? [] as $nom) {
+            $this->supprimer($salle, $nom);
+        }
+    }
+
+    /**
+     * Chemin de la photo (ou de sa miniature ; à défaut de miniature, la photo elle-même).
+     */
+    public function chemin(Salle $salle, int $index, bool $miniature = false): ?string
+    {
+        $nom = $salle->photos[$index] ?? null;
+
+        if ($nom === null) {
             return null;
         }
 
         $disque = Storage::disk(Salle::DISQUE);
-        $nom = basename($salle->photo);
+        $nom = basename($nom);
         $candidats = $miniature ? [self::nomMiniature($nom), $nom] : [$nom];
 
         foreach ($candidats as $candidat) {

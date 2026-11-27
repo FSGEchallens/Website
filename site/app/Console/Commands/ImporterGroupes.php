@@ -321,7 +321,7 @@ class ImporterGroupes extends Command
                     'jour' => $creneau['jour'],
                     'heure_debut' => $creneau['debut'],
                     'heure_fin' => $creneau['fin'],
-                    'salle_id' => $this->idSalle($creneau['salle']),
+                    'salles' => $this->idsSalles($creneau['salle']),
                     'moniteurs' => $this->relierMoniteurs($creneau['moniteurs'], $page['contacts'], $groupe->nom),
                     'remarque' => $creneau['remarque'],
                     'actif' => true,
@@ -341,7 +341,7 @@ class ImporterGroupes extends Command
 
         $cours = new Cours([
             'groupe_id' => $groupe->id,
-            'salle_id' => $this->idSalle($salleCommune),
+            'salles' => $this->idsSalles($salleCommune),
             'moniteurs' => $moniteursCommuns ? $this->relierMoniteurs($creneaux[0]['moniteurs'], $page['contacts'], $groupe->nom) : [],
             'remarque' => count($remarques) === 1 ? $creneaux[0]['remarque'] : null,
             'actif' => true,
@@ -353,7 +353,7 @@ class ImporterGroupes extends Command
                 'jour' => $creneau['jour'],
                 'heure_debut' => $creneau['debut'],
                 'heure_fin' => $creneau['fin'],
-                'salle_id' => $salleCommune === null ? $this->idSalle($creneau['salle']) : null,
+                'salles' => $salleCommune === null ? $this->idsSalles($creneau['salle']) : [],
                 'moniteurs' => $moniteursCommuns ? [] : $this->relierMoniteurs($creneau['moniteurs'], $page['contacts'], $groupe->nom),
                 'remarque' => count($remarques) === 1 ? null : $creneau['remarque'],
             ]);
@@ -422,17 +422,25 @@ class ImporterGroupes extends Command
     }
 
     /**
-     * Salle portant ce nom (créée si besoin, la rue et le NPA restant à compléter).
+     * Salles portant ce nom (créées si besoin, la rue et le NPA restant à compléter).
+     * Une salle double « Court-Champ 3+4 » donne les deux salles « Court-Champ 3 » et « Court-Champ 4 ».
+     *
+     * @return array<int, int>
      */
-    private function idSalle(?string $nom): ?int
+    private function idsSalles(?string $nom): array
     {
-        if ($nom === null || trim($nom) === '') {
-            return null;
+        $nom = trim((string) $nom);
+
+        if ($nom === '') {
+            return [];
         }
 
+        $noms = preg_match('/^(.*?)(\d+)\s*\+\s*(\d+)(.*)$/u', $nom, $m)
+            ? [trim($m[1].$m[2].$m[4]), trim($m[1].$m[3].$m[4])]
+            : [$nom];
         $localite = trim((string) preg_split('/[,(]/', $nom)[0]);
 
-        return Salle::firstOrCreate(['nom' => trim($nom)], ['localite' => $localite ?: null])->id;
+        return array_map(fn (string $n) => Salle::firstOrCreate(['nom' => $n], ['localite' => $localite ?: null])->id, $noms);
     }
 
     /**

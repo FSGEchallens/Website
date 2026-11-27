@@ -36,7 +36,7 @@ class GestionCoursTest extends TestCase
         $groupe = Groupe::factory()->create(['nom' => 'Agrès test', 'prix' => 300]);
         $cours = Cours::factory()->for($groupe)->create(['jour' => null, 'heure_debut' => null, 'heure_fin' => null, 'moniteurs' => [$moniteur->id]]);
         SessionCours::factory()->for($cours)->create(['jour' => 2, 'heure_debut' => '18:00', 'heure_fin' => '20:00']);
-        SessionCours::factory()->for($cours)->create(['jour' => 4, 'heure_debut' => '18:00', 'heure_fin' => '20:00', 'salle_id' => Salle::factory()->create(['nom' => 'Salle B'])->id]);
+        SessionCours::factory()->for($cours)->create(['jour' => 4, 'heure_debut' => '18:00', 'heure_fin' => '20:00', 'salles' => [Salle::factory()->create(['nom' => 'Salle B'])->id]]);
 
         Livewire::actingAs($this->comite())
             ->test(GestionCours::class)
@@ -88,22 +88,26 @@ class GestionCoursTest extends TestCase
     public function test_tous_les_membres_sont_proposes_et_la_salle_se_choisit_dans_la_liste(): void
     {
         $membre = User::factory()->avecRole(Role::Membre)->create(['prenom' => 'Zoé', 'nom' => 'Simplemembre']);
-        $salle = Salle::factory()->create(['nom' => 'Poliez-le-Grand (Grande salle)']);
+        $salle = Salle::factory()->create(['nom' => 'Echallens, Court-Champ 3']);
+        $salle4 = Salle::factory()->create(['nom' => 'Echallens, Court-Champ 4']);
         $groupe = Groupe::factory()->create();
 
         Livewire::actingAs($this->comite())
             ->test(GestionCours::class)
             ->call('nouveauCours', $groupe->id)
             ->assertSee('Simplemembre Zoé')
-            ->assertSee('Poliez-le-Grand (Grande salle)')
+            ->assertSee('Echallens, Court-Champ 4')
             ->set('moniteurAAjouter', $membre->id)->call('ajouterMoniteur')
-            ->set('donnees.salle_id', (string) $salle->id)
+            ->set('salleAAjouter', $salle->id)->call('ajouterSalle')
+            ->set('salleAAjouter', $salle4->id)->call('ajouterSalle')
             ->call('enregistrer')
             ->assertHasNoErrors();
 
         $cours = Cours::firstOrFail();
         $this->assertSame([$membre->id], $cours->moniteurs);
-        $this->assertSame('Poliez-le-Grand (Grande salle)', $cours->salle->nom);
+        $this->assertSame([$salle->id, $salle4->id], $cours->salles);
+
+        Livewire::actingAs($this->comite())->test(GestionCours::class)->assertSee('Echallens, Court-Champ 3 + Echallens, Court-Champ 4');
     }
 
     public function test_un_moniteur_ou_une_salle_inconnus_sont_refuses(): void
@@ -114,9 +118,9 @@ class GestionCoursTest extends TestCase
             ->test(GestionCours::class)
             ->call('nouveauCours', $groupe->id)
             ->set('donnees.moniteurs', [999999])
-            ->set('donnees.salle_id', '999999')
+            ->set('donnees.salles', [999999])
             ->call('enregistrer')
-            ->assertHasErrors(['donnees.moniteurs.0', 'donnees.salle_id']);
+            ->assertHasErrors(['donnees.moniteurs.0', 'donnees.salles.0']);
     }
 
     public function test_horaire_d_une_session_obligatoire_et_fin_apres_debut(): void
