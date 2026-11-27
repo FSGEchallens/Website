@@ -7,7 +7,7 @@
     @endphp
 
     <div class="barre">
-        <h1>Groupes et cours</h1>
+        <h1>Groupes</h1>
         <div class="actions">
             <button type="button" class="bouton bouton--secondaire bouton--petit" x-data
                     x-on:click="document.querySelectorAll('[data-arbre]').forEach(e => e.dispatchEvent(new CustomEvent('tout', { detail: true })))">Tout déplier</button>

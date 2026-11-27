@@ -55,7 +55,7 @@ return [
         ]],
         ['titre' => 'Gestion', 'liens' => [
             ['libelle' => 'Membres', 'route' => 'membres.index', 'actif' => 'membres.*', 'role' => 'comite'],
-            ['libelle' => 'Groupes et cours', 'route' => 'cours.gestion', 'actif' => 'cours.*', 'role' => 'comite'],
+            ['libelle' => 'Groupes', 'route' => 'cours.gestion', 'actif' => 'cours.*', 'role' => 'comite'],
             ['libelle' => 'Salles', 'route' => 'salles.gestion', 'actif' => 'salles.*', 'role' => 'comite'],
         ]],
         ['titre' => 'Concours et photos', 'liens' => [

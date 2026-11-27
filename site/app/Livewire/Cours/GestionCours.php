@@ -22,7 +22,7 @@ use Livewire\Component;
  * Gestion des groupes, cours et sessions (comité et administrateur), sous forme d'arbre dépliable :
  * groupe → cours → sessions.
  */
-#[Title('Groupes et cours')]
+#[Title('Groupes')]
 class GestionCours extends Component
 {
     /** Élément en cours de modification : « groupe », « cours » ou « session » (null = pas de fenêtre ouverte). */

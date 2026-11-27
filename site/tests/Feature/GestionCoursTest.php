@@ -27,7 +27,7 @@ class GestionCoursTest extends TestCase
     {
         $this->get(route('cours.gestion'))->assertRedirect(route('login'));
         $this->actingAs(User::factory()->avecRole(Role::Moniteur)->create())->get(route('cours.gestion'))->assertForbidden();
-        $this->actingAs($this->comite())->get(route('cours.gestion'))->assertOk()->assertSee('Groupes et cours');
+        $this->actingAs($this->comite())->get(route('cours.gestion'))->assertOk()->assertSee('<h1>Groupes</h1>', false);
     }
 
     public function test_l_arbre_affiche_groupes_cours_et_sessions(): void
