@@ -52,13 +52,11 @@
                 <div class="visionneuse__boutons">
                     <button type="button" x-on:click="basculerDiaporama()" :title="diaporama ? 'Mettre en pause' : 'Lancer le diaporama'"
                             x-text="diaporama ? '❚❚ Pause' : '▶ Diaporama'"></button>
-                    <label class="visionneuse__delai" title="Durée d'affichage de chaque photo">
-                        <span class="visuellement-cache">Durée par photo</span>
-                        <select x-on:change="changerDelai($event.target.value)" x-on:pointerdown.stop>
-                            <template x-for="secondes in delais" :key="secondes">
-                                <option :value="secondes" :selected="secondes === delai" x-text="`${secondes} s`"></option>
-                            </template>
-                        </select>
+                    <label class="visionneuse__delai" title="Durée d'affichage de chaque photo pendant le diaporama">
+                        <span class="visuellement-cache">Durée par photo (secondes)</span>
+                        <input type="range" min="2" max="10" step="1" :value="delai"
+                               x-on:input="changerDelai($event.target.value)" x-on:pointerdown.stop x-on:pointerup.stop x-on:keydown.stop>
+                        <span class="visionneuse__delai-valeur" x-text="`${delai} s`" aria-hidden="true"></span>
                     </label>
                     <button type="button" x-on:click="basculerPleinEcran()" title="Plein écran">⛶</button>
                     <a :href="photos[index]?.grande" target="_blank" rel="noopener" title="Ouvrir l'original">⤓</a>

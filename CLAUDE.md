@@ -101,7 +101,7 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
       - en plus : question en toutes lettres (réponse en session), champ piège, délai minimal de 3 s, 3 envois par 10 min et par IP, 2 liens au maximum.
     - Les messages ne sont pas stockés.
   - **Galerie** (tables `albums` et `photos_galerie`) :
-    - Pages `/galerie` (albums, du plus récent au plus ancien) et `/galerie/{slug}` (grille de miniatures et visionneuse Alpine `visionneuse` : grande photo, flèches, clavier, glisser, plein écran, diaporama de 4 s).
+    - Pages `/galerie` (albums, du plus récent au plus ancien) et `/galerie/{slug}` (grille de miniatures et visionneuse Alpine `visionneuse` : grande photo, flèches, clavier, glisser, plein écran, diaporama réglable de 2 à 10 s par un curseur, mémorisé par le navigateur).
     - Gestion sur `/gestion/galerie/…`, ouverte aux moniteurs, au comité et à l'administrateur (gate `gerer-galerie`). Jusqu'à 999 photos par album.
     - Les photos sont réduites par le navigateur (`reduireImage`), envoyées une par une (`envoiGalerie`), puis traitées par `App\Services\PhotosGalerie` : 1920 px et miniature 480 px. Elles sont stockées dans `storage/app/private/galerie/{album}` et servies par `/photos-galerie/{id}`.
     - Suppressions : corbeille (soft delete), restaurable depuis le journal (l'album revient avec ses photos). Effacement définitif par `model:prune` après `JOURNAL_CONSERVATION_JOURS`.
@@ -116,7 +116,7 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
     - Contenu : titre, texte (éditeur), image à gauche, à droite ou en fond, et jusqu'à 6 boutons (lien web ou fichier joint PDF/image).
     - Affichage : dates « du / au » facultatives, case « active », et ordre réglable.
     - Fichiers : `storage/app/private/annonces/{images,fichiers}`, servis par `/annonces/{id}/image` et `/annonces/{id}/fichiers/{n}`. Ils sont publics seulement si l'annonce est active (sinon réservés au comité).
-    - ⚠️ Dans un modèle Eloquent, `\->visible` désigne une propriété interne de Laravel : utiliser `getAttribute('visible')`.
+    - ⚠️ Dans un modèle Eloquent, `$this->visible` désigne une propriété interne de Laravel : utiliser `getAttribute('visible')`.
   - **Partenaires** : table `partenaires` (nom, lien, logo, ordre, visible), gérée par le comité et l'administrateur sur `/gestion/partenaires` (gate `gerer-contenu`). Un bouton « Modifier les partenaires » apparaît sur l'accueil pour eux.
     - Les 9 logos d'origine restent dans `public/images/partenaires`.
     - Les logos importés sont réduits à 400 × 160 au maximum et réencodés en PNG. Ils sont stockés dans `storage/app/private/logos-partenaires` et servis par `/partenaires/{id}/logo`. Les fichiers SVG sont refusés.
@@ -157,7 +157,7 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
   - **Imports de fichiers** :
     - Chaque zone d'import vérifie le format et le poids dans le navigateur avant l'envoi (`controleFichiers` dans `app.js`) et affiche la raison d'un refus en rouge.
     - Limite d'envoi Livewire : 20 Mo (`config/livewire.php`). Le message « failed to upload » est traduit (`validation.uploaded`).
-    - Avatar : recadrage dans un rond (déplacer, zoomer) avant l'envoi (`recadrageAvatar`). Il envoie une image de 600 × 600 px via `\.upload('photo', …)`.
+    - Avatar : recadrage dans un rond (déplacer, zoomer) avant l'envoi (`recadrageAvatar`). Il envoie une image de 600 × 600 px via `$wire.upload('photo', …)`.
   - **Commandes** utilisables depuis les tâches planifiées de Plesk :
     - `mail:test adresse` : envoie un e-mail de test ;
     - `membre:admin email Prénom Nom` : crée un administrateur et lui envoie une invitation.

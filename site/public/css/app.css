@@ -323,11 +323,15 @@ altcha-widget {
     background: rgba(255, 255, 255, .12); color: #fff; font: inherit; cursor: pointer; text-decoration: none;
 }
 .visionneuse__boutons button:hover, .visionneuse__boutons a:hover { background: rgba(255, 255, 255, .25); }
-.visionneuse__delai select {
-    height: 2.4rem; padding: 0 .4rem; border: 0; border-radius: 4px; background: rgba(255, 255, 255, .12);
-    color: #fff; font: inherit; cursor: pointer;
+.visionneuse__delai {
+    display: inline-flex; align-items: center; gap: .4rem; height: 2.4rem; padding: 0 .6rem;
+    border-radius: 4px; background: rgba(255, 255, 255, .12); color: #fff; cursor: pointer;
 }
-.visionneuse__delai select option { color: #333; }
+.visionneuse__delai input[type="range"] { width: 6.5rem; accent-color: #fff; cursor: pointer; }
+.visionneuse__delai-valeur { min-width: 2.2rem; text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 40rem) {
+    .visionneuse__delai input[type="range"] { width: 4.5rem; }
+}
 .visionneuse__fleche { position: absolute; top: 50%; transform: translateY(-50%); width: 3rem; height: 4.5rem; border: 0; border-radius: 6px; background: rgba(255, 255, 255, .1); color: #fff; font-size: 2.4rem; line-height: 1; cursor: pointer; }
 .visionneuse__fleche:hover { background: rgba(255, 255, 255, .25); }
 .visionneuse__fleche--precedente { left: .5rem; }

@@ -240,11 +240,10 @@ document.addEventListener('alpine:init', () => {
         minuterie: null,
         departGlisse: null,
         /** Durée d'affichage de chaque photo pendant le diaporama (secondes), mémorisée par le navigateur. */
-        delai: Number(localStorage.getItem('diaporamaDelai')) || 4,
-        delais: [2, 3, 4, 5, 8, 10],
+        delai: Math.min(10, Math.max(2, Number(localStorage.getItem('diaporamaDelai')) || 4)),
 
         changerDelai(secondes) {
-            this.delai = Number(secondes);
+            this.delai = Math.min(10, Math.max(2, Number(secondes)));
             localStorage.setItem('diaporamaDelai', String(this.delai));
 
             if (this.diaporama) {
