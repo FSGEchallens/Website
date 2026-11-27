@@ -51,6 +51,6 @@ class BlocContenu extends Model
      */
     public static function libellesChampsJournal(): array
     {
-        return ['titre' => 'Titre', 'contenu' => 'Texte', 'visible' => 'Affiché'];
+        return ['titre' => 'Titre', 'contenu' => 'Texte', 'visible' => 'Affiché', 'fichier' => 'Fichier PDF'];
     }
 }

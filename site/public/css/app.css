@@ -206,6 +206,10 @@ a { color: var(--bleu); }
 .page-contenu h1 { color: var(--vert-fonce); }
 .page-contenu__corps--avec-image { display: grid; grid-template-columns: 12rem 1fr; gap: 2rem; align-items: start; }
 .page-contenu__image { width: 100%; height: auto; }
+.statuts-gestion { margin-bottom: 1rem; padding: .75rem 1rem; background: #f4f4f4; border-radius: 4px; }
+.statuts-gestion form { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; }
+.statuts-gestion .aide, .statuts-gestion .erreur { flex-basis: 100%; }
+.statuts-pdf { display: block; width: 100%; height: 80vh; min-height: 30rem; border: 1px solid #ddd; }
 .page-contenu .texte-riche ul { list-style: none; padding-left: 0; }
 .page-contenu .texte-riche li { padding: .45rem 0 .45rem 1rem; border-left: 3px solid var(--vert); margin-bottom: .35rem; }
 @media (max-width: 40rem) {

@@ -18,7 +18,7 @@ return [
         ['libelle' => 'La société', 'sous_menu' => [
             ['libelle' => 'Historique', 'route' => 'societe.historique'],
             ['libelle' => 'Le comité', 'route' => 'societe.comite'],
-            ['libelle' => 'Statuts', 'url' => $ancienSite.'/wp-content/uploads/FSG-Echallens-Statuts.pdf'],
+            ['libelle' => 'Statuts', 'route' => 'societe.statuts'],
             ['libelle' => 'PVs assemblées générales', 'url' => $ancienSite.'/pvs-assemblees-generales/'],
             ['libelle' => 'Résultats', 'route' => 'resultats.index'],
         ]],

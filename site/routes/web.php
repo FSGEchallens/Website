@@ -7,6 +7,7 @@ use App\Http\Controllers\LogoPartenaireController;
 use App\Http\Controllers\PhotoGalerieController;
 use App\Http\Controllers\PhotoMembreController;
 use App\Http\Controllers\PhotoResultatController;
+use App\Http\Controllers\StatutsController;
 use App\Livewire\Administration\JournalModifications;
 use App\Livewire\Auth\Connexion;
 use App\Livewire\Auth\MotDePasseOublie;
@@ -48,6 +49,10 @@ Route::get('/la-societe/historique', fn () => view('pages.contenu', [
 // Défi du captcha ALTCHA (formulaire de contact), sans service externe.
 Route::get('/altcha/defi', fn (Altcha $altcha) => response()->json($altcha->creerDefi())->header('Cache-Control', 'no-store'))
     ->middleware('throttle:30,1')->name('altcha.defi');
+
+// La société → Statuts : PDF affiché dans la page, remplaçable par le comité.
+Route::get('/la-societe/statuts', [StatutsController::class, 'page'])->name('societe.statuts');
+Route::get('/la-societe/statuts/FSG-Echallens-Statuts.pdf', [StatutsController::class, 'pdf'])->name('societe.statuts.pdf');
 
 // La société → Le comité : personnes cochées « Fait partie du comité », dans l'ordre choisi.
 Route::get('/la-societe/comite', fn () => view('comite', [
