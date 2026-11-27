@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Enums\Civilite;
 use App\Enums\Role;
 use App\Models\Cours;
 use App\Models\Groupe;
+use App\Models\Salle;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -32,6 +34,8 @@ class ImporterGroupesTest extends TestCase
 
         $html .= $icone('concours', 'Soirée de gym.');
         $html .= '<div class="et_pb_team_member_description"><h1>Anna Fictive</h1><a href="mailto:anna.fictive@gymechallens.ch">x</a></div>';
+        $html .= '<div class="et_pb_team_member_description"><h1>Carla Exemple</h1><p class="et_pb_member_position">Monitrice</p>'
+            .'<p><strong>N° Mobile:</strong> 079 000 00 01</p><p>Adresse e-mail:<a href="mailto:carla.exemple@gymechallens.ch">x</a></p></div>';
         $html .= '<span class="et_pb_sum">300</span><ul class="et_pb_pricing"><li><span>3 cours d\'essai</span></li><li><span>'.$heures.' de cours chaque semaine</span></li></ul>';
 
         return '<html><body>'.$html.'</body></html>';
@@ -54,8 +58,20 @@ class ImporterGroupesTest extends TestCase
         ]);
 
         $this->artisan('groupes:importer', ['--site' => 'https://exemple.test'])
-            ->expectsOutputToContain('Bruno Inconnu (Enfantine (1-2 Harmos))')
+            ->expectsOutputToContain('+ Bruno Inconnu (Enfantine (1-2 Harmos))')
             ->assertSuccessful();
+
+        // Fiches membres créées pour les moniteurs qui n'en avaient pas (sans mot de passe ni invitation).
+        $carla = User::where('nom', 'Exemple')->sole();
+        $this->assertSame('Carla', $carla->prenom);
+        $this->assertSame(Role::Moniteur, $carla->role);
+        $this->assertSame(Civilite::Madame, $carla->civilite);
+        $this->assertSame('carla.exemple@gymechallens.ch', $carla->email);
+        $this->assertSame('+41 79 000 00 01', $carla->mobile);
+        $this->assertNull($carla->password);
+        $bruno = User::where('nom', 'Inconnu')->sole();
+        $this->assertNull($bruno->email);
+        $this->assertSame(1, User::where('email', 'anna.fictive@gymechallens.ch')->count(), 'Anna existait déjà.');
 
         $concours = Groupe::where('slug', 'agres-kids-concours')->firstOrFail();
         $this->assertSame('Agrès', $concours->categorie);
@@ -65,20 +81,24 @@ class ImporterGroupesTest extends TestCase
 
         // 2 × 2 h = « 4h de cours chaque semaine » : un seul cours avec 2 sessions.
         $cours = $concours->cours()->with('sessions')->sole();
-        $this->assertSame('Echallens, Court-Champ 3', $cours->salle);
-        $this->assertSame([$anna->id], $cours->moniteurs);
+        $this->assertSame('Echallens, Court-Champ 3', $cours->salle->nom);
+        $this->assertSame('Echallens', $cours->salle->localite);
+        // Carla est présentée sur la page sans créneau : moniteur secondaire.
+        $this->assertSame([$anna->id, $carla->id], $cours->moniteurs);
         $this->assertSame('COMPLET', $cours->remarque);
         $this->assertSame(['Mardi 18:00–20:00', 'Jeudi 18:00–20:00'], $cours->sessions->map->libelleHoraire()->all());
 
         // 2 créneaux de 1 h pour « 1h » par semaine : deux cours séparés.
         $enfantine = Groupe::where('slug', 'enfantine-1-2-harmos')->firstOrFail();
         $this->assertSame(2, $enfantine->cours()->count());
-        $this->assertSame([], $enfantine->cours()->first()->moniteurs);
-        $this->assertSame('Poliez-le-Grand (Grande salle)', $enfantine->cours()->get()->last()->salle);
+        $this->assertSame([$bruno->id, $carla->id], $enfantine->cours()->first()->moniteurs);
+        $this->assertSame('Poliez-le-Grand (Grande salle)', $enfantine->cours()->get()->last()->salle->nom);
+        $this->assertSame(3, Salle::count());
 
         // Relancer ne crée pas de doublon.
         $this->artisan('groupes:importer', ['--site' => 'https://exemple.test'])->assertSuccessful();
         $this->assertSame(2, Groupe::count());
         $this->assertSame(3, Cours::count());
+        $this->assertSame(3, User::count());
     }
 }

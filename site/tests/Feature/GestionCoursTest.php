@@ -7,6 +7,7 @@ use App\Livewire\Cours\GestionCours;
 use App\Models\Cours;
 use App\Models\Groupe;
 use App\Models\JournalModification;
+use App\Models\Salle;
 use App\Models\SessionCours;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -35,7 +36,7 @@ class GestionCoursTest extends TestCase
         $groupe = Groupe::factory()->create(['nom' => 'Agrès test', 'prix' => 300]);
         $cours = Cours::factory()->for($groupe)->create(['jour' => null, 'heure_debut' => null, 'heure_fin' => null, 'moniteurs' => [$moniteur->id]]);
         SessionCours::factory()->for($cours)->create(['jour' => 2, 'heure_debut' => '18:00', 'heure_fin' => '20:00']);
-        SessionCours::factory()->for($cours)->create(['jour' => 4, 'heure_debut' => '18:00', 'heure_fin' => '20:00', 'salle' => 'Salle B']);
+        SessionCours::factory()->for($cours)->create(['jour' => 4, 'heure_debut' => '18:00', 'heure_fin' => '20:00', 'salle_id' => Salle::factory()->create(['nom' => 'Salle B'])->id]);
 
         Livewire::actingAs($this->comite())
             ->test(GestionCours::class)
@@ -84,17 +85,38 @@ class GestionCoursTest extends TestCase
         $this->assertTrue(JournalModification::where('sujet_type', Cours::class)->exists());
     }
 
-    public function test_un_simple_membre_ne_peut_pas_etre_moniteur(): void
+    public function test_tous_les_membres_sont_proposes_et_la_salle_se_choisit_dans_la_liste(): void
     {
-        $membre = User::factory()->avecRole(Role::Membre)->create();
+        $membre = User::factory()->avecRole(Role::Membre)->create(['prenom' => 'Zoé', 'nom' => 'Simplemembre']);
+        $salle = Salle::factory()->create(['nom' => 'Poliez-le-Grand (Grande salle)']);
         $groupe = Groupe::factory()->create();
 
         Livewire::actingAs($this->comite())
             ->test(GestionCours::class)
             ->call('nouveauCours', $groupe->id)
-            ->set('donnees.moniteurs', [$membre->id])
+            ->assertSee('Simplemembre Zoé')
+            ->assertSee('Poliez-le-Grand (Grande salle)')
+            ->set('moniteurAAjouter', $membre->id)->call('ajouterMoniteur')
+            ->set('donnees.salle_id', (string) $salle->id)
             ->call('enregistrer')
-            ->assertHasErrors('donnees.moniteurs.0');
+            ->assertHasNoErrors();
+
+        $cours = Cours::firstOrFail();
+        $this->assertSame([$membre->id], $cours->moniteurs);
+        $this->assertSame('Poliez-le-Grand (Grande salle)', $cours->salle->nom);
+    }
+
+    public function test_un_moniteur_ou_une_salle_inconnus_sont_refuses(): void
+    {
+        $groupe = Groupe::factory()->create();
+
+        Livewire::actingAs($this->comite())
+            ->test(GestionCours::class)
+            ->call('nouveauCours', $groupe->id)
+            ->set('donnees.moniteurs', [999999])
+            ->set('donnees.salle_id', '999999')
+            ->call('enregistrer')
+            ->assertHasErrors(['donnees.moniteurs.0', 'donnees.salle_id']);
     }
 
     public function test_horaire_d_une_session_obligatoire_et_fin_apres_debut(): void

@@ -2,10 +2,14 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\Civilite;
+use App\Enums\Role;
 use App\Models\Cours;
 use App\Models\Groupe;
+use App\Models\Salle;
 use App\Models\User;
 use App\Support\NettoyeurHtml;
+use App\Support\NumeroMobile;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
@@ -22,8 +26,10 @@ use Throwable;
  *
  * Les pages contiennent les noms et coordonnées des moniteurs : elles sont lues sur l'ancien site au moment
  * de l'import et rien de personnel n'est mis dans le code (dépôt GitHub public). Les moniteurs sont reliés
- * aux fiches membres existantes (même e-mail société ou même prénom et nom) ; les autres sont seulement
- * signalés dans le compte rendu, pour être ajoutés à la main.
+ * aux fiches membres existantes (même e-mail société ou même prénom et nom). Les autres reçoivent une fiche
+ * membre (niveau Moniteur, avec l'e-mail société et le mobile de l'ancien site), sauf avec --sans-membres.
+ * Aucune invitation n'est envoyée : le comité les envoie depuis la fiche membre.
+ * Les personnes présentées sur la page sans créneau sont ajoutées comme moniteurs secondaires des cours.
  *
  * Plusieurs créneaux dont la durée totale correspond aux heures hebdomadaires du tarif (ex. « 4h de cours
  * chaque semaine » pour mardi + jeudi 2 h) forment un seul cours avec des sessions ; sinon chaque créneau
@@ -32,7 +38,7 @@ use Throwable;
  * Sur Plesk : tâche planifiée, script site/artisan, arguments « groupes:importer ».
  * Sans doublon : un groupe déjà présent (même adresse de page) est ignoré.
  */
-#[Signature('groupes:importer {--site=https://gymechallens.ch : Adresse de l\'ancien site}')]
+#[Signature('groupes:importer {--site=https://gymechallens.ch : Adresse de l\'ancien site} {--sans-membres : Ne pas créer les fiches des moniteurs manquants}')]
 #[Description('Importe les groupes, cours et sessions depuis l\'ancien site WordPress')]
 class ImporterGroupes extends Command
 {
@@ -66,8 +72,11 @@ class ImporterGroupes extends Command
 
     private const JOURS = ['lundi' => 1, 'mardi' => 2, 'mercredi' => 3, 'jeudi' => 4, 'vendredi' => 5, 'samedi' => 6, 'dimanche' => 7];
 
-    /** @var array<string, string> nom de moniteur => compte rendu, pour le résumé final */
+    /** @var array<string, string> nom de moniteur sans fiche => groupes, pour le résumé final */
     private array $nonTrouves = [];
+
+    /** @var array<string, string> nom du membre créé => groupes, pour le résumé final */
+    private array $membresCrees = [];
 
     public function handle(): int
     {
@@ -116,6 +125,7 @@ class ImporterGroupes extends Command
                 $groupe->forceFill(['ordre' => ++$ordre])->save();
 
                 $this->creerCours($groupe, $page);
+                $this->ajouterMoniteursSansCreneau($groupe, $page);
             });
 
             $importes++;
@@ -124,6 +134,14 @@ class ImporterGroupes extends Command
 
         $this->newLine();
         $this->info($importes.' groupe(s) importé(s).');
+
+        if ($this->membresCrees !== []) {
+            $this->info(count($this->membresCrees).' fiche(s) membre créée(s) au niveau Moniteur (à compléter : titre, e-mail privé…) :');
+
+            foreach ($this->membresCrees as $nom => $groupes) {
+                $this->line(' + '.$nom.' ('.$groupes.')');
+            }
+        }
 
         if ($this->nonTrouves !== []) {
             $this->warn('Moniteurs sans fiche membre (à créer puis à ajouter dans les cours) :');
@@ -265,11 +283,17 @@ class ImporterGroupes extends Command
 
         // Fiches des moniteurs (nom => e-mail), pour les relier aux membres.
         foreach ($xpath->query('//div[contains(@class, "et_pb_team_member_description")]') as $fiche) {
-            $nom = $xpath->query('.//h1|.//h2|.//h3|.//h4', $fiche)->item(0)?->textContent;
+            $nom = $this->texte((string) $xpath->query('.//h1|.//h2|.//h3|.//h4', $fiche)->item(0)?->textContent);
             $lien = $xpath->query('.//a[starts-with(@href, "mailto:")]', $fiche)->item(0);
+            $poste = $xpath->query('.//*[contains(@class, "et_pb_member_position")]', $fiche)->item(0)?->textContent;
+            $mobile = preg_match('/Mobile\s*:?\s*(\+?\d[\d .\/]{7,}\d)/u', $this->texte($fiche->textContent), $m) ? trim($m[1]) : null;
 
-            if ($nom && $lien instanceof DOMElement) {
-                $resultat['contacts'][$this->texte($nom)] = Str::lower(trim(substr($lien->getAttribute('href'), 7)));
+            if ($nom !== '') {
+                $resultat['contacts'][$nom] = [
+                    'email' => $lien instanceof DOMElement ? Str::lower(trim(substr($lien->getAttribute('href'), 7))) : null,
+                    'mobile' => $mobile,
+                    'poste' => $poste ? $this->texte($poste) : null,
+                ];
             }
         }
 
@@ -297,7 +321,7 @@ class ImporterGroupes extends Command
                     'jour' => $creneau['jour'],
                     'heure_debut' => $creneau['debut'],
                     'heure_fin' => $creneau['fin'],
-                    'salle' => $creneau['salle'],
+                    'salle_id' => $this->idSalle($creneau['salle']),
                     'moniteurs' => $this->relierMoniteurs($creneau['moniteurs'], $page['contacts'], $groupe->nom),
                     'remarque' => $creneau['remarque'],
                     'actif' => true,
@@ -317,7 +341,7 @@ class ImporterGroupes extends Command
 
         $cours = new Cours([
             'groupe_id' => $groupe->id,
-            'salle' => $salleCommune,
+            'salle_id' => $this->idSalle($salleCommune),
             'moniteurs' => $moniteursCommuns ? $this->relierMoniteurs($creneaux[0]['moniteurs'], $page['contacts'], $groupe->nom) : [],
             'remarque' => count($remarques) === 1 ? $creneaux[0]['remarque'] : null,
             'actif' => true,
@@ -329,12 +353,86 @@ class ImporterGroupes extends Command
                 'jour' => $creneau['jour'],
                 'heure_debut' => $creneau['debut'],
                 'heure_fin' => $creneau['fin'],
-                'salle' => $salleCommune === null ? $creneau['salle'] : null,
+                'salle_id' => $salleCommune === null ? $this->idSalle($creneau['salle']) : null,
                 'moniteurs' => $moniteursCommuns ? [] : $this->relierMoniteurs($creneau['moniteurs'], $page['contacts'], $groupe->nom),
                 'remarque' => count($remarques) === 1 ? null : $creneau['remarque'],
             ]);
             $session->forceFill(['ordre' => $index + 1])->save();
         }
+    }
+
+    /**
+     * Fiche membre d'un moniteur de l'ancien site (niveau Moniteur, sans mot de passe ni invitation).
+     *
+     * @param  array{email?: ?string, mobile?: ?string, poste?: ?string}  $contact
+     */
+    private function creerMembre(string $nomComplet, array $contact): User
+    {
+        $mots = preg_split('/\s+/u', trim($nomComplet)) ?: [];
+        $prenom = (string) array_shift($mots);
+        $poste = Str::lower(Str::ascii((string) ($contact['poste'] ?? '')));
+
+        $civilite = match (true) {
+            str_contains($poste, 'monitrice'), str_contains($poste, 'instructrice') => Civilite::Madame,
+            str_contains($poste, 'moniteur'), str_contains($poste, 'instructeur') => Civilite::Monsieur,
+            default => null,
+        };
+
+        // L'e-mail société sert d'identifiant de connexion : seulement une adresse du club encore libre.
+        $email = $contact['email'] ?? null;
+
+        if ($email !== null && (! str_ends_with($email, '@'.config('app.domaine_email')) || User::where('email', $email)->exists())) {
+            $email = null;
+        }
+
+        $membre = new User([
+            'civilite' => $civilite,
+            'prenom' => $prenom,
+            'nom' => $mots === [] ? $prenom : implode(' ', $mots),
+            'mobile' => NumeroMobile::normaliser($contact['mobile'] ?? null),
+            'email' => $email,
+        ]);
+        $membre->forceFill(['role' => Role::Moniteur])->save();
+
+        $this->membresCrees[$nomComplet] = '';
+
+        return $membre;
+    }
+
+    /**
+     * Personnes présentées sur la page sans être indiquées sur un créneau : moniteurs secondaires de chaque cours.
+     *
+     * @param  array{creneaux: array<int, array{moniteurs: array<int, string>}>, contacts: array<string, array{email: ?string, mobile: ?string, poste: ?string}>}  $page
+     */
+    private function ajouterMoniteursSansCreneau(Groupe $groupe, array $page): void
+    {
+        $surLesCreneaux = array_merge([], ...array_map(fn ($c) => $c['moniteurs'], $page['creneaux']));
+        $autres = array_values(array_diff(array_keys($page['contacts']), $surLesCreneaux));
+
+        if ($autres === []) {
+            return;
+        }
+
+        $ids = $this->relierMoniteurs($autres, $page['contacts'], $groupe->nom);
+
+        foreach ($groupe->cours()->get() as $cours) {
+            $cours->moniteurs = array_values(array_unique(array_merge($cours->idsMoniteurs(), $ids)));
+            $cours->save();
+        }
+    }
+
+    /**
+     * Salle portant ce nom (créée si besoin, la rue et le NPA restant à compléter).
+     */
+    private function idSalle(?string $nom): ?int
+    {
+        if ($nom === null || trim($nom) === '') {
+            return null;
+        }
+
+        $localite = trim((string) preg_split('/[,(]/', $nom)[0]);
+
+        return Salle::firstOrCreate(['nom' => trim($nom)], ['localite' => $localite ?: null])->id;
     }
 
     /**
@@ -349,12 +447,20 @@ class ImporterGroupes extends Command
         $ids = [];
 
         foreach ($noms as $nom) {
-            $email = $contacts[$nom] ?? null;
+            $email = $contacts[$nom]['email'] ?? null;
             $membre = $email ? User::where('email', $email)->first() : null;
             $membre ??= User::all(['id', 'prenom', 'nom'])->first(
                 fn (User $u) => Str::lower(Str::ascii($u->prenom.' '.$u->nom)) === Str::lower(Str::ascii($nom))
                     || Str::lower(Str::ascii($u->nom.' '.$u->prenom)) === Str::lower(Str::ascii($nom))
             );
+
+            if ($membre === null && ! $this->option('sans-membres')) {
+                $membre = $this->creerMembre($nom, $contacts[$nom] ?? []);
+            }
+
+            if (isset($this->membresCrees[$nom]) && ! str_contains($this->membresCrees[$nom], $groupe)) {
+                $this->membresCrees[$nom] = trim($this->membresCrees[$nom].', '.$groupe, ', ');
+            }
 
             if ($membre === null) {
                 $this->nonTrouves[$nom] = isset($this->nonTrouves[$nom]) ? $this->nonTrouves[$nom].', '.$groupe : $groupe;

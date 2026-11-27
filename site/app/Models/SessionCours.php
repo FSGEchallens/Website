@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Session d'un cours qui a plusieurs entraînements par semaine (ex. lundi et jeudi).
  * Salle et moniteurs vides = ceux du cours.
  */
-#[Fillable(['cours_id', 'jour', 'heure_debut', 'heure_fin', 'salle', 'moniteurs', 'remarque'])]
+#[Fillable(['cours_id', 'jour', 'heure_debut', 'heure_fin', 'salle_id', 'moniteurs', 'remarque'])]
 class SessionCours extends Model
 {
     /** @use HasFactory<SessionCoursFactory> */
@@ -29,6 +29,7 @@ class SessionCours extends Model
     {
         return [
             'jour' => 'integer',
+            'salle_id' => 'integer',
             'moniteurs' => 'array',
             'ordre' => 'integer',
         ];
@@ -42,9 +43,9 @@ class SessionCours extends Model
         return $this->belongsTo(Cours::class);
     }
 
-    public function salleEffective(): ?string
+    public function salleEffective(): ?Salle
     {
-        return $this->salle ?: $this->cours?->salle;
+        return $this->salle ?? $this->cours?->salle;
     }
 
     /**
@@ -66,8 +67,16 @@ class SessionCours extends Model
     public static function libellesChampsJournal(): array
     {
         return [
-            'jour' => 'Jour', 'heure_debut' => 'Début', 'heure_fin' => 'Fin', 'salle' => 'Salle',
+            'jour' => 'Jour', 'heure_debut' => 'Début', 'heure_fin' => 'Fin', 'salle_id' => 'Salle',
             'moniteurs' => 'Moniteurs', 'remarque' => 'Remarque', 'ordre' => 'Ordre',
         ];
+    }
+
+    /**
+     * @return BelongsTo<Salle, $this>
+     */
+    public function salle(): BelongsTo
+    {
+        return $this->belongsTo(Salle::class);
     }
 }

@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Cours d'un groupe, en général une fois par semaine (jour, heures, salle, moniteurs).
  * S'il a plusieurs entraînements par semaine, ils sont décrits par ses sessions.
  */
-#[Fillable(['groupe_id', 'nom', 'jour', 'heure_debut', 'heure_fin', 'salle', 'moniteurs', 'remarque', 'actif'])]
+#[Fillable(['groupe_id', 'nom', 'jour', 'heure_debut', 'heure_fin', 'salle_id', 'moniteurs', 'remarque', 'actif'])]
 class Cours extends Model
 {
     /** @use HasFactory<CoursFactory> */
@@ -30,6 +30,7 @@ class Cours extends Model
     {
         return [
             'jour' => 'integer',
+            'salle_id' => 'integer',
             'moniteurs' => 'array',
             'ordre' => 'integer',
             'actif' => 'boolean',
@@ -72,7 +73,15 @@ class Cours extends Model
     {
         return [
             'groupe_id' => 'Groupe', 'nom' => 'Nom', 'jour' => 'Jour', 'heure_debut' => 'Début', 'heure_fin' => 'Fin',
-            'salle' => 'Salle', 'moniteurs' => 'Moniteurs', 'remarque' => 'Remarque', 'ordre' => 'Ordre', 'actif' => 'Actif',
+            'salle_id' => 'Salle', 'moniteurs' => 'Moniteurs', 'remarque' => 'Remarque', 'ordre' => 'Ordre', 'actif' => 'Actif',
         ];
+    }
+
+    /**
+     * @return BelongsTo<Salle, $this>
+     */
+    public function salle(): BelongsTo
+    {
+        return $this->belongsTo(Salle::class);
     }
 }

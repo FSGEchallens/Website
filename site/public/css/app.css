@@ -587,3 +587,17 @@ tr:hover td { background: #fbfdf8; }
     .arbre__actions { flex-basis: 100%; padding-left: 2.2rem; }
     .arbre__enfants { padding-left: .75rem; margin-left: .5rem; }
 }
+/* Gestion des salles */
+.salles { display: grid; grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr)); gap: 1rem; }
+.salle { display: grid; grid-template-columns: 9rem 1fr; gap: 1rem; align-items: start; margin: 0; }
+.salle h2 { margin: 0 0 .3rem; font-size: 1.1rem; color: var(--vert-fonce); }
+.salle p { margin: 0 0 .4rem; }
+.salle__photo { width: 9rem; aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center; background: var(--gris-clair); border-radius: 6px; overflow: hidden; }
+.salle__photo img { width: 100%; height: 100%; object-fit: cover; }
+.salle__photo--formulaire { width: 14rem; margin-bottom: .6rem; }
+.salle__carte { display: block; width: 100%; height: 16rem; border: 0; border-radius: 6px; margin-bottom: .75rem; }
+.grille--adresse { grid-template-columns: minmax(0, 2fr) 6rem minmax(0, 1.5fr); }
+@media (max-width: 40rem) {
+    .salle { grid-template-columns: 1fr; }
+    .grille--adresse { grid-template-columns: 1fr; }
+}

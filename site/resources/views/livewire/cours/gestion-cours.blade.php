@@ -70,7 +70,7 @@
                                     @if ($cours->nom && $cours->libelleHoraire()) <span>{{ $cours->libelleHoraire() }}</span> @endif
                                     @unless ($cours->actif) <span class="badge">inactif</span> @endunless
                                     <span class="arbre__details">
-                                        {{ collect([$cours->salle, $noms($cours->idsMoniteurs()), $cours->remarque])->filter()->implode(' · ') }}
+                                        {{ collect([$cours->salle?->nom, $noms($cours->idsMoniteurs()), $cours->remarque])->filter()->implode(' · ') }}
                                     </span>
                                 </div>
                                 <div class="arbre__actions">
@@ -92,7 +92,7 @@
                                                 <strong>{{ $session->libelleHoraire() }}</strong>
                                                 <span class="arbre__details">
                                                     {{ collect([
-                                                        $session->salle ?: ($cours->salle ? $cours->salle.' (comme le cours)' : null),
+                                                        $session->salle?->nom ?? ($cours->salle ? $cours->salle->nom.' (comme le cours)' : null),
                                                         $session->idsMoniteurs() !== [] ? $noms($session->idsMoniteurs()) : ($cours->idsMoniteurs() !== [] ? $noms($cours->idsMoniteurs()).' (comme le cours)' : null),
                                                         $session->remarque,
                                                     ])->filter()->implode(' · ') }}
@@ -199,14 +199,16 @@
                             <div class="aide">Laissez le jour et les heures vides si le cours a plusieurs sessions par semaine.</div>
                         @endif
 
-                        <div class="champ">
+                        <div @class(['champ', 'champ--erreur' => $errors->has('donnees.salle_id')])>
                             <label for="champ-salle">Salle</label>
-                            <input id="champ-salle" type="text" wire:model="donnees.salle" list="liste-salles"
-                                   placeholder="{{ $type === 'session' && $parent?->salle ? 'Comme le cours : '.$parent->salle : 'Ex. Echallens, Court-Champ 3' }}">
-                            <datalist id="liste-salles">
-                                @foreach ($salles as $salle) <option value="{{ $salle }}"></option> @endforeach
-                            </datalist>
-                            @error('donnees.salle') <div class="erreur">{{ $message }}</div> @enderror
+                            <select id="champ-salle" wire:model="donnees.salle_id">
+                                <option value="">{{ $type === 'session' ? ($parent?->salle ? '— Comme le cours : '.$parent->salle->nom.' —' : '— Comme le cours —') : '— Aucune —' }}</option>
+                                @foreach ($salles as $salle)
+                                    <option value="{{ $salle->id }}">{{ $salle->nom }}</option>
+                                @endforeach
+                            </select>
+                            <div class="aide">Une salle manque ? Ajoutez-la dans <a href="{{ route('salles.gestion') }}" target="_blank">Salles</a>, puis rouvrez cette fenêtre.</div>
+                            @error('donnees.salle_id') <div class="erreur">{{ $message }}</div> @enderror
                         </div>
 
                         <fieldset class="groupe">
@@ -246,7 +248,7 @@
                                 </select>
                                 <button type="button" class="bouton bouton--secondaire bouton--petit" wire:click="ajouterMoniteur">Ajouter</button>
                             </div>
-                            <div class="aide">Seuls les membres de niveau Moniteur, Comité ou Administrateur sont proposés. Le premier est le moniteur principal.</div>
+                            <div class="aide">Tous les membres de la société sont proposés. Le premier est le moniteur principal.</div>
                             @error('donnees.moniteurs.*') <div class="erreur">{{ $message }}</div> @enderror
                         </fieldset>
 

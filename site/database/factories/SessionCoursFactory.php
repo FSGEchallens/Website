@@ -21,7 +21,7 @@ class SessionCoursFactory extends Factory
             'jour' => 4,
             'heure_debut' => '18:00',
             'heure_fin' => '20:00',
-            'salle' => null,
+            'salle_id' => null,
             'moniteurs' => [],
             'remarque' => null,
         ];

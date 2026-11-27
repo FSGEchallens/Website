@@ -1,4 +1,4 @@
-@props(['nom', 'libelle', 'type' => 'text', 'aide' => null, 'requis' => false])
+@props(['nom', 'libelle', 'type' => 'text', 'aide' => null, 'requis' => false, 'modificateur' => ''])
 
 <div @class(['champ', 'champ--erreur' => $errors->has($nom)])>
     <label for="champ-{{ $nom }}">{{ $libelle }}@if ($requis) <span aria-hidden="true">*</span>@endif</label>
@@ -11,7 +11,7 @@
             <x-bouton-oeil />
         </div>
     @else
-        <input id="champ-{{ $nom }}" type="{{ $type }}" wire:model="{{ $nom }}"
+        <input id="champ-{{ $nom }}" type="{{ $type }}" wire:model{{ $modificateur }}="{{ $nom }}"
                @if ($requis) required @endif
                @if ($errors->has($nom)) aria-invalid="true" aria-describedby="erreur-{{ $nom }}" @endif
                {{ $attributes }}>

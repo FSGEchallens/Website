@@ -4,6 +4,7 @@ namespace App\Livewire\Cours;
 
 use App\Models\Cours;
 use App\Models\Groupe;
+use App\Models\Salle;
 use App\Models\SessionCours;
 use App\Models\User;
 use App\Support\NettoyeurHtml;
@@ -74,7 +75,7 @@ class GestionCours extends Component
         $groupe = Groupe::findOrFail($groupeId);
 
         $this->ouvrir('cours', 0, $groupe->id, [
-            'nom' => '', 'jour' => '', 'heure_debut' => '', 'heure_fin' => '', 'salle' => '',
+            'nom' => '', 'jour' => '', 'heure_debut' => '', 'heure_fin' => '', 'salle_id' => '',
             'moniteurs' => [], 'remarque' => '', 'actif' => true,
         ]);
     }
@@ -86,7 +87,7 @@ class GestionCours extends Component
         $this->ouvrir('cours', $cours->id, $cours->groupe_id, [
             'nom' => (string) $cours->nom, 'jour' => (string) ($cours->jour ?? ''),
             'heure_debut' => substr((string) $cours->heure_debut, 0, 5), 'heure_fin' => substr((string) $cours->heure_fin, 0, 5),
-            'salle' => (string) $cours->salle, 'moniteurs' => $cours->idsMoniteurs(),
+            'salle_id' => (string) ($cours->salle_id ?? ''), 'moniteurs' => $cours->idsMoniteurs(),
             'remarque' => (string) $cours->remarque, 'actif' => $cours->actif,
         ]);
     }
@@ -96,7 +97,7 @@ class GestionCours extends Component
         $cours = Cours::findOrFail($coursId);
 
         $this->ouvrir('session', 0, $cours->id, [
-            'jour' => '', 'heure_debut' => '', 'heure_fin' => '', 'salle' => '', 'moniteurs' => [], 'remarque' => '',
+            'jour' => '', 'heure_debut' => '', 'heure_fin' => '', 'salle_id' => '', 'moniteurs' => [], 'remarque' => '',
         ]);
     }
 
@@ -107,7 +108,7 @@ class GestionCours extends Component
         $this->ouvrir('session', $session->id, $session->cours_id, [
             'jour' => (string) $session->jour,
             'heure_debut' => substr((string) $session->heure_debut, 0, 5), 'heure_fin' => substr((string) $session->heure_fin, 0, 5),
-            'salle' => (string) $session->salle, 'moniteurs' => $session->idsMoniteurs(), 'remarque' => (string) $session->remarque,
+            'salle_id' => (string) ($session->salle_id ?? ''), 'moniteurs' => $session->idsMoniteurs(), 'remarque' => (string) $session->remarque,
         ]);
     }
 
@@ -244,7 +245,7 @@ class GestionCours extends Component
             'donnees.nom' => 'nom', 'donnees.slug' => 'adresse de la page', 'donnees.categorie' => 'catégorie',
             'donnees.age' => 'âge', 'donnees.prerequis' => 'prérequis', 'donnees.concours' => 'concours',
             'donnees.prix' => 'prix', 'donnees.infos_tarif' => 'informations du tarif', 'donnees.jour' => 'jour',
-            'donnees.heure_debut' => 'heure de début', 'donnees.heure_fin' => 'heure de fin', 'donnees.salle' => 'salle',
+            'donnees.heure_debut' => 'heure de début', 'donnees.heure_fin' => 'heure de fin', 'donnees.salle_id' => 'salle',
             'donnees.remarque' => 'remarque', 'donnees.description' => 'description',
         ];
     }
@@ -342,9 +343,9 @@ class GestionCours extends Component
             'donnees.jour' => [$requis, 'nullable', 'integer', 'between:1,7'],
             'donnees.heure_debut' => [$requis, 'nullable', 'date_format:H:i'],
             'donnees.heure_fin' => [$requis, 'nullable', 'date_format:H:i', 'after:donnees.heure_debut'],
-            'donnees.salle' => ['nullable', 'string', 'max:150'],
+            'donnees.salle_id' => ['nullable', 'integer', 'exists:salles,id'],
             'donnees.moniteurs' => ['array', 'max:10'],
-            'donnees.moniteurs.*' => ['integer', Rule::in($this->moniteursPossibles()->pluck('id')->all())],
+            'donnees.moniteurs.*' => ['integer', 'distinct', 'exists:users,id'],
             'donnees.remarque' => ['nullable', 'string', 'max:255'],
         ];
     }
@@ -359,7 +360,7 @@ class GestionCours extends Component
             'jour' => ($d['jour'] ?? '') === '' ? null : (int) $d['jour'],
             'heure_debut' => $this->texteOuNull($d['heure_debut'] ?? null),
             'heure_fin' => $this->texteOuNull($d['heure_fin'] ?? null),
-            'salle' => $this->texteOuNull($d['salle'] ?? null),
+            'salle_id' => ($d['salle_id'] ?? '') === '' ? null : (int) $d['salle_id'],
             'moniteurs' => array_values(array_map('intval', $d['moniteurs'] ?? [])),
             'remarque' => $this->texteOuNull($d['remarque'] ?? null),
         ];
@@ -394,18 +395,19 @@ class GestionCours extends Component
     }
 
     /**
-     * Membres qui peuvent être moniteurs d'un cours (niveau Moniteur ou plus).
+     * Membres proposés comme moniteurs d'un cours (tous les membres, les anciens membres exceptés).
      *
      * @return Collection<int, User>
      */
     private function moniteursPossibles(): Collection
     {
-        return User::whereIn('role', ['moniteur', 'comite', 'administrateur'])->orderBy('nom')->orderBy('prenom')->get();
+        return User::where(fn ($q) => $q->whereNull('date_sortie')->orWhere('date_sortie', '>', now()))
+            ->orderBy('nom')->orderBy('prenom')->get();
     }
 
     public function render(): View
     {
-        $groupes = Groupe::dansLOrdre()->with(['cours.sessions'])->get();
+        $groupes = Groupe::dansLOrdre()->with(['cours.salle', 'cours.sessions.salle'])->get();
 
         $idsMoniteurs = $groupes->flatMap(fn (Groupe $g) => $g->cours->flatMap(
             fn (Cours $c) => array_merge($c->idsMoniteurs(), $c->sessions->flatMap(fn (SessionCours $s) => $s->idsMoniteurs())->all())
@@ -422,8 +424,7 @@ class GestionCours extends Component
             'membres' => User::whereIn('id', $idsMoniteurs)->get(),
             'moniteursPossibles' => $this->moniteursPossibles(),
             'categories' => Groupe::whereNotNull('categorie')->distinct()->orderBy('categorie')->pluck('categorie'),
-            'salles' => Cours::whereNotNull('salle')->distinct()->pluck('salle')
-                ->merge(SessionCours::whereNotNull('salle')->distinct()->pluck('salle'))->unique()->sort()->values(),
+            'salles' => Salle::orderBy('nom')->get(),
             'parent' => $parent instanceof Model ? $parent : null,
         ]);
     }
