@@ -3,7 +3,7 @@
         $parId = $membres->keyBy('id');
         $noms = fn (array $ids) => collect($ids)->map(fn ($id) => $parId->get($id)?->nomComplet())->filter()->implode(', ');
         $sallesParId = $salles->keyBy('id');
-        $nomsSalles = fn (array $ids) => collect($ids)->map(fn ($id) => $sallesParId->get($id)?->nom)->filter()->implode(' + ');
+        $nomsSalles = fn (array $ids) => \App\Models\Salle::libellePour($ids, $salles);
     @endphp
 
     <div class="barre">
@@ -215,7 +215,7 @@
                                 <ul class="liste-moniteurs">
                                     @foreach ($donnees['salles'] as $index => $id)
                                         <li wire:key="salle-choisie-{{ $id }}">
-                                            {{ $sallesParId->get($id)?->nom ?? 'Salle introuvable' }}
+                                            {{ $sallesParId->get($id)?->libelleComplet() ?? 'Salle introuvable' }}
                                             <button type="button" class="lien lien--danger" wire:click="retirerSalle({{ $index }})">retirer</button>
                                         </li>
                                     @endforeach
@@ -223,19 +223,28 @@
                             @endif
                             <div class="ajout-moniteur">
                                 <select wire:model="salleAAjouter" aria-label="Salle à ajouter">
-                                    <option value="">— Ajouter une salle —</option>
-                                    @foreach ($salles as $salle)
-                                        @unless (in_array($salle->id, $donnees['salles'] ?? [], true))
-                                            <option value="{{ $salle->id }}">{{ $salle->nom }}</option>
-                                        @endunless
+                                    @php
+                                        $choisies = $donnees['salles'] ?? [];
+                                        // Une fois une salle choisie, seules les autres salles du même bâtiment sont proposées.
+                                        $batimentChoisi = $choisies !== [] ? $sallesParId->get($choisies[0])?->batiment_id : null;
+                                        $proposees = $salles->reject(fn ($s) => in_array($s->id, $choisies, true) || ($batimentChoisi !== null && $s->batiment_id !== $batimentChoisi));
+                                    @endphp
+                                    <option value="">{{ $batimentChoisi ? '— Ajouter une autre salle du bâtiment —' : '— Ajouter une salle —' }}</option>
+                                    @foreach ($proposees->groupBy(fn ($s) => $s->batiment?->nom ?? 'Sans bâtiment') as $nomBatiment => $sallesDuBatiment)
+                                        <optgroup label="{{ $nomBatiment }}">
+                                            @foreach ($sallesDuBatiment as $salle)
+                                                <option value="{{ $salle->id }}">{{ $salle->nom }}</option>
+                                            @endforeach
+                                        </optgroup>
                                     @endforeach
                                 </select>
                                 <button type="button" class="bouton bouton--secondaire bouton--petit" wire:click="ajouterSalle">Ajouter</button>
                             </div>
                             <div class="aide">
-                                Plusieurs salles si besoin (ex. Court-Champ 3 et 4 pour la salle double entière).
-                                Une salle manque ? Ajoutez-la dans <a href="{{ route('salles.gestion') }}" target="_blank">Salles</a>, puis rouvrez cette fenêtre.
+                                Plusieurs salles possibles si elles sont dans le même bâtiment (ex. Court-Champ : Salle 3 + Salle 4 pour la salle double entière).
+                                Une salle manque ? Ajoutez-la dans <a href="{{ route('salles.gestion') }}" target="_blank">Bâtiments et salles</a>, puis rouvrez cette fenêtre.
                             </div>
+                            @error('donnees.salles') <div class="erreur">{{ $message }}</div> @enderror
                             @error('donnees.salles.*') <div class="erreur">{{ $message }}</div> @enderror
                         </fieldset>
 

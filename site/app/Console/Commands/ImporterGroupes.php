@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Enums\Role;
+use App\Models\Batiment;
 use App\Models\Cours;
 use App\Models\Groupe;
 use App\Models\Salle;
@@ -425,12 +426,28 @@ class ImporterGroupes extends Command
             return [];
         }
 
-        $noms = preg_match('/^(.*?)(\d+)\s*\+\s*(\d+)(.*)$/u', $nom, $m)
-            ? [trim($m[1].$m[2].$m[4]), trim($m[1].$m[3].$m[4])]
-            : [$nom];
-        $localite = trim((string) preg_split('/[,(]/', $nom)[0]);
+        // « Echallens, Court-Champ 3+4 » → bâtiment « Echallens, Court-Champ », salles « Salle 3 » et « Salle 4 » ;
+        // « Poliez-le-Grand (Grande salle) » → bâtiment « Poliez-le-Grand », salle « Grande salle ».
+        [$nomBatiment, $nomsSalles] = match (true) {
+            (bool) preg_match('/^(.*?)\s*(\d+)\s*\+\s*(\d+)$/u', $nom, $m) => [$m[1], ['Salle '.$m[2], 'Salle '.$m[3]]],
+            (bool) preg_match('/^(.*?)\s*(\d+)$/u', $nom, $m) => [$m[1], ['Salle '.$m[2]]],
+            (bool) preg_match('/^(.*?)\s*\((.+)\)$/u', $nom, $m) => [$m[1], [Str::ucfirst($m[2])]],
+            default => [$nom, ['Salle principale']],
+        };
+        $nomBatiment = trim($nomBatiment, ' ,') ?: $nom;
+        $localite = trim((string) preg_split('/[,(]/', $nomBatiment)[0]);
 
-        return array_map(fn (string $n) => Salle::firstOrCreate(['nom' => $n], ['localite' => $localite ?: null])->id, $noms);
+        $batiment = Batiment::firstOrCreate(['nom' => $nomBatiment], ['localite' => $localite ?: null]);
+
+        return array_map(function (string $nomSalle) use ($batiment): int {
+            $salle = Salle::firstOrNew(['batiment_id' => $batiment->id, 'nom' => $nomSalle]);
+
+            if (! $salle->exists) {
+                $salle->forceFill(['ordre' => (int) Salle::where('batiment_id', $batiment->id)->max('ordre') + 1])->save();
+            }
+
+            return $salle->id;
+        }, $nomsSalles);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Batiment;
 use App\Models\Salle;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -16,12 +17,8 @@ class SalleFactory extends Factory
     public function definition(): array
     {
         return [
-            'nom' => 'Salle '.fake()->unique()->word(),
-            'rue' => fake()->streetName().' '.fake()->buildingNumber(),
-            'npa' => '1040',
-            'localite' => 'Echallens',
-            'lien_carte' => null,
-            'informations' => null,
+            'batiment_id' => Batiment::factory(),
+            'nom' => 'Salle '.fake()->unique()->numberBetween(1, 9999),
         ];
     }
 }

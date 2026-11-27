@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\Civilite;
 use App\Enums\Role;
+use App\Models\Batiment;
 use App\Models\Cours;
 use App\Models\Groupe;
 use App\Models\Salle;
@@ -81,9 +82,10 @@ class ImporterGroupesTest extends TestCase
 
         // 2 × 2 h = « 4h de cours chaque semaine » : un seul cours avec 2 sessions.
         $cours = $concours->cours()->with('sessions')->sole();
-        $salle3 = Salle::where('nom', 'Echallens, Court-Champ 3')->sole();
+        $courtChamp = Batiment::where('nom', 'Echallens, Court-Champ')->sole();
+        $salle3 = $courtChamp->salles()->where('nom', 'Salle 3')->sole();
         $this->assertSame([$salle3->id], $cours->salles);
-        $this->assertSame('Echallens', $salle3->localite);
+        $this->assertSame('Echallens', $courtChamp->localite);
         // Carla est présentée sur la page sans créneau : moniteur secondaire.
         $this->assertSame([$anna->id, $carla->id], $cours->moniteurs);
         $this->assertSame('COMPLET', $cours->remarque);
@@ -93,9 +95,11 @@ class ImporterGroupesTest extends TestCase
         $enfantine = Groupe::where('slug', 'enfantine-1-2-harmos')->firstOrFail();
         $this->assertSame(2, $enfantine->cours()->count());
         $this->assertSame([$bruno->id, $carla->id], $enfantine->cours()->first()->moniteurs);
-        // « Court-Champ 3+4 » = les deux salles de la salle double.
-        $this->assertSame(Salle::whereIn('nom', ['Echallens, Court-Champ 3', 'Echallens, Court-Champ 4'])->orderBy('nom')->pluck('id')->all(), $enfantine->cours()->first()->salles);
-        $this->assertSame(Salle::where('nom', 'Poliez-le-Grand (Grande salle)')->pluck('id')->all(), $enfantine->cours()->get()->last()->salles);
+        // « Court-Champ 3+4 » = les deux salles de la salle double, dans le même bâtiment.
+        $this->assertSame([$salle3->id, $courtChamp->salles()->where('nom', 'Salle 4')->sole()->id], $enfantine->cours()->first()->salles);
+        $poliez = Batiment::where('nom', 'Poliez-le-Grand')->sole();
+        $this->assertSame($poliez->salles()->where('nom', 'Grande salle')->pluck('id')->all(), $enfantine->cours()->get()->last()->salles);
+        $this->assertSame(2, Batiment::count());
         $this->assertSame(3, Salle::count());
 
         // Relancer ne crée pas de doublon.

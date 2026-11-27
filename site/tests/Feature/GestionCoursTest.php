@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\Role;
 use App\Livewire\Cours\GestionCours;
+use App\Models\Batiment;
 use App\Models\Cours;
 use App\Models\Groupe;
 use App\Models\JournalModification;
@@ -88,17 +89,24 @@ class GestionCoursTest extends TestCase
     public function test_tous_les_membres_sont_proposes_et_la_salle_se_choisit_dans_la_liste(): void
     {
         $membre = User::factory()->avecRole(Role::Membre)->create(['prenom' => 'Zoé', 'nom' => 'Simplemembre']);
-        $salle = Salle::factory()->create(['nom' => 'Echallens, Court-Champ 3']);
-        $salle4 = Salle::factory()->create(['nom' => 'Echallens, Court-Champ 4']);
+        $courtChamp = Batiment::factory()->create(['nom' => 'Echallens, Court-Champ']);
+        $salle = Salle::factory()->for($courtChamp)->create(['nom' => 'Salle 3']);
+        $salle4 = Salle::factory()->for($courtChamp)->create(['nom' => 'Salle 4']);
+        $ailleurs = Salle::factory()->for(Batiment::factory()->create(['nom' => 'Poliez-le-Grand']))->create(['nom' => 'Grande salle']);
         $groupe = Groupe::factory()->create();
 
         Livewire::actingAs($this->comite())
             ->test(GestionCours::class)
             ->call('nouveauCours', $groupe->id)
             ->assertSee('Simplemembre Zoé')
-            ->assertSee('Echallens, Court-Champ 4')
+            ->assertSee('<optgroup label="Echallens, Court-Champ">', false)
             ->set('moniteurAAjouter', $membre->id)->call('ajouterMoniteur')
             ->set('salleAAjouter', $salle->id)->call('ajouterSalle')
+            // Une fois une salle choisie, les autres bâtiments ne sont plus proposés…
+            ->assertDontSee('<optgroup label="Poliez-le-Grand">', false)
+            // … et sont refusés.
+            ->set('salleAAjouter', $ailleurs->id)->call('ajouterSalle')
+            ->assertHasErrors('donnees.salles')
             ->set('salleAAjouter', $salle4->id)->call('ajouterSalle')
             ->call('enregistrer')
             ->assertHasNoErrors();
@@ -107,7 +115,20 @@ class GestionCoursTest extends TestCase
         $this->assertSame([$membre->id], $cours->moniteurs);
         $this->assertSame([$salle->id, $salle4->id], $cours->salles);
 
-        Livewire::actingAs($this->comite())->test(GestionCours::class)->assertSee('Echallens, Court-Champ 3 + Echallens, Court-Champ 4');
+        Livewire::actingAs($this->comite())->test(GestionCours::class)->assertSee('Echallens, Court-Champ – Salle 3 + Salle 4');
+    }
+
+    public function test_des_salles_de_batiments_differents_sont_refusees(): void
+    {
+        $a = Salle::factory()->create();
+        $b = Salle::factory()->create();
+
+        Livewire::actingAs($this->comite())
+            ->test(GestionCours::class)
+            ->call('nouveauCours', Groupe::factory()->create()->id)
+            ->set('donnees.salles', [$a->id, $b->id])
+            ->call('enregistrer')
+            ->assertHasErrors('donnees.salles');
     }
 
     public function test_un_moniteur_ou_une_salle_inconnus_sont_refuses(): void

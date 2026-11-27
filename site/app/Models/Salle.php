@@ -7,23 +7,61 @@ use Database\Factories\SalleFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection;
 
 /**
- * Salle de gym : nom, adresse (rue, NPA, localité, pour la carte Google), 1 à 3 photos et informations pratiques
- * (accès, parking…). Les photos sont stockées hors du dossier public (storage/app/private/salles) et servies
- * par PhotoSalleController.
+ * Salle d'un bâtiment (ex. « Salle 3 » du bâtiment « Echallens, Court-Champ »).
+ * Un cours ou une session peut utiliser plusieurs salles, toujours du même bâtiment.
  */
-#[Fillable(['nom', 'rue', 'npa', 'localite', 'lien_carte', 'informations'])]
+#[Fillable(['batiment_id', 'nom'])]
 class Salle extends Model
 {
     /** @use HasFactory<SalleFactory> */
     use HasFactory, Journalise;
 
-    public const DISQUE = 'local';
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return ['batiment_id' => 'integer', 'ordre' => 'integer'];
+    }
 
-    public const DOSSIER = 'salles';
+    /**
+     * @return BelongsTo<Batiment, $this>
+     */
+    public function batiment(): BelongsTo
+    {
+        return $this->belongsTo(Batiment::class);
+    }
 
-    public const PHOTOS_MAX = 3;
+    /**
+     * Ex. « Echallens, Court-Champ – Salle 3 ».
+     */
+    public function libelleComplet(): string
+    {
+        return ($this->batiment?->nom ? $this->batiment->nom.' – ' : '').$this->nom;
+    }
+
+    /**
+     * Libellé de plusieurs salles d'un même bâtiment : « Echallens, Court-Champ – Salle 3 + Salle 4 ».
+     *
+     * @param  array<int, int>  $ids
+     * @param  Collection<int, Salle>  $salles  salles déjà chargées (avec leur bâtiment)
+     */
+    public static function libellePour(array $ids, Collection $salles): ?string
+    {
+        $choisies = collect($ids)->map(fn (int $id) => $salles->firstWhere('id', $id))->filter();
+
+        if ($choisies->isEmpty()) {
+            return null;
+        }
+
+        return $choisies->groupBy('batiment_id')
+            ->map(fn (Collection $groupe) => ($groupe->first()->batiment?->nom ? $groupe->first()->batiment->nom.' – ' : '').$groupe->pluck('nom')->implode(' + '))
+            ->implode(' ; ');
+    }
 
     /**
      * Nombre de cours et de sessions qui utilisent cette salle.
@@ -32,73 +70,17 @@ class Salle extends Model
      */
     public function utilisations(): array
     {
-        $utilise = fn (int $id) => fn (array $salles) => in_array($id, array_map('intval', $salles), true);
+        $utilise = fn (array $salles) => in_array($this->id, array_map('intval', $salles), true);
 
         return [
-            'cours' => Cours::whereNotNull('salles')->pluck('salles')->filter($utilise($this->id))->count(),
-            'sessions' => SessionCours::whereNotNull('salles')->pluck('salles')->filter($utilise($this->id))->count(),
+            'cours' => Cours::whereNotNull('salles')->pluck('salles')->filter($utilise)->count(),
+            'sessions' => SessionCours::whereNotNull('salles')->pluck('salles')->filter($utilise)->count(),
         ];
-    }
-
-    /**
-     * Ex. « Route de Court-Champ 4, 1040 Echallens ».
-     */
-    public function adresseComplete(): string
-    {
-        return collect([$this->rue, trim($this->npa.' '.$this->localite)])->filter()->implode(', ');
-    }
-
-    /**
-     * Carte Google intégrable (sans clé d'API), à partir de l'adresse.
-     */
-    public function urlCarteIntegree(): ?string
-    {
-        $recherche = $this->adresseComplete() ?: $this->nom;
-
-        return $recherche ? 'https://maps.google.com/maps?q='.rawurlencode($recherche).'&z=16&output=embed' : null;
-    }
-
-    /**
-     * Lien « Ouvrir dans Google Maps » : le lien saisi, sinon une recherche de l'adresse.
-     */
-    public function urlCarte(): ?string
-    {
-        if ($this->lien_carte) {
-            return $this->lien_carte;
-        }
-
-        $recherche = $this->adresseComplete() ?: $this->nom;
-
-        return $recherche ? 'https://www.google.com/maps/search/?api=1&query='.rawurlencode($recherche) : null;
-    }
-
-    public function urlPhoto(int $index = 0, bool $miniature = false): ?string
-    {
-        $nom = $this->photos[$index] ?? null;
-
-        if ($nom === null) {
-            return null;
-        }
-
-        return route('salles.photo', array_filter([
-            'salle' => $this,
-            'index' => $index,
-            'miniature' => $miniature ? 1 : null,
-            'v' => substr(md5((string) $nom), 0, 8),
-        ], fn ($valeur) => $valeur !== null));
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    protected function casts(): array
-    {
-        return ['photos' => 'array'];
     }
 
     public function libelleJournal(): string
     {
-        return 'Salle « '.$this->nom.' »';
+        return 'Salle « '.$this->libelleComplet().' »';
     }
 
     /**
@@ -106,6 +88,6 @@ class Salle extends Model
      */
     public static function libellesChampsJournal(): array
     {
-        return ['nom' => 'Nom', 'rue' => 'Rue', 'npa' => 'NPA', 'localite' => 'Localité', 'lien_carte' => 'Lien Google Maps', 'informations' => 'Informations', 'photos' => 'Photos'];
+        return ['batiment_id' => 'Bâtiment', 'nom' => 'Nom', 'ordre' => 'Ordre'];
     }
 }

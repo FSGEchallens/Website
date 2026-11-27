@@ -4,10 +4,10 @@ use App\Enums\Role;
 use App\Http\Controllers\FichierAnnonceController;
 use App\Http\Controllers\FichierArchiveController;
 use App\Http\Controllers\LogoPartenaireController;
+use App\Http\Controllers\PhotoBatimentController;
 use App\Http\Controllers\PhotoGalerieController;
 use App\Http\Controllers\PhotoMembreController;
 use App\Http\Controllers\PhotoResultatController;
-use App\Http\Controllers\PhotoSalleController;
 use App\Http\Controllers\StatutsController;
 use App\Livewire\Administration\JournalModifications;
 use App\Livewire\Auth\Connexion;
@@ -126,8 +126,8 @@ Route::post('/apercu-niveau', function (Request $request) {
     return redirect()->back();
 })->middleware('auth')->name('apercu-niveau');
 
-// Photo d'une salle (publique).
-Route::get('/salles/{salle}/photos/{index}', PhotoSalleController::class)->whereNumber('index')->name('salles.photo');
+// Photo d'un bâtiment (publique).
+Route::get('/batiments/{batiment}/photos/{index}', PhotoBatimentController::class)->whereNumber('index')->name('batiments.photo');
 
 // Photo d'un membre (toujours publique).
 Route::get('/membres/{membre}/photo', PhotoMembreController::class)->name('membres.photo');

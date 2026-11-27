@@ -138,7 +138,17 @@ class GestionCours extends Component
         $id = (int) $this->salleAAjouter;
         $salles = $this->donnees['salles'] ?? [];
 
-        if ($id > 0 && ! in_array($id, $salles, true) && Salle::whereKey($id)->exists()) {
+        $salle = $id > 0 ? Salle::find($id) : null;
+        $this->resetValidation('donnees.salles');
+
+        if ($salle !== null && ! in_array($id, $salles, true)) {
+            // Plusieurs salles seulement dans un même bâtiment.
+            if ($salles !== [] && Salle::whereKey($salles)->where('batiment_id', '!=', $salle->batiment_id)->exists()) {
+                $this->addError('donnees.salles', 'Les salles d’un cours doivent être dans le même bâtiment.');
+
+                return;
+            }
+
             $salles[] = $id;
         }
 
@@ -365,7 +375,11 @@ class GestionCours extends Component
             'donnees.jour' => [$requis, 'nullable', 'integer', 'between:1,7'],
             'donnees.heure_debut' => [$requis, 'nullable', 'date_format:H:i'],
             'donnees.heure_fin' => [$requis, 'nullable', 'date_format:H:i', 'after:donnees.heure_debut'],
-            'donnees.salles' => ['array', 'max:6'],
+            'donnees.salles' => ['array', 'max:6', function (string $attribut, mixed $valeur, \Closure $echec): void {
+                if (is_array($valeur) && Salle::whereKey($valeur)->distinct()->count('batiment_id') > 1) {
+                    $echec('Les salles d’un cours doivent être dans le même bâtiment.');
+                }
+            }],
             'donnees.salles.*' => ['integer', 'distinct', 'exists:salles,id'],
             'donnees.moniteurs' => ['array', 'max:10'],
             'donnees.moniteurs.*' => ['integer', 'distinct', 'exists:users,id'],
@@ -447,7 +461,7 @@ class GestionCours extends Component
             'membres' => User::whereIn('id', $idsMoniteurs)->get(),
             'moniteursPossibles' => $this->moniteursPossibles(),
             'categories' => Groupe::whereNotNull('categorie')->distinct()->orderBy('categorie')->pluck('categorie'),
-            'salles' => Salle::orderBy('nom')->get(),
+            'salles' => Salle::with('batiment')->get()->sortBy(fn (Salle $s) => [$s->batiment?->nom, $s->ordre, $s->nom])->values(),
             'parent' => $parent instanceof Model ? $parent : null,
         ]);
     }

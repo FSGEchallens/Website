@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Salle;
-use App\Services\PhotosSalle;
+use App\Models\Batiment;
+use App\Services\PhotosBatiment;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * Sert une photo d'une salle (publique), ou sa miniature avec ?miniature=1.
+ * Sert une photo d'un bâtiment (publique), ou sa miniature avec ?miniature=1.
  */
-class PhotoSalleController extends Controller
+class PhotoBatimentController extends Controller
 {
-    public function __invoke(Request $request, Salle $salle, int $index, PhotosSalle $photos): BinaryFileResponse
+    public function __invoke(Request $request, Batiment $batiment, int $index, PhotosBatiment $photos): BinaryFileResponse
     {
-        $chemin = $photos->chemin($salle, $index, $request->boolean('miniature'));
+        $chemin = $photos->chemin($batiment, $index, $request->boolean('miniature'));
 
         abort_if($chemin === null, 404);
 

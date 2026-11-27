@@ -2,10 +2,11 @@
 
 namespace App\Livewire\Cours;
 
+use App\Models\Batiment;
 use App\Models\Cours;
 use App\Models\Salle;
 use App\Models\SessionCours;
-use App\Services\PhotosSalle;
+use App\Services\PhotosBatiment;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -17,14 +18,15 @@ use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 
 /**
- * Gestion des salles (comité et administrateur) : nom, adresse, 1 à 3 photos, carte Google, informations pratiques.
+ * Gestion des bâtiments (adresse, 1 à 3 photos, carte Google, informations pratiques) et des salles
+ * qu'ils contiennent (comité et administrateur).
  */
-#[Title('Salles')]
+#[Title('Bâtiments et salles')]
 class GestionSalles extends Component
 {
     use WithFileUploads;
 
-    /** null = pas de fenêtre ouverte ; 0 = nouvelle salle ; sinon identifiant de la salle modifiée. */
+    /** null = pas de fenêtre ouverte ; 0 = nouveau bâtiment ; sinon identifiant du bâtiment modifié. */
     #[Locked]
     public ?int $edition = null;
 
@@ -46,6 +48,18 @@ class GestionSalles extends Component
     /** @var array<int, TemporaryUploadedFile> */
     public array $nouvellesPhotos = [];
 
+    /** Nom des salles à créer avec un nouveau bâtiment (une par ligne). */
+    public string $sallesInitiales = '';
+
+    /** Saisie « + Salle » par bâtiment (identifiant du bâtiment => nom). */
+    public array $nouvelleSalle = [];
+
+    /** Salle en cours de renommage, et son nouveau nom. */
+    #[Locked]
+    public ?int $salleRenommee = null;
+
+    public string $nomSalle = '';
+
     public ?string $confirmation = null;
 
     public function mount(): void
@@ -58,22 +72,23 @@ class GestionSalles extends Component
         $this->authorize('gerer-cours');
         $this->viderFormulaire();
         $this->edition = 0;
+        $this->sallesInitiales = 'Salle principale';
     }
 
     public function modifier(int $id): void
     {
         $this->authorize('gerer-cours');
-        $salle = Salle::findOrFail($id);
+        $batiment = Batiment::findOrFail($id);
 
         $this->viderFormulaire();
-        $this->edition = $salle->id;
-        $this->nom = $salle->nom;
-        $this->rue = (string) $salle->rue;
-        $this->npa = (string) $salle->npa;
-        $this->localite = (string) $salle->localite;
-        $this->lien_carte = (string) $salle->lien_carte;
-        $this->informations = (string) $salle->informations;
-        $this->photos = $salle->photos ?? [];
+        $this->edition = $batiment->id;
+        $this->nom = $batiment->nom;
+        $this->rue = (string) $batiment->rue;
+        $this->npa = (string) $batiment->npa;
+        $this->localite = (string) $batiment->localite;
+        $this->lien_carte = (string) $batiment->lien_carte;
+        $this->informations = (string) $batiment->informations;
+        $this->photos = $batiment->photos ?? [];
     }
 
     public function annuler(): void
@@ -116,13 +131,14 @@ class GestionSalles extends Component
     protected function rules(): array
     {
         return [
-            'nom' => ['required', 'string', 'max:150', Rule::unique('salles', 'nom')->ignore($this->edition ?: null)],
+            'nom' => ['required', 'string', 'max:150', Rule::unique('batiments', 'nom')->ignore($this->edition ?: null)],
             'rue' => ['nullable', 'string', 'max:150'],
             'npa' => ['nullable', 'string', 'regex:/^\d{4,5}$/'],
             'localite' => ['nullable', 'string', 'max:100'],
             'lien_carte' => ['nullable', 'url:https', 'max:500'],
             'informations' => ['nullable', 'string', 'max:2000'],
-            'nouvellesPhotos' => ['array', 'max:'.Salle::PHOTOS_MAX],
+            'sallesInitiales' => ['nullable', 'string', 'max:2000'],
+            'nouvellesPhotos' => ['array', 'max:'.Batiment::PHOTOS_MAX],
             'nouvellesPhotos.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:15360'],
         ];
     }
@@ -134,7 +150,7 @@ class GestionSalles extends Component
     {
         return [
             'npa.regex' => 'Le NPA doit contenir 4 chiffres (ex. 1040).',
-            'nouvellesPhotos.max' => 'Au maximum '.Salle::PHOTOS_MAX.' photos par salle.',
+            'nouvellesPhotos.max' => 'Au maximum '.Batiment::PHOTOS_MAX.' photos par bâtiment.',
             'nouvellesPhotos.*.image' => 'Un des fichiers choisis n’est pas une image.',
             'nouvellesPhotos.*.mimes' => 'Les photos doivent être au format JPEG, PNG ou WebP.',
             'nouvellesPhotos.*.max' => 'Une photo ne doit pas dépasser 15 Mo.',
@@ -146,26 +162,33 @@ class GestionSalles extends Component
      */
     protected function validationAttributes(): array
     {
-        return ['rue' => 'rue', 'npa' => 'NPA', 'localite' => 'localité', 'lien_carte' => 'lien Google Maps'];
+        return ['rue' => 'rue', 'npa' => 'NPA', 'localite' => 'localité', 'lien_carte' => 'lien Google Maps', 'sallesInitiales' => 'salles'];
     }
 
-    public function enregistrer(PhotosSalle $photos): void
+    public function enregistrer(PhotosBatiment $photos): void
     {
         $this->authorize('gerer-cours');
         $this->validate();
 
-        $salle = $this->edition ? Salle::findOrFail($this->edition) : new Salle;
+        $batiment = $this->edition ? Batiment::findOrFail($this->edition) : new Batiment;
+        $estNouveau = ! $batiment->exists;
 
-        // Seules les photos déjà attachées à CETTE salle peuvent être conservées.
-        $photosExistantes = $salle->photos ?? [];
+        // Seules les photos déjà attachées à CE bâtiment peuvent être conservées.
+        $photosExistantes = $batiment->photos ?? [];
         $photosGardees = array_values(array_filter($this->photos, fn ($nom) => in_array($nom, $photosExistantes, true)));
 
-        if (count($photosGardees) + count($this->nouvellesPhotos) > Salle::PHOTOS_MAX) {
-            throw ValidationException::withMessages(['nouvellesPhotos' => 'Au maximum '.Salle::PHOTOS_MAX.' photos par salle.']);
+        if (count($photosGardees) + count($this->nouvellesPhotos) > Batiment::PHOTOS_MAX) {
+            throw ValidationException::withMessages(['nouvellesPhotos' => 'Au maximum '.Batiment::PHOTOS_MAX.' photos par bâtiment.']);
         }
 
-        DB::transaction(function () use ($salle, $photos, $photosExistantes, $photosGardees): void {
-            $salle->fill([
+        $nomsSalles = collect(preg_split('/\r?\n/', $this->sallesInitiales) ?: [])->map(fn ($n) => trim($n))->filter()->unique()->values();
+
+        if ($estNouveau && $nomsSalles->isEmpty()) {
+            throw ValidationException::withMessages(['sallesInitiales' => 'Indiquez au moins une salle.']);
+        }
+
+        DB::transaction(function () use ($batiment, $photos, $photosExistantes, $photosGardees, $estNouveau, $nomsSalles): void {
+            $batiment->fill([
                 'nom' => trim($this->nom),
                 'rue' => $this->texteOuNull($this->rue),
                 'npa' => $this->texteOuNull($this->npa),
@@ -173,40 +196,118 @@ class GestionSalles extends Component
                 'lien_carte' => $this->texteOuNull($this->lien_carte),
                 'informations' => $this->texteOuNull($this->informations),
             ]);
-            $salle->save();
+            $batiment->save();
 
             foreach (array_diff($photosExistantes, $photosGardees) as $photoRetiree) {
-                $photos->supprimer($salle, $photoRetiree);
+                $photos->supprimer($batiment, $photoRetiree);
             }
 
             foreach ($this->nouvellesPhotos as $fichier) {
-                $photosGardees[] = $photos->enregistrer($salle, $fichier->getRealPath());
+                $photosGardees[] = $photos->enregistrer($batiment, $fichier->getRealPath());
             }
 
-            $salle->photos = $photosGardees === [] ? null : $photosGardees;
-            $salle->save();
-            $salle->journaliserFichiersEnAttente();
+            $batiment->photos = $photosGardees === [] ? null : $photosGardees;
+            $batiment->save();
+            $batiment->journaliserFichiersEnAttente();
+
+            if ($estNouveau) {
+                foreach ($nomsSalles as $rang => $nomSalle) {
+                    $salle = new Salle(['batiment_id' => $batiment->id, 'nom' => mb_substr($nomSalle, 0, 150)]);
+                    $salle->forceFill(['ordre' => $rang + 1])->save();
+                }
+            }
         });
 
-        $nom = $salle->nom;
+        $nom = $batiment->nom;
         $this->viderFormulaire();
-        $this->confirmation = 'La salle « '.$nom.' » a été enregistrée.';
+        $this->confirmation = 'Le bâtiment « '.$nom.' » a été enregistré.';
     }
 
-    public function supprimer(int $id, PhotosSalle $photos): void
+    public function supprimer(int $id, PhotosBatiment $photos): void
     {
         $this->authorize('gerer-cours');
-        $salle = Salle::findOrFail($id);
+        $batiment = Batiment::withCount('salles')->findOrFail($id);
 
-        if (array_sum($salle->utilisations()) > 0) {
-            $this->confirmation = 'La salle « '.$salle->nom.' » est utilisée par des cours : choisissez d’abord une autre salle pour ces cours.';
+        if ($batiment->salles_count > 0) {
+            $this->confirmation = 'Supprimez d’abord les salles du bâtiment « '.$batiment->nom.' ».';
 
             return;
         }
 
-        $photos->supprimerTout($salle);
+        $photos->supprimerTout($batiment);
+        $batiment->delete();
+        $this->confirmation = 'Le bâtiment « '.$batiment->nom.' » a été supprimé (il peut être restauré depuis le journal).';
+    }
+
+    public function ajouterSalle(int $batimentId): void
+    {
+        $this->authorize('gerer-cours');
+        $batiment = Batiment::findOrFail($batimentId);
+        $nom = trim((string) ($this->nouvelleSalle[$batimentId] ?? ''));
+
+        $this->validerNomSalle($nom, $batiment->id, null, 'nouvelleSalle.'.$batimentId);
+
+        $salle = new Salle(['batiment_id' => $batiment->id, 'nom' => $nom]);
+        $salle->forceFill(['ordre' => (int) Salle::where('batiment_id', $batiment->id)->max('ordre') + 1])->save();
+
+        unset($this->nouvelleSalle[$batimentId]);
+        $this->confirmation = 'La salle « '.$salle->libelleComplet().' » a été ajoutée.';
+    }
+
+    public function renommerSalle(int $id): void
+    {
+        $this->authorize('gerer-cours');
+        $salle = Salle::findOrFail($id);
+        $this->salleRenommee = $salle->id;
+        $this->nomSalle = $salle->nom;
+        $this->resetValidation();
+    }
+
+    public function enregistrerSalle(): void
+    {
+        $this->authorize('gerer-cours');
+        $salle = Salle::findOrFail($this->salleRenommee);
+        $nom = trim($this->nomSalle);
+
+        $this->validerNomSalle($nom, $salle->batiment_id, $salle->id, 'nomSalle');
+
+        $salle->nom = $nom;
+        $salle->save();
+        $this->reset('salleRenommee', 'nomSalle');
+    }
+
+    public function annulerSalle(): void
+    {
+        $this->reset('salleRenommee', 'nomSalle');
+        $this->resetValidation();
+    }
+
+    public function supprimerSalle(int $id): void
+    {
+        $this->authorize('gerer-cours');
+        $salle = Salle::with('batiment')->findOrFail($id);
+
+        if (array_sum($salle->utilisations()) > 0) {
+            $this->confirmation = 'La salle « '.$salle->libelleComplet().' » est utilisée par des cours : choisissez d’abord une autre salle pour ces cours.';
+
+            return;
+        }
+
         $salle->delete();
-        $this->confirmation = 'La salle « '.$salle->nom.' » a été supprimée (elle peut être restaurée depuis le journal).';
+        $this->confirmation = 'La salle « '.$salle->libelleComplet().' » a été supprimée (elle peut être restaurée depuis le journal).';
+    }
+
+    private function validerNomSalle(string $nom, int $batimentId, ?int $ignorer, string $champ): void
+    {
+        $this->resetValidation($champ);
+
+        if ($nom === '' || mb_strlen($nom) > 150) {
+            throw ValidationException::withMessages([$champ => 'Indiquez le nom de la salle (150 caractères au maximum).']);
+        }
+
+        if (Salle::where('batiment_id', $batimentId)->where('nom', $nom)->when($ignorer, fn ($q) => $q->whereKeyNot($ignorer))->exists()) {
+            throw ValidationException::withMessages([$champ => 'Ce bâtiment a déjà une salle de ce nom.']);
+        }
     }
 
     private function texteOuNull(string $valeur): ?string
@@ -216,7 +317,7 @@ class GestionSalles extends Component
 
     private function viderFormulaire(): void
     {
-        $this->reset('edition', 'nom', 'rue', 'npa', 'localite', 'lien_carte', 'informations', 'photos', 'nouvellesPhotos', 'confirmation');
+        $this->reset('edition', 'nom', 'rue', 'npa', 'localite', 'lien_carte', 'informations', 'photos', 'nouvellesPhotos', 'sallesInitiales', 'confirmation');
         $this->resetValidation();
     }
 
@@ -243,15 +344,15 @@ class GestionSalles extends Component
 
     public function render(): View
     {
-        $salleEditee = $this->edition ? Salle::find($this->edition) : null;
+        $batimentEdite = $this->edition ? Batiment::find($this->edition) : null;
 
         // Aperçu de la carte à partir de l'adresse en cours de saisie.
-        $apercu = new Salle(['nom' => $this->nom, 'rue' => $this->rue, 'npa' => $this->npa, 'localite' => $this->localite, 'lien_carte' => $this->lien_carte ?: null]);
+        $apercu = new Batiment(['nom' => $this->nom, 'rue' => $this->rue, 'npa' => $this->npa, 'localite' => $this->localite, 'lien_carte' => $this->lien_carte ?: null]);
 
         return view('livewire.cours.gestion-salles', [
-            'salles' => Salle::orderBy('nom')->get(),
+            'batiments' => Batiment::with('salles')->orderBy('nom')->get(),
             'utilisations' => $this->utilisations(),
-            'salleEditee' => $salleEditee,
+            'batimentEdite' => $batimentEdite,
             'apercu' => $apercu,
         ]);
     }
