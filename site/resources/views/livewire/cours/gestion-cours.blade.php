@@ -125,7 +125,7 @@
     @if ($type !== null)
         <div class="fenetre" role="dialog" aria-modal="true" aria-labelledby="titre-fenetre-cours" wire:key="fenetre-{{ $type }}-{{ $editionId }}"
              x-data x-on:keydown.escape.window="$wire.fermer()">
-            <div @class(['fenetre__boite', 'fenetre__boite--large' => $type === 'groupe'])>
+            <div class="fenetre__boite fenetre__boite--large">
                 <h3 id="titre-fenetre-cours">
                     @if ($type === 'groupe')
                         {{ $editionId ? 'Modifier le groupe' : 'Nouveau groupe' }}
