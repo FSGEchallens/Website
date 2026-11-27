@@ -118,11 +118,11 @@ class ImporterGroupes extends Command
                     'slug' => $slug,
                     'categorie' => $categorie,
                     'description' => $page['description'],
-                    'age' => $page['age'],
-                    'prerequis' => $page['prerequis'],
-                    'concours' => $page['concours'],
+                    'age' => $this->paragraphe($page['age']),
+                    'prerequis' => $this->paragraphe($page['prerequis']),
+                    'concours' => $this->paragraphe($page['concours']),
                     'prix' => $page['prix'],
-                    'infos_tarif' => $page['infos_tarif'],
+                    'infos_tarif' => $this->listeHtml($page['infos_tarif']),
                     'visible' => true,
                 ]);
                 $groupe->forceFill(['ordre' => ++$ordre])->save();
@@ -313,7 +313,7 @@ class ImporterGroupes extends Command
                     'heure_fin' => $creneau['fin'],
                     'salles' => $this->idsSalles($creneau['salle']),
                     'moniteurs' => $this->relierMoniteurs($creneau['moniteurs'], $page['contacts'], $groupe->nom),
-                    'remarque' => $creneau['remarque'],
+                    'remarque' => $this->paragraphe($creneau['remarque']),
                     'actif' => true,
                 ]);
                 $cours->forceFill(['ordre' => $index + 1])->save();
@@ -333,7 +333,7 @@ class ImporterGroupes extends Command
             'groupe_id' => $groupe->id,
             'salles' => $this->idsSalles($salleCommune),
             'moniteurs' => $moniteursCommuns ? $this->relierMoniteurs($creneaux[0]['moniteurs'], $page['contacts'], $groupe->nom) : [],
-            'remarque' => count($remarques) === 1 ? $creneaux[0]['remarque'] : null,
+            'remarque' => count($remarques) === 1 ? $this->paragraphe($creneaux[0]['remarque']) : null,
             'actif' => true,
         ]);
         $cours->forceFill(['ordre' => 1])->save();
@@ -345,7 +345,7 @@ class ImporterGroupes extends Command
                 'heure_fin' => $creneau['fin'],
                 'salles' => $salleCommune === null ? $this->idsSalles($creneau['salle']) : [],
                 'moniteurs' => $moniteursCommuns ? [] : $this->relierMoniteurs($creneau['moniteurs'], $page['contacts'], $groupe->nom),
-                'remarque' => count($remarques) === 1 ? null : $creneau['remarque'],
+                'remarque' => count($remarques) === 1 ? null : $this->paragraphe($creneau['remarque']),
             ]);
             $session->forceFill(['ordre' => $index + 1])->save();
         }
@@ -579,6 +579,26 @@ class ImporterGroupes extends Command
         $lignes = array_map(fn ($l) => $this->texte($l), explode("\n", strip_tags((string) $html)));
 
         return array_values(array_filter($lignes, fn ($l) => $l !== ''));
+    }
+
+    /**
+     * Texte simple → HTML de l'éditeur (« <p>…</p> », retours à la ligne conservés).
+     */
+    private function paragraphe(?string $texte): ?string
+    {
+        $texte = trim((string) $texte);
+
+        return $texte === '' ? null : '<p>'.nl2br(e($texte), false).'</p>';
+    }
+
+    /**
+     * Une information par ligne → liste à puces de l'éditeur.
+     */
+    private function listeHtml(?string $texte): ?string
+    {
+        $lignes = array_filter(array_map('trim', preg_split('/\r?\n/', (string) $texte) ?: []));
+
+        return $lignes === [] ? null : '<ul>'.implode('', array_map(fn ($l) => '<li>'.e($l).'</li>', $lignes)).'</ul>';
     }
 
     private function texte(string $texte): string

@@ -77,7 +77,8 @@ class ImporterGroupesTest extends TestCase
         $concours = Groupe::where('slug', 'agres-kids-concours')->firstOrFail();
         $this->assertSame('jeunesse', $concours->categorie);
         $this->assertSame('300.00', $concours->prix);
-        $this->assertSame('De 7 à 14 ans.', $concours->age);
+        $this->assertSame('<p>De 7 à 14 ans.</p>', $concours->age);
+        $this->assertSame("<ul><li>3 cours d'essai</li><li>4h de cours chaque semaine</li></ul>", html_entity_decode((string) $concours->infos_tarif, ENT_QUOTES));
         $this->assertSame('<p>Super <strong>cours</strong></p>', $concours->description);
 
         // 2 × 2 h = « 4h de cours chaque semaine » : un seul cours avec 2 sessions.
@@ -89,7 +90,7 @@ class ImporterGroupesTest extends TestCase
         $this->assertSame('Echallens', $courtChamp->localite);
         // Carla est présentée sur la page sans créneau : moniteur secondaire.
         $this->assertSame([$anna->id, $carla->id], $cours->moniteurs);
-        $this->assertSame('COMPLET', $cours->remarque);
+        $this->assertSame('<p>COMPLET</p>', $cours->remarque);
         $this->assertSame(['Mardi 18:00–20:00', 'Jeudi 18:00–20:00'], $cours->sessions->map->libelleHoraire()->all());
 
         // 2 créneaux de 1 h pour « 1h » par semaine : deux cours séparés.

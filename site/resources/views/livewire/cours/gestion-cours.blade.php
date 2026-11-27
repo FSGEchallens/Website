@@ -41,7 +41,7 @@
                         @if ($groupe->libelleCategorie()) <span class="badge">{{ $groupe->libelleCategorie() }}</span> @endif
                         @unless ($groupe->visible) <span class="badge">masqué</span> @endunless
                         <span class="arbre__details">
-                            {{ collect([$groupe->age, $groupe->prix !== null ? 'CHF '.rtrim(rtrim(number_format((float) $groupe->prix, 2, '.', ''), '0'), '.') : null, $groupe->cours->count().' cours'])->filter()->implode(' · ') }}
+                            {{ collect([trim(html_entity_decode(strip_tags((string) $groupe->age))), $groupe->prix !== null ? 'CHF '.rtrim(rtrim(number_format((float) $groupe->prix, 2, '.', ''), '0'), '.') : null, $groupe->cours->count().' cours'])->filter()->implode(' · ') }}
                         </span>
                     </div>
                     <div class="arbre__actions">
@@ -72,7 +72,7 @@
                                     @if ($cours->nom && $cours->libelleHoraire()) <span>{{ $cours->libelleHoraire() }}</span> @endif
                                     @unless ($cours->actif) <span class="badge">inactif</span> @endunless
                                     <span class="arbre__details">
-                                        {{ collect([$nomsSalles($cours->idsSalles()), $noms($cours->idsMoniteurs()), $cours->remarque])->filter()->implode(' · ') }}
+                                        {{ collect([$nomsSalles($cours->idsSalles()), $noms($cours->idsMoniteurs()), trim(html_entity_decode(strip_tags((string) $cours->remarque)))])->filter()->implode(' · ') }}
                                     </span>
                                 </div>
                                 <div class="arbre__actions">
@@ -96,7 +96,7 @@
                                                     {{ collect([
                                                         $session->idsSalles() !== [] ? $nomsSalles($session->idsSalles()) : ($cours->idsSalles() !== [] ? $nomsSalles($cours->idsSalles()).' (comme le cours)' : null),
                                                         $session->idsMoniteurs() !== [] ? $noms($session->idsMoniteurs()) : ($cours->idsMoniteurs() !== [] ? $noms($cours->idsMoniteurs()).' (comme le cours)' : null),
-                                                        $session->remarque,
+                                                        trim(html_entity_decode(strip_tags((string) $session->remarque))),
                                                     ])->filter()->implode(' · ') }}
                                                 </span>
                                             </div>
@@ -156,25 +156,29 @@
                             <x-editeur-texte nom="donnees.description" :contenu="$donnees['description'] ?? ''" />
                         </div>
 
-                        <div class="grille">
-                            <x-champ nom="donnees.age" libelle="Âge" placeholder="Ex. De 7 à 14 ans." />
-                            <x-champ nom="donnees.prerequis" libelle="Prérequis" placeholder="Ex. Aucun prérequis !" />
+                        <div class="bloc">
+                            <label class="libelle-bloc">Âge</label>
+                            <x-editeur-texte nom="donnees.age" :contenu="$donnees['age'] ?? ''" />
                         </div>
 
-                        <div @class(['champ', 'champ--erreur' => $errors->has('donnees.concours')])>
-                            <label for="champ-concours">Concours et manifestations</label>
-                            <textarea id="champ-concours" rows="2" wire:model="donnees.concours"></textarea>
-                            @error('donnees.concours') <div class="erreur">{{ $message }}</div> @enderror
+                        <div class="bloc">
+                            <label class="libelle-bloc">Prérequis</label>
+                            <x-editeur-texte nom="donnees.prerequis" :contenu="$donnees['prerequis'] ?? ''" />
+                        </div>
+
+                        <div class="bloc">
+                            <label class="libelle-bloc">Concours et manifestations</label>
+                            <x-editeur-texte nom="donnees.concours" :contenu="$donnees['concours'] ?? ''" />
                         </div>
 
                         <div class="grille">
                             <x-champ nom="donnees.prix" libelle="Prix par année scolaire (CHF)" type="number" min="0" step="0.05" />
-                            <div @class(['champ', 'champ--erreur' => $errors->has('donnees.infos_tarif')])>
-                                <label for="champ-infos-tarif">Informations du tarif</label>
-                                <textarea id="champ-infos-tarif" rows="3" wire:model="donnees.infos_tarif" placeholder="Une information par ligne"></textarea>
-                                <div class="aide">Une information par ligne (cours d’essai, durée, assurance…).</div>
-                                @error('donnees.infos_tarif') <div class="erreur">{{ $message }}</div> @enderror
-                            </div>
+                        </div>
+
+                        <div class="bloc">
+                            <label class="libelle-bloc">Informations du tarif</label>
+                            <x-editeur-texte nom="donnees.infos_tarif" :contenu="$donnees['infos_tarif'] ?? ''" />
+                            <div class="aide">Cours d’essai, durée, assurance… (une liste à puces convient bien).</div>
                         </div>
 
                         <label class="case"><input type="checkbox" wire:model="donnees.visible"> Afficher ce groupe sur le site</label>
@@ -289,7 +293,11 @@
                             @error('donnees.moniteurs.*') <div class="erreur">{{ $message }}</div> @enderror
                         </fieldset>
 
-                        <x-champ nom="donnees.remarque" libelle="Remarque affichée" placeholder="Ex. COMPLET pour 2026-2027" />
+                        <div class="bloc">
+                            <label class="libelle-bloc">Remarque affichée</label>
+                            <x-editeur-texte nom="donnees.remarque" :contenu="$donnees['remarque'] ?? ''" />
+                            <div class="aide">Ex. COMPLET pour 2026-2027 (en rouge avec les couleurs de l’éditeur).</div>
+                        </div>
 
                         @if ($type === 'cours')
                             <label class="case"><input type="checkbox" wire:model="donnees.actif"> Cours actif</label>

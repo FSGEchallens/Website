@@ -23,11 +23,11 @@ class GroupeFactory extends Factory
             'slug' => Str::slug($nom),
             'categorie' => 'jeunesse',
             'description' => '<p>'.fake()->sentence().'</p>',
-            'age' => 'Dès 7 ans.',
-            'prerequis' => 'Aucun prérequis !',
+            'age' => '<p>Dès 7 ans.</p>',
+            'prerequis' => '<p>Aucun prérequis !</p>',
             'concours' => null,
             'prix' => 200,
-            'infos_tarif' => "3 cours d'essai\nAssurance",
+            'infos_tarif' => "<ul><li>3 cours d'essai</li><li>Assurance</li></ul>",
             'visible' => true,
         ];
     }

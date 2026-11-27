@@ -61,6 +61,8 @@ class GestionCoursTest extends TestCase
             ->set('donnees.nom', 'Gym-danse plaisir')
             ->set('donnees.description', '<p>Texte <script>alert(1)</script></p>')
             ->set('donnees.prix', '220')
+            ->set('donnees.age', '<p>De <strong>6</strong> à 7 ans<script>x</script></p>')
+            ->set('donnees.infos_tarif', '<ul><li>3 cours d’essai</li><li onclick="x">Assurance</li></ul>')
             ->call('enregistrer')
             ->assertHasNoErrors();
 
@@ -92,6 +94,9 @@ class GestionCoursTest extends TestCase
         $this->assertSame('gym-danse-plaisir-2', Groupe::latest('id')->first()->slug);
         $this->assertStringNotContainsString('script', (string) $groupe->description);
         $this->assertSame('220.00', $groupe->prix);
+        $this->assertSame('<p>De <strong>6</strong> à 7 ans</p>', $groupe->age);
+        $this->assertStringNotContainsString('onclick', (string) $groupe->infos_tarif);
+        $this->assertStringContainsString('<li>Assurance</li>', (string) $groupe->infos_tarif);
 
         $composant->call('nouveauCours', $groupe->id)
             ->set('donnees.jour', '1')

@@ -287,11 +287,11 @@ class GestionCours extends Component
             'donnees.nom' => ['required', 'string', 'max:150'],
             'donnees.categorie' => ['required', Rule::in(array_keys(Groupe::CATEGORIES))],
             'donnees.description' => ['nullable', 'string', 'max:50000'],
-            'donnees.age' => ['nullable', 'string', 'max:150'],
-            'donnees.prerequis' => ['nullable', 'string', 'max:150'],
-            'donnees.concours' => ['nullable', 'string', 'max:2000'],
+            'donnees.age' => ['nullable', 'string', 'max:5000'],
+            'donnees.prerequis' => ['nullable', 'string', 'max:5000'],
+            'donnees.concours' => ['nullable', 'string', 'max:10000'],
             'donnees.prix' => ['nullable', 'numeric', 'min:0', 'max:99999'],
-            'donnees.infos_tarif' => ['nullable', 'string', 'max:2000'],
+            'donnees.infos_tarif' => ['nullable', 'string', 'max:10000'],
             'donnees.visible' => ['boolean'],
         ]);
 
@@ -303,11 +303,11 @@ class GestionCours extends Component
             'nom' => trim($d['nom']),
             'categorie' => $d['categorie'],
             'description' => NettoyeurHtml::estVide($description) ? null : NettoyeurHtml::nettoyer($description),
-            'age' => $this->texteOuNull($d['age'] ?? null),
-            'prerequis' => $this->texteOuNull($d['prerequis'] ?? null),
-            'concours' => $this->texteOuNull($d['concours'] ?? null),
+            'age' => $this->texteRiche($d['age'] ?? null),
+            'prerequis' => $this->texteRiche($d['prerequis'] ?? null),
+            'concours' => $this->texteRiche($d['concours'] ?? null),
             'prix' => ($d['prix'] ?? '') === '' ? null : $d['prix'],
-            'infos_tarif' => $this->texteOuNull($d['infos_tarif'] ?? null),
+            'infos_tarif' => $this->texteRiche($d['infos_tarif'] ?? null),
             'visible' => (bool) ($d['visible'] ?? true),
         ]);
 
@@ -380,7 +380,7 @@ class GestionCours extends Component
             'donnees.salles.*' => ['integer', 'distinct', 'exists:salles,id'],
             'donnees.moniteurs' => ['array', 'max:10'],
             'donnees.moniteurs.*' => ['integer', 'distinct', 'exists:users,id'],
-            'donnees.remarque' => ['nullable', 'string', 'max:255'],
+            'donnees.remarque' => ['nullable', 'string', 'max:5000'],
         ];
     }
 
@@ -396,7 +396,7 @@ class GestionCours extends Component
             'heure_fin' => $this->texteOuNull($d['heure_fin'] ?? null),
             'salles' => array_values(array_map('intval', $d['salles'] ?? [])),
             'moniteurs' => array_values(array_map('intval', $d['moniteurs'] ?? [])),
-            'remarque' => $this->texteOuNull($d['remarque'] ?? null),
+            'remarque' => $this->texteRiche($d['remarque'] ?? null),
         ];
     }
 
@@ -419,6 +419,16 @@ class GestionCours extends Component
     {
         $this->fermer();
         $this->confirmation = $message;
+    }
+
+    /**
+     * Texte de l'éditeur, nettoyé (liste blanche de balises) ; null s'il est vide.
+     */
+    private function texteRiche(mixed $valeur): ?string
+    {
+        $html = (string) $valeur;
+
+        return NettoyeurHtml::estVide($html) ? null : NettoyeurHtml::nettoyer($html);
     }
 
     private function texteOuNull(mixed $valeur): ?string
