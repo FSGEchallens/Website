@@ -2,14 +2,13 @@
 
 namespace App\Console\Commands;
 
-use App\Enums\Civilite;
 use App\Enums\Role;
 use App\Models\Cours;
 use App\Models\Groupe;
 use App\Models\Salle;
-use App\Models\User;
+use App\Models\SessionCours;
+use App\Services\MembresAncienSite;
 use App\Support\NettoyeurHtml;
-use App\Support\NumeroMobile;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
@@ -36,7 +35,8 @@ use Throwable;
  * est un cours séparé.
  *
  * Sur Plesk : tâche planifiée, script site/artisan, arguments « groupes:importer ».
- * Sans doublon : un groupe déjà présent (même adresse de page) est ignoré.
+ * Sans doublon : un groupe déjà présent (même adresse de page) n'est pas recréé ; on complète seulement
+ * les moniteurs de ses cours qui n'en ont pas encore.
  */
 #[Signature('groupes:importer {--site=https://gymechallens.ch : Adresse de l\'ancien site} {--sans-membres : Ne pas créer les fiches des moniteurs manquants}')]
 #[Description('Importe les groupes, cours et sessions depuis l\'ancien site WordPress')]
@@ -86,12 +86,7 @@ class ImporterGroupes extends Command
 
         foreach (self::PAGES as $chemin => [$nom, $categorie]) {
             $slug = Str::slug($nom);
-
-            if (Groupe::where('slug', $slug)->exists()) {
-                $this->line('Déjà présent, ignoré : '.$nom);
-
-                continue;
-            }
+            $existant = Groupe::where('slug', $slug)->first();
 
             try {
                 $reponse = Http::timeout(30)->get($site.'/'.$chemin.'/');
@@ -108,6 +103,13 @@ class ImporterGroupes extends Command
             }
 
             $page = $this->analyser($reponse->body());
+
+            if ($existant !== null) {
+                $completes = DB::transaction(fn () => $this->completerMoniteurs($existant, $page));
+                $this->line('Déjà présent : '.$nom.($completes ? ' (moniteurs ajoutés sur '.$completes.' créneau(x))' : ''));
+
+                continue;
+            }
 
             DB::transaction(function () use ($page, $nom, $slug, $categorie, &$ordre): void {
                 $groupe = new Groupe([
@@ -281,21 +283,8 @@ class ImporterGroupes extends Command
         $resultat['infos_tarif'] = $infos === [] ? null : implode("\n", $infos);
         $resultat['heures_semaine'] = $this->heuresParSemaine($infos);
 
-        // Fiches des moniteurs (nom => e-mail), pour les relier aux membres.
-        foreach ($xpath->query('//div[contains(@class, "et_pb_team_member_description")]') as $fiche) {
-            $nom = $this->texte((string) $xpath->query('.//h1|.//h2|.//h3|.//h4', $fiche)->item(0)?->textContent);
-            $lien = $xpath->query('.//a[starts-with(@href, "mailto:")]', $fiche)->item(0);
-            $poste = $xpath->query('.//*[contains(@class, "et_pb_member_position")]', $fiche)->item(0)?->textContent;
-            $mobile = preg_match('/Mobile\s*:?\s*(\+?\d[\d .\/]{7,}\d)/u', $this->texte($fiche->textContent), $m) ? trim($m[1]) : null;
-
-            if ($nom !== '') {
-                $resultat['contacts'][$nom] = [
-                    'email' => $lien instanceof DOMElement ? Str::lower(trim(substr($lien->getAttribute('href'), 7))) : null,
-                    'mobile' => $mobile,
-                    'poste' => $poste ? $this->texte($poste) : null,
-                ];
-            }
-        }
+        // Fiches des moniteurs (nom => coordonnées), pour les relier aux membres.
+        $resultat['contacts'] = app(MembresAncienSite::class)->fiches($html);
 
         return $resultat;
     }
@@ -362,41 +351,42 @@ class ImporterGroupes extends Command
     }
 
     /**
-     * Fiche membre d'un moniteur de l'ancien site (niveau Moniteur, sans mot de passe ni invitation).
+     * Groupe déjà importé : complète les moniteurs des cours et des sessions qui n'en ont pas encore
+     * (créneau retrouvé par le jour et l'heure de début). Les moniteurs déjà choisis ne sont jamais modifiés.
      *
-     * @param  array{email?: ?string, mobile?: ?string, poste?: ?string}  $contact
+     * @param  array{creneaux: array<int, array{jour: int, debut: string, moniteurs: array<int, string>}>, contacts: array<string, array{email: ?string, mobile: ?string, poste: ?string}>}  $page
      */
-    private function creerMembre(string $nomComplet, array $contact): User
+    private function completerMoniteurs(Groupe $groupe, array $page): int
     {
-        $mots = preg_split('/\s+/u', trim($nomComplet)) ?: [];
-        $prenom = (string) array_shift($mots);
-        $poste = Str::lower(Str::ascii((string) ($contact['poste'] ?? '')));
+        $completes = 0;
+        $cours = $groupe->cours()->with('sessions')->get();
+        $elements = $cours->flatMap(fn (Cours $c) => $c->sessions->isEmpty() ? [$c] : $c->sessions->all());
 
-        $civilite = match (true) {
-            str_contains($poste, 'monitrice'), str_contains($poste, 'instructrice') => Civilite::Madame,
-            str_contains($poste, 'moniteur'), str_contains($poste, 'instructeur') => Civilite::Monsieur,
-            default => null,
-        };
+        foreach ($page['creneaux'] as $creneau) {
+            $element = $elements->first(fn ($e) => $e->jour === $creneau['jour'] && substr((string) $e->heure_debut, 0, 5) === $creneau['debut']);
 
-        // L'e-mail société sert d'identifiant de connexion : seulement une adresse du club encore libre.
-        $email = $contact['email'] ?? null;
+            if ($element === null) {
+                continue;
+            }
 
-        if ($email !== null && (! str_ends_with($email, '@'.config('app.domaine_email')) || User::where('email', $email)->exists())) {
-            $email = null;
+            // Session sans moniteurs propres : ce sont ceux du cours qu'il faut compléter.
+            $cible = $element instanceof SessionCours && $element->cours->idsMoniteurs() === [] && $element->idsMoniteurs() === []
+                ? $element->cours
+                : $element;
+
+            if ($cible->idsMoniteurs() === []) {
+                $cible->moniteurs = $this->relierMoniteurs($creneau['moniteurs'], $page['contacts'], $groupe->nom);
+
+                if ($cible->moniteurs !== []) {
+                    $cible->save();
+                    $completes++;
+                }
+            }
         }
 
-        $membre = new User([
-            'civilite' => $civilite,
-            'prenom' => $prenom,
-            'nom' => $mots === [] ? $prenom : implode(' ', $mots),
-            'mobile' => NumeroMobile::normaliser($contact['mobile'] ?? null),
-            'email' => $email,
-        ]);
-        $membre->forceFill(['role' => Role::Moniteur])->save();
+        $this->ajouterMoniteursSansCreneau($groupe, $page);
 
-        $this->membresCrees[$nomComplet] = '';
-
-        return $membre;
+        return $completes;
     }
 
     /**
@@ -455,15 +445,12 @@ class ImporterGroupes extends Command
         $ids = [];
 
         foreach ($noms as $nom) {
-            $email = $contacts[$nom]['email'] ?? null;
-            $membre = $email ? User::where('email', $email)->first() : null;
-            $membre ??= User::all(['id', 'prenom', 'nom'])->first(
-                fn (User $u) => Str::lower(Str::ascii($u->prenom.' '.$u->nom)) === Str::lower(Str::ascii($nom))
-                    || Str::lower(Str::ascii($u->nom.' '.$u->prenom)) === Str::lower(Str::ascii($nom))
-            );
+            $membres = app(MembresAncienSite::class);
+            $membre = $membres->trouver($nom, $contacts[$nom]['email'] ?? null);
 
             if ($membre === null && ! $this->option('sans-membres')) {
-                $membre = $this->creerMembre($nom, $contacts[$nom] ?? []);
+                $membre = $membres->creer($nom, $contacts[$nom] ?? [], Role::Moniteur);
+                $this->membresCrees[$nom] = '';
             }
 
             if (isset($this->membresCrees[$nom]) && ! str_contains($this->membresCrees[$nom], $groupe)) {

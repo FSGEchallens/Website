@@ -104,4 +104,39 @@ class ImporterGroupesTest extends TestCase
         $this->assertSame(3, Cours::count());
         $this->assertSame(3, User::count());
     }
+
+    public function test_relancer_complete_les_moniteurs_des_groupes_deja_importes(): void
+    {
+        Http::fake([
+            'exemple.test/groupes/agres-kids-concours/' => Http::response($this->page([
+                ['Mardi 18:00-20:00', 'Anna Fictive', 'Echallens, court-champs 3'],
+                ['Jeudi 18:00-20:00', 'Anna Fictive', 'Echallens, court-champs 3'],
+            ], '4h')),
+            'exemple.test/groupes/enfantine/' => Http::response($this->page([
+                ['Mardi 16:30-17:30', 'Bruno Inconnu', 'Echallens, court-champs 4'],
+                ['Jeudi 16:30-17:30', 'Anna Fictive', 'Echallens, court-champs 4'],
+            ], '1h')),
+            '*' => Http::response('', 404),
+        ]);
+
+        // Premier import sans créer de fiches : aucun moniteur n'est relié.
+        $this->artisan('groupes:importer', ['--site' => 'https://exemple.test', '--sans-membres' => true])->assertSuccessful();
+        $this->assertSame(0, User::count());
+        $this->assertTrue(Cours::all()->every(fn (Cours $c) => $c->idsMoniteurs() === []));
+
+        // Second passage : les fiches sont créées et les cours complétés, sans doublon de groupe ni de cours.
+        $this->artisan('groupes:importer', ['--site' => 'https://exemple.test'])
+            ->expectsOutputToContain('Déjà présent : Enfantine (1-2 Harmos) (moniteurs ajoutés sur 2 créneau(x))')
+            ->assertSuccessful();
+
+        $anna = User::where('email', 'anna.fictive@gymechallens.ch')->sole();
+        $bruno = User::where('nom', 'Inconnu')->sole();
+        $carla = User::where('nom', 'Exemple')->sole();
+        $enfantine = Groupe::where('slug', 'enfantine-1-2-harmos')->firstOrFail()->cours()->get();
+        $this->assertSame([$bruno->id, $carla->id], $enfantine[0]->moniteurs);
+        $this->assertSame([$anna->id, $carla->id], $enfantine[1]->moniteurs);
+        $this->assertSame([$anna->id, $carla->id], Groupe::where('slug', 'agres-kids-concours')->firstOrFail()->cours()->sole()->moniteurs);
+        $this->assertSame(2, Groupe::count());
+        $this->assertSame(3, Cours::count());
+    }
 }
