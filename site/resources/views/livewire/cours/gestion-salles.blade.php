@@ -2,7 +2,6 @@
     <div class="barre">
         <h1>Bâtiments et salles</h1>
         <div class="actions">
-            <a href="{{ route('cours.gestion') }}" class="bouton bouton--secondaire">Groupes</a>
             <button type="button" class="bouton" wire:click="ajouter">+ Nouveau bâtiment</button>
         </div>
     </div>
