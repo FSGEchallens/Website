@@ -559,3 +559,31 @@ tr:hover td { background: #fbfdf8; }
     td { border: 0; padding: .15rem .75rem; }
     td[data-label]::before { content: attr(data-label) " : "; font-weight: 600; color: var(--gris); }
 }
+
+/* Gestion des groupes et cours (arbre dépliable) */
+.arbre { background: #fff; border: 1px solid var(--gris-clair); border-radius: 6px; }
+.arbre__groupe + .arbre__groupe { border-top: 1px solid var(--gris-clair); }
+.arbre__ligne { display: flex; align-items: center; gap: .6rem; padding: .5rem .75rem; }
+.arbre__ligne--groupe { background: #f6f9f2; }
+.arbre__ligne--masquee .arbre__texte { opacity: .55; }
+.arbre__enfants { padding-left: 1.75rem; border-left: 3px solid var(--vert); margin-left: 1.3rem; }
+.arbre__cours + .arbre__cours, .arbre__ligne--session + .arbre__ligne--session { border-top: 1px dashed var(--gris-clair); }
+.arbre__plus { flex: 0 0 1.6rem; width: 1.6rem; height: 1.6rem; border: 1px solid #bbb; border-radius: 4px; background: #fff; cursor: pointer; font-weight: 700; line-height: 1; }
+.arbre__plus--vide { border-color: transparent; background: none; cursor: default; }
+.arbre__texte { flex: 1; min-width: 0; }
+.arbre__details { display: block; font-size: .85rem; color: var(--gris); }
+.arbre__actions { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .6rem; }
+.arbre__vide { margin: 0; padding: .5rem .75rem; }
+.grille--trois { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.fenetre__boite--large { max-width: 46rem; }
+.fenetre__boite { max-height: calc(100vh - 2rem); overflow-y: auto; }
+.liste-moniteurs { list-style: none; margin: 0 0 .6rem; padding: 0; }
+.liste-moniteurs li { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; padding: .2rem 0; }
+.ajout-moniteur { display: flex; gap: .5rem; flex-wrap: wrap; }
+.ajout-moniteur select { flex: 1; min-width: 12rem; padding: .4rem; font: inherit; }
+.actions--fenetre { justify-content: flex-end; margin-top: 1rem; }
+@media (max-width: 40rem) {
+    .arbre__ligne { flex-wrap: wrap; }
+    .arbre__actions { flex-basis: 100%; padding-left: 2.2rem; }
+    .arbre__enfants { padding-left: .75rem; margin-left: .5rem; }
+}

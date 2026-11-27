@@ -13,6 +13,7 @@ use App\Livewire\Auth\Connexion;
 use App\Livewire\Auth\MotDePasseOublie;
 use App\Livewire\Auth\NouveauMotDePasse;
 use App\Livewire\Auth\SaisieCode;
+use App\Livewire\Cours\GestionCours;
 use App\Livewire\Galerie\GestionAlbum;
 use App\Livewire\Membres\FicheMembre;
 use App\Livewire\Membres\ListeMembres;
@@ -156,6 +157,11 @@ Route::get('/galerie/{album}', function (Album $album) {
 // Résultats : moniteurs, comité et administrateur.
 Route::middleware(['auth', 'can:publier-resultats'])->group(function () {
     Route::livewire('/gestion/resultats', GestionResultats::class)->name('resultats.gestion');
+});
+
+// Groupes, cours et sessions : comité et administrateur.
+Route::middleware(['auth', 'can:gerer-cours'])->group(function () {
+    Route::livewire('/gestion/cours', GestionCours::class)->name('cours.gestion');
 });
 
 // Contenus du site public : comité et administrateur uniquement.

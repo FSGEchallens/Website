@@ -125,6 +125,13 @@ Refaire tout le site gymechallens.ch (actuellement sous WordPress) **pas à pas*
   - **Partenaires** : table `partenaires` (nom, lien, logo, ordre, visible), gérée par le comité et l'administrateur sur `/gestion/partenaires` (gate `gerer-contenu`). Un bouton « Modifier les partenaires » apparaît sur l'accueil pour eux.
     - Les 9 logos d'origine restent dans `public/images/partenaires`.
     - Les logos importés sont réduits à 400 × 160 au maximum et réencodés en PNG. Ils sont stockés dans `storage/app/private/logos-partenaires` et servis par `/partenaires/{id}/logo`. Les fichiers SVG sont refusés.
+  - **Groupes et cours** (tables `groupes`, `cours`, `sessions_cours`) :
+    - Un groupe correspond à une page du site : nom, adresse de la page (slug), catégorie pour le menu, description (éditeur), âge, prérequis, concours, prix par année scolaire et informations du tarif (une par ligne).
+    - Un cours a lieu en général une fois par semaine : jour, heures, salle, moniteurs, remarque (ex. « COMPLET »), actif. Un cours qui a plusieurs entraînements par semaine n'a pas d'horaire : il a des **sessions** (jour et heures obligatoires). Sur une session, une salle ou des moniteurs vides reprennent ceux du cours.
+    - Moniteurs : colonne JSON `moniteurs`, liste ordonnée d'identifiants de membres (niveau Moniteur ou plus), le premier étant le principal. Trait `App\Models\Concerns\AHoraire`.
+    - Gestion sur `/gestion/cours` (composant `Cours\GestionCours`, gate `gerer-cours` = comité et administrateur). Elle se présente comme un arbre dépliable (+ / −), avec une fenêtre de saisie, ↑ ↓ pour l'ordre et le journal sur les 3 modèles. On ne peut supprimer un groupe ou un cours que s'il est vide.
+    - **Import de l'ancien site** : commande `groupes:importer`. Elle lit les 20 pages « groupes » au moment de l'import (les noms des moniteurs ne vont jamais dans le dépôt) et relie les moniteurs aux fiches membres (même e-mail société ou même prénom et nom). Les moniteurs non trouvés sont listés dans le compte rendu. Quand plusieurs créneaux totalisent les heures hebdomadaires du tarif, ils forment un seul cours avec des sessions (cas d'Agrès kids concours). Pas de doublon si on la relance.
+    - Reste à faire : menu « Les groupes » et pages publiques générés à partir de ces tables ; saisons et inscriptions.
   - **Membres** : la table `users` sert de fiche membre, avec l'e-mail société comme identifiant de connexion.
     - Le n° AVS est chiffré dans la base.
     - L'autorisation est stockée dans la colonne `users.role` (membre, moniteur, comité, administrateur ; une seule par personne).

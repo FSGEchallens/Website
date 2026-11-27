@@ -5,7 +5,7 @@ namespace App\Enums;
 /**
  * Autorisation d'un membre (une seule par personne). Chaque niveau a aussi les droits des niveaux inférieurs :
  * Membre < Moniteur < Comité < Administrateur.
- * Le lien moniteur ↔ cours (principal / secondaire) viendra avec la gestion des cours.
+ * Les moniteurs d'un cours sont dans `cours.moniteurs` / `sessions_cours.moniteurs` (le premier est le principal).
  */
 enum Role: string
 {

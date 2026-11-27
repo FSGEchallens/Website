@@ -54,6 +54,9 @@ class AppServiceProvider extends ServiceProvider
         // Galerie photo (albums et photos) : moniteurs, comité et administrateur.
         Gate::define('gerer-galerie', fn (User $user) => $user->aAuMoins(Role::Moniteur));
 
+        // Groupes, cours et sessions : comité et administrateur.
+        Gate::define('gerer-cours', fn (User $user) => $user->aAuMoins(Role::Comite));
+
         // Journal des modifications (qui a modifié quoi, restauration) : administrateur uniquement pour le moment.
         Gate::define('consulter-journal', fn (User $user) => $user->estAdministrateur());
     }
