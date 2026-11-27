@@ -75,7 +75,7 @@ class ImporterGroupesTest extends TestCase
         $this->assertSame(1, User::where('email', 'anna.fictive@gymechallens.ch')->count(), 'Anna existait déjà.');
 
         $concours = Groupe::where('slug', 'agres-kids-concours')->firstOrFail();
-        $this->assertSame('Agrès', $concours->categorie);
+        $this->assertSame('jeunesse', $concours->categorie);
         $this->assertSame('300.00', $concours->prix);
         $this->assertSame('De 7 à 14 ans.', $concours->age);
         $this->assertSame('<p>Super <strong>cours</strong></p>', $concours->description);

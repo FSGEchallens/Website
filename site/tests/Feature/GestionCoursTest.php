@@ -66,6 +66,17 @@ class GestionCoursTest extends TestCase
 
         $groupe = Groupe::firstOrFail();
         $this->assertSame('gym-danse-plaisir', $groupe->slug);
+        $this->assertSame('jeunesse', $groupe->categorie, 'Jeunesse par défaut.');
+
+        $composant->call('modifierGroupe', $groupe->id)
+            ->assertSee('<option value="adulte">Adulte</option>', false)
+            ->set('donnees.categorie', 'autre')
+            ->call('enregistrer')
+            ->assertHasErrors(['donnees.categorie' => 'in'])
+            ->set('donnees.categorie', 'adulte')
+            ->call('enregistrer')
+            ->assertHasNoErrors();
+        $this->assertSame('Adulte', $groupe->fresh()->libelleCategorie());
 
         // L'adresse n'est pas affichée, et reste la même si le nom change ; un 2e groupe du même nom en reçoit une autre.
         $composant->call('modifierGroupe', $groupe->id)

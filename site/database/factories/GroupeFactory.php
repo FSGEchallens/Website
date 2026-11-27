@@ -21,7 +21,7 @@ class GroupeFactory extends Factory
         return [
             'nom' => $nom,
             'slug' => Str::slug($nom),
-            'categorie' => null,
+            'categorie' => 'jeunesse',
             'description' => '<p>'.fake()->sentence().'</p>',
             'age' => 'Dès 7 ans.',
             'prerequis' => 'Aucun prérequis !',

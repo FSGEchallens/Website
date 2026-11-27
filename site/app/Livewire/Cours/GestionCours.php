@@ -12,6 +12,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -52,7 +53,7 @@ class GestionCours extends Component
     public function nouveauGroupe(): void
     {
         $this->ouvrir('groupe', 0, null, [
-            'nom' => '', 'categorie' => '', 'description' => '', 'age' => '', 'prerequis' => '',
+            'nom' => '', 'categorie' => 'jeunesse', 'description' => '', 'age' => '', 'prerequis' => '',
             'concours' => '', 'prix' => '', 'infos_tarif' => '', 'visible' => true,
         ]);
     }
@@ -62,7 +63,7 @@ class GestionCours extends Component
         $groupe = Groupe::findOrFail($id);
 
         $this->ouvrir('groupe', $groupe->id, null, [
-            'nom' => $groupe->nom, 'categorie' => (string) $groupe->categorie,
+            'nom' => $groupe->nom, 'categorie' => (string) ($groupe->categorie ?? 'jeunesse'),
             'description' => (string) $groupe->description, 'age' => (string) $groupe->age,
             'prerequis' => (string) $groupe->prerequis, 'concours' => (string) $groupe->concours,
             'prix' => $groupe->prix === null ? '' : (string) (float) $groupe->prix,
@@ -284,7 +285,7 @@ class GestionCours extends Component
     {
         $this->validate([
             'donnees.nom' => ['required', 'string', 'max:150'],
-            'donnees.categorie' => ['nullable', 'string', 'max:100'],
+            'donnees.categorie' => ['required', Rule::in(array_keys(Groupe::CATEGORIES))],
             'donnees.description' => ['nullable', 'string', 'max:50000'],
             'donnees.age' => ['nullable', 'string', 'max:150'],
             'donnees.prerequis' => ['nullable', 'string', 'max:150'],
@@ -300,7 +301,7 @@ class GestionCours extends Component
 
         $groupe->fill([
             'nom' => trim($d['nom']),
-            'categorie' => $this->texteOuNull($d['categorie'] ?? null),
+            'categorie' => $d['categorie'],
             'description' => NettoyeurHtml::estVide($description) ? null : NettoyeurHtml::nettoyer($description),
             'age' => $this->texteOuNull($d['age'] ?? null),
             'prerequis' => $this->texteOuNull($d['prerequis'] ?? null),
@@ -456,7 +457,6 @@ class GestionCours extends Component
             'groupes' => $groupes,
             'membres' => User::whereIn('id', $idsMoniteurs)->get(),
             'moniteursPossibles' => $this->moniteursPossibles(),
-            'categories' => Groupe::whereNotNull('categorie')->distinct()->orderBy('categorie')->pluck('categorie'),
             'salles' => Salle::with('batiment')->get()->sortBy(fn (Salle $s) => [$s->batiment?->nom, $s->ordre, $s->nom])->values(),
             'parent' => $parent instanceof Model ? $parent : null,
         ]);

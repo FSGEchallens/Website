@@ -38,7 +38,7 @@
                             x-text="ouvert ? '−' : '+'" aria-label="Afficher les cours de {{ $groupe->nom }}">+</button>
                     <div class="arbre__texte">
                         <strong>{{ $groupe->nom }}</strong>
-                        @if ($groupe->categorie) <span class="badge">{{ $groupe->categorie }}</span> @endif
+                        @if ($groupe->libelleCategorie()) <span class="badge">{{ $groupe->libelleCategorie() }}</span> @endif
                         @unless ($groupe->visible) <span class="badge">masqué</span> @endunless
                         <span class="arbre__details">
                             {{ collect([$groupe->age, $groupe->prix !== null ? 'CHF '.rtrim(rtrim(number_format((float) $groupe->prix, 2, '.', ''), '0'), '.') : null, $groupe->cours->count().' cours'])->filter()->implode(' · ') }}
@@ -140,12 +140,14 @@
                     @if ($type === 'groupe')
                         <div class="grille">
                             <x-champ nom="donnees.nom" libelle="Nom" requis placeholder="Ex. Agrès kids plaisir" />
-                            <div class="champ">
-                                <label for="champ-categorie">Catégorie (pour le menu)</label>
-                                <input id="champ-categorie" type="text" wire:model="donnees.categorie" list="liste-categories" placeholder="Ex. Agrès">
-                                <datalist id="liste-categories">
-                                    @foreach ($categories as $categorie) <option value="{{ $categorie }}"></option> @endforeach
-                                </datalist>
+                            <div @class(['champ', 'champ--erreur' => $errors->has('donnees.categorie')])>
+                                <label for="champ-categorie">Catégorie (pour le menu) <span aria-hidden="true">*</span></label>
+                                <select id="champ-categorie" wire:model="donnees.categorie">
+                                    @foreach (\App\Models\Groupe::CATEGORIES as $valeur => $libelle)
+                                        <option value="{{ $valeur }}">{{ $libelle }}</option>
+                                    @endforeach
+                                </select>
+                                @error('donnees.categorie') <div class="erreur">{{ $message }}</div> @enderror
                             </div>
                         </div>
 

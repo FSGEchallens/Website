@@ -21,6 +21,14 @@ class Groupe extends Model
     /** @use HasFactory<GroupeFactory> */
     use HasFactory, Journalise;
 
+    /** Catégories pour le menu « Les groupes ». */
+    public const CATEGORIES = ['jeunesse' => 'Jeunesse', 'adulte' => 'Adulte'];
+
+    public function libelleCategorie(): ?string
+    {
+        return self::CATEGORIES[$this->categorie] ?? null;
+    }
+
     /**
      * @return array<string, string>
      */
