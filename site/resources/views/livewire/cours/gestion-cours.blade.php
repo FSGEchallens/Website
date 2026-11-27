@@ -231,11 +231,9 @@
                                     @endforelse
                                 </div>
                             </div>
-                            <div class="aide">
-                                Plusieurs salles possibles si elles sont dans le même bâtiment (ex. Court-Champ 3-4 : Salle 3 + Salle 4 pour la salle double entière).
-                                @if ($type === 'session') Sans salle cochée, ce sont celles du cours. @endif
-                                Une salle manque ? Ajoutez-la dans <a href="{{ route('salles.gestion') }}" target="_blank">Bâtiments et salles</a>, puis rouvrez cette fenêtre.
-                            </div>
+                            @if ($type === 'session')
+                                <div class="aide">Sans salle cochée, ce sont celles du cours.</div>
+                            @endif
                             @error('donnees.salles') <div class="erreur" role="alert">{{ $message }}</div> @enderror
                             @error('donnees.salles.*') <div class="erreur" role="alert">{{ $message }}</div> @enderror
                         </div>
