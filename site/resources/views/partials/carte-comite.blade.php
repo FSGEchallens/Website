@@ -6,5 +6,5 @@
     <div><a href="mailto:{{ $membre->emailComite() }}">{{ $membre->emailComite() }}</a></div>
 @endif
 @if ($membre->afficher_mobile && $membre->mobile)
-    <div><a href="tel:{{ str_replace(' ', '', $membre->mobile) }}">{{ $membre->mobile }}</a></div>
+    <div>{{ $membre->mobile }}</div>
 @endif
